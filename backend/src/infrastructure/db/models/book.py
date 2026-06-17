@@ -35,8 +35,8 @@ class Book(Base):
     status = Column("status_cd", String(20), nullable=False, default="DRAFT")
     cover_url = Column(String(1000))
     isbn = Column(String(20))
-    # author_id 는 계정 피처 도입 후 FK 연결 (지금은 nullable 보류)
-    author_id = Column(UUID(as_uuid=True))
+    # 작가 = usr.account (role_cd=AUTHOR). 미배정 책 허용 위해 nullable.
+    author_id = Column(UUID(as_uuid=True), ForeignKey("usr.account.id", ondelete="SET NULL"))
     created_at = Column("created_ts", DateTime(timezone=True), default=_now, nullable=False)
     updated_at = Column("updated_ts", DateTime(timezone=True), default=_now, onupdate=_now, nullable=False)
 
