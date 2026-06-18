@@ -5,7 +5,15 @@ import { listStore } from '../services/api/books';
 
 function Cover({ url, title }) {
   if (url) {
-    return <img src={url} alt={title} style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: 8 }} />;
+    return (
+      <img
+        src={url}
+        alt={title}
+        loading="lazy"
+        decoding="async"
+        style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: 8 }}
+      />
+    );
   }
   return (
     <div
