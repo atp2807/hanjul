@@ -26,16 +26,16 @@ python3.12 -m venv .venv
 cp .env.example .env
 .venv/bin/alembic upgrade head        # 스키마 생성: pub / usr / bill
 .venv/bin/python scripts/seed.py      # 샘플 한글책 시드 → bookId 출력
-.venv/bin/uvicorn main:app --reload   # http://localhost:8000  (문서 /docs)
+.venv/bin/uvicorn main:app --port 28000 --reload   # http://localhost:28000  (문서 /docs)
 ```
 
 ## 3. 리더 (다른 터미널)
 ```bash
 cd web
 npm install
-npm run dev                           # http://localhost:5173
+npm run dev                           # http://localhost:35173
 ```
-브라우저에서 **`http://localhost:5173/?bookId=<2번에서 출력된 bookId>`** 열기:
+브라우저에서 **`http://localhost:35173/?bookId=<2번에서 출력된 bookId>`** 열기:
 - 샘플 한글책이 **Pretext로 조판**되어 페이지로 표시
 - **A+/A-** → 즉시 재조판 / **이전·다음** → 페이지 넘김
 
