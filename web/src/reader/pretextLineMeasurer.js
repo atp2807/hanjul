@@ -28,10 +28,12 @@ export function createPretextLineMeasurer({ contentWidth, scale = 1 }) {
     const text = plainText(block.html);
     const prepared = prepareWithSegments(text, font, { wordBreak: 'keep-all' });
     const { lines } = layoutWithLines(prepared, contentWidth, lineHeight);
+    // Pretext line 객체는 줄 문자열을 .text 로 제공한다.
+    // (start/end 는 숫자 인덱스가 아니라 {segmentIndex, graphemeIndex} 객체라 slice 불가)
     return {
       lineHeight,
       marginBottom,
-      lines: lines.map((ln) => text.slice(ln.start, ln.end)),
+      lines: lines.map((ln) => ln.text),
     };
   };
 }
