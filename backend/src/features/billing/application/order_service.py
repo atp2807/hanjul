@@ -34,6 +34,12 @@ class OrderService:
             raise OrderNotFound(order_id)
         return order
 
+    async def owns(self, account_id: UUID, book_id: UUID) -> bool:
+        return await self.repo.owns(account_id, book_id)
+
+    async def list_library(self, account_id: UUID):
+        return await self.repo.list_purchased_books(account_id)
+
     async def confirm_payment(self, order_id: UUID, pg_tx_id: str) -> SettlementView:
         order = await self.get_order(order_id)
         if order.status_cd == PAID:

@@ -3,7 +3,7 @@ from typing import Protocol
 from uuid import UUID
 
 from src.engine.settlement.calculate import SettlementBreakdown
-from src.features.billing.domain.models import OrderView
+from src.features.billing.domain.models import OrderView, PurchasedBook
 
 
 class OrderRepository(Protocol):
@@ -19,4 +19,12 @@ class OrderRepository(Protocol):
         self, order_id: UUID, pg_provider_cd: str, pg_tx_id: str, breakdown: SettlementBreakdown
     ) -> None:
         """주문을 PAID 로 전이하고 정산 레코드를 함께 기록 (원자적)."""
+        ...
+
+    async def owns(self, account_id: UUID, book_id: UUID) -> bool:
+        """계정이 그 책을 구매(PAID)했는지."""
+        ...
+
+    async def list_purchased_books(self, account_id: UUID) -> list[PurchasedBook]:
+        """계정이 구매한 책 목록 (내 서재)."""
         ...

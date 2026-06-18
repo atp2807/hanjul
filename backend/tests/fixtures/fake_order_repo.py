@@ -35,3 +35,20 @@ class FakeOrderRepository:
     async def mark_paid_with_settlement(self, order_id, pg_provider_cd, pg_tx_id, breakdown) -> None:
         self.orders[order_id].status_cd = PAID
         self.settlements[order_id] = breakdown
+
+    async def owns(self, account_id, book_id) -> bool:
+        return any(
+            o.buyer_account_id == account_id and o.book_id == book_id and o.status_cd == PAID
+            for o in self.orders.values()
+        )
+
+    async def list_purchased_books(self, account_id):
+        from src.features.billing.domain.models import PurchasedBook
+
+        seen = {}
+        for o in self.orders.values():
+            if o.buyer_account_id == account_id and o.status_cd == PAID:
+                seen[o.book_id] = PurchasedBook(
+                    book_id=o.book_id, title="", kind="", price_amt=o.amount_amt, cover_url=None
+                )
+        return list(seen.values())

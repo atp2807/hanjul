@@ -35,3 +35,11 @@ class SettlementResponse(_Camel):
     platform_fee_amt: int
     withholding_amt: int
     payout_amt: int
+
+
+class LibraryItemResponse(_Camel):
+    book_id: UUID
+    title: str
+    kind: str
+    price_amt: int | None
+    cover_url: str | None

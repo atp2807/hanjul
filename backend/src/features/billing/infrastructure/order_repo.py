@@ -2,10 +2,12 @@
 from datetime import datetime, timezone
 from uuid import UUID
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.engine.settlement.calculate import SettlementBreakdown
-from src.features.billing.domain.models import OrderView
+from src.features.billing.domain.models import OrderView, PurchasedBook
+from src.infrastructure.db.models.book import Book
 from src.infrastructure.db.models.order import Order, Settlement
 
 
@@ -58,3 +60,34 @@ class SqlOrderRepository:
             )
         )
         await self.session.commit()
+
+    async def owns(self, account_id, book_id) -> bool:
+        stmt = (
+            select(Order.id)
+            .where(
+                Order.buyer_account_id == account_id,
+                Order.book_id == book_id,
+                Order.status_cd == "PAID",
+            )
+            .limit(1)
+        )
+        return (await self.session.execute(stmt)).scalar_one_or_none() is not None
+
+    async def list_purchased_books(self, account_id) -> list[PurchasedBook]:
+        stmt = (
+            select(Book)
+            .join(Order, Order.book_id == Book.id)
+            .where(Order.buyer_account_id == account_id, Order.status_cd == "PAID")
+            .distinct()
+        )
+        rows = (await self.session.execute(stmt)).scalars().all()
+        return [
+            PurchasedBook(
+                book_id=b.id,
+                title=b.title,
+                kind=b.kind,
+                price_amt=int(b.price_amt) if b.price_amt is not None else None,
+                cover_url=b.cover_url,
+            )
+            for b in rows
+        ]

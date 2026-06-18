@@ -57,3 +57,13 @@ async def test_external_channel_uses_60_percent():
     result = await svc.confirm_payment(oid, "tx")
     assert result.gross_amt == 6000
     assert result.payout_amt == 5802
+
+
+async def test_owns_only_after_payment():
+    svc, _ = make_service(ok=True)
+    book_id, buyer_id = uuid.uuid4(), uuid.uuid4()
+    oid = await svc.create_order(book_id, buyer_id, 5000, "SELF")
+    assert await svc.owns(buyer_id, book_id) is False  # 결제 전
+    await svc.confirm_payment(oid, "tx")
+    assert await svc.owns(buyer_id, book_id) is True  # 결제 후
+    assert await svc.owns(uuid.uuid4(), book_id) is False  # 다른 사람

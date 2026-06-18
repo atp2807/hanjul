@@ -26,6 +26,16 @@ class SettlementView:
     payout_amt: int
 
 
+@dataclass
+class PurchasedBook:
+    """내 서재 항목 — 구매한 책의 요약."""
+    book_id: UUID
+    title: str
+    kind: str
+    price_amt: int | None
+    cover_url: str | None
+
+
 class BillingError(Exception):
     pass
 
