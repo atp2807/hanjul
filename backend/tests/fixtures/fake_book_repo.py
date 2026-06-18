@@ -46,6 +46,7 @@ class FakeBookRepository:
             kind=meta["kind"],
             language=meta["language"],
             status=meta["status"],
+            price_amt=meta.get("price_amt"),
             chapters=[
                 ChapterView(
                     id=c["id"],

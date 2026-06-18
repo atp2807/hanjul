@@ -55,6 +55,7 @@ class SqlBookRepository:
             kind=book.kind,
             language=book.language,
             status=book.status,
+            price_amt=int(book.price_amt) if book.price_amt is not None else None,
             chapters=[
                 ChapterView(
                     id=c.id,

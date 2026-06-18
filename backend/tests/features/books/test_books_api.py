@@ -11,15 +11,20 @@ from src.config.settings import settings
 settings.DEBUG = False
 
 from main import app  # noqa: E402
+from src.features.billing.application.order_service import OrderService  # noqa: E402
+from src.features.billing.presentation.dependencies import get_order_service  # noqa: E402
 from src.features.books.application.book_service import BookService  # noqa: E402
 from src.features.books.presentation.dependencies import get_book_service  # noqa: E402
 from tests.fixtures.fake_book_repo import FakeBookRepository  # noqa: E402
+from tests.fixtures.fake_order_repo import FakeGateway, FakeOrderRepository  # noqa: E402
 
 
 @pytest.fixture
 def client():
     repo = FakeBookRepository()
     app.dependency_overrides[get_book_service] = lambda: BookService(repo)
+    # content 엔드포인트가 entitlement(owns) 위해 order_service 에 의존 → Fake 주입
+    app.dependency_overrides[get_order_service] = lambda: OrderService(FakeOrderRepository(), FakeGateway())
     with TestClient(app) as c:
         yield c
     app.dependency_overrides.clear()

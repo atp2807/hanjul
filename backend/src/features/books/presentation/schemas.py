@@ -49,4 +49,6 @@ class BookContentResponse(_Camel):
     kind: str
     language: str
     status: str
+    price_amt: int | None = None
+    is_preview: bool = False
     chapters: list[ChapterResponse]

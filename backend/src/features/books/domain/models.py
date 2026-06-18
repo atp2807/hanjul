@@ -30,7 +30,29 @@ class BookView:
     kind: str
     language: str
     status: str
+    price_amt: int | None = None
     chapters: list[ChapterView] = field(default_factory=list)
+
+
+def to_preview(content: BookView, limit: int) -> BookView:
+    """앞 limit개 블록만 남긴 미리보기 뷰 (장 경계 가로질러 누적)."""
+    remaining = limit
+    chapters: list[ChapterView] = []
+    for ch in content.chapters:
+        if remaining <= 0:
+            break
+        blocks = ch.blocks[:remaining]
+        remaining -= len(blocks)
+        chapters.append(ChapterView(id=ch.id, title=ch.title, order_no=ch.order_no, blocks=blocks))
+    return BookView(
+        id=content.id,
+        title=content.title,
+        kind=content.kind,
+        language=content.language,
+        status=content.status,
+        price_amt=content.price_amt,
+        chapters=chapters,
+    )
 
 
 @dataclass
