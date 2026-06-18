@@ -10,10 +10,10 @@ docker compose up -d        # postgres:16, :5432
 # .env: DATABASE_URL=postgresql+asyncpg://hanjul:hanjul@localhost:5432/hanjul
 ```
 
-**옵션 B — 원격 RDS (SSH 터널)** ← 현재 셋업
+**옵션 B — 원격 RDS (SSH 터널)**
 ```bash
-# 터널 (localhost:5433 → RDS)
-ssh -i <key.pem> -N -L 5433:<RDS_HOST>:<RDS_PORT> ubuntu@<BASTION_HOST> -p <SSH_PORT>
+# 터널 (localhost:5433 → RDS). 호스트·포트·키는 비공개 — 내부 인프라 노트 참조
+ssh -i <KEY.pem> -N -L 5433:<RDS_HOST>:<RDS_PORT> <USER>@<BASTION_HOST> -p <SSH_PORT>
 # .env: DATABASE_URL=postgresql+asyncpg://<user>:<pw>@127.0.0.1:5433/hanjul_ebook
 # (전용 DB hanjul_ebook 사용 — 운영 데이터와 격리)
 ```
