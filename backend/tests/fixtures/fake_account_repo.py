@@ -11,6 +11,12 @@ class FakeAccountRepository:
     async def find_by_credential(self, provider_cd: str, provider_user_id: str):
         return self.by_cred.get((provider_cd, provider_user_id))
 
+    async def get_account(self, account_id):
+        for acc in self.by_cred.values():
+            if acc.id == account_id:
+                return acc
+        return None
+
     async def create_with_credential(self, profile: SocialProfile) -> AuthAccount:
         acc = AuthAccount(
             id=uuid.uuid4(),

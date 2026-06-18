@@ -1,5 +1,6 @@
 """account 리포지토리 포트."""
 from typing import Protocol
+from uuid import UUID
 
 from src.features.auth.domain.models import AuthAccount, SocialProfile
 
@@ -10,4 +11,8 @@ class AccountRepository(Protocol):
 
     async def create_with_credential(self, profile: SocialProfile) -> AuthAccount:
         """소셜 프로필로 account + credential 을 함께 생성."""
+        ...
+
+    async def get_account(self, account_id: UUID) -> AuthAccount | None:
+        """id 로 계정 조회 (GET /me 등)."""
         ...

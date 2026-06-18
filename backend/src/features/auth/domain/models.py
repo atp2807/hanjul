@@ -20,6 +20,13 @@ class AuthAccount:
     role_cd: str
 
 
+@dataclass(frozen=True)
+class AccountPrincipal:
+    """JWT 클레임에서 복원한 인증 주체 (DB 조회 없이 authz/entitlement용)."""
+    id: UUID
+    role_cd: str
+
+
 @dataclass
 class AuthResult:
     account: AuthAccount
