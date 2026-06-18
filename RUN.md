@@ -2,9 +2,20 @@
 
 정본 → 조판 → 스토어 → 결제 → 정산 → 리더를 실제로 돌려보는 경로.
 
-## 1. Postgres 띄우기
+## 1. Postgres
+
+**옵션 A — 로컬 docker**
 ```bash
 docker compose up -d        # postgres:16, :5432
+# .env: DATABASE_URL=postgresql+asyncpg://hanjul:hanjul@localhost:5432/hanjul
+```
+
+**옵션 B — 원격 RDS (SSH 터널)** ← 현재 셋업
+```bash
+# 터널 (localhost:5433 → RDS)
+ssh -i <key.pem> -N -L 5433:<RDS_HOST>:<RDS_PORT> ubuntu@<BASTION_HOST> -p <SSH_PORT>
+# .env: DATABASE_URL=postgresql+asyncpg://<user>:<pw>@127.0.0.1:5433/hanjul_ebook
+# (전용 DB hanjul_ebook 사용 — 운영 데이터와 격리)
 ```
 
 ## 2. 백엔드 (Python 3.12)
