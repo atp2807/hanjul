@@ -1,11 +1,22 @@
 import { apiClient } from './api_client';
 
-// GET /api/books/{id}/content → { id, title, chapters: [{ blocks: [{id, blockType, html}] }] }
+// 스토어 — 출판된 책 목록 (검색)
+export function listStore(q) {
+  const qs = q ? `?q=${encodeURIComponent(q)}` : '';
+  return apiClient.get(`/store/books${qs}`);
+}
+
+// 스토어 — 책 상세 (출판본만)
+export function getStoreDetail(bookId) {
+  return apiClient.get(`/store/books/${bookId}`);
+}
+
+// 정본 — 리더용 본문 (장/블록)
 export function getBookContent(bookId) {
   return apiClient.get(`/books/${bookId}/content`);
 }
 
-// 정본 응답을 리더가 쓰는 평면 블록 리스트로 변환 (모든 장의 블록 이어붙임).
+// 정본 응답을 리더가 쓰는 평면 블록 리스트로 (모든 장의 블록 이어붙임)
 export function flattenBlocks(content) {
   return content.chapters.flatMap((ch) =>
     ch.blocks.map((b) => ({ id: b.id, type: b.blockType, html: b.html })),
