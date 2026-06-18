@@ -34,6 +34,10 @@ class Settings(BaseSettings):
     # ── 결제(PG) ────────────────────────────────────────
     PORTONE_API_SECRET: str = ""
 
+    # ── AI 표지(novelpotato) ────────────────────────────
+    COVER_API_URL: str = ""
+    COVER_API_KEY: str = ""
+
     # ── 일반 ────────────────────────────────────────────
     DEBUG: bool = True
 
