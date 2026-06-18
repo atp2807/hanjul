@@ -9,7 +9,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, String, Integer, Text, ForeignKey, DateTime
+from sqlalchemy import Column, String, Integer, Numeric, Text, ForeignKey, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -35,6 +35,10 @@ class Book(Base):
     status = Column("status_cd", String(20), nullable=False, default="DRAFT")
     cover_url = Column(String(1000))
     isbn = Column(String(20))
+    # 판매가 (원 단위 정수). 출판 전엔 NULL 가능.
+    price_amt = Column(Numeric(15, 0))
+    # 출판(게시) 시각. NULL = 미출판.
+    published_at = Column("published_ts", DateTime(timezone=True))
     # 작가 = usr.account (role_cd=AUTHOR). 미배정 책 허용 위해 nullable.
     author_id = Column(UUID(as_uuid=True), ForeignKey("usr.account.id", ondelete="SET NULL"))
     created_at = Column("created_ts", DateTime(timezone=True), default=_now, nullable=False)

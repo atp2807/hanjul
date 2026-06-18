@@ -3,6 +3,7 @@ from fastapi import APIRouter
 
 from src.features.auth.presentation.endpoints import router as auth_router
 from src.features.books.presentation.endpoints import router as books_router
+from src.features.catalog.presentation.endpoints import router as catalog_router
 
 router = APIRouter(prefix="/api")
 
@@ -14,3 +15,4 @@ async def health() -> dict:
 
 router.include_router(books_router)
 router.include_router(auth_router)
+router.include_router(catalog_router)
