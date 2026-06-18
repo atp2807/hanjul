@@ -31,6 +31,9 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_SECRET: str = ""
     GOOGLE_REDIRECT_URI: str = "http://localhost:8000/api/auth/google/callback"
 
+    # ── 결제(PG) ────────────────────────────────────────
+    PORTONE_API_SECRET: str = ""
+
     # ── 일반 ────────────────────────────────────────────
     DEBUG: bool = True
 
