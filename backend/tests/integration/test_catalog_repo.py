@@ -29,6 +29,24 @@ async def test_publish_flow_lists_in_store(sessionmaker):
         assert any(b.id == book_id for b in listed)
 
 
+async def test_list_store_filters_by_kind(sessionmaker):
+    async with sessionmaker() as s:
+        book_id = await SqlBookRepository(s).create_book(title="일반책", kind="BOOK", language="ko")
+        novel_id = await SqlBookRepository(s).create_book(title="웹소설책", kind="WEBNOVEL", language="ko")
+        svc = CatalogService(SqlCatalogRepository(s))
+        for bid in (book_id, novel_id):
+            await svc.set_price(bid, 1000)
+            await svc.submit_for_review(bid)
+            await svc.publish(bid)
+
+    async with sessionmaker() as s2:
+        svc = CatalogService(SqlCatalogRepository(s2))
+        books = await svc.list_store(kind="BOOK")
+        novels = await svc.list_store(kind="WEBNOVEL")
+        assert all(b.kind == "BOOK" for b in books) and any(b.id == book_id for b in books)
+        assert all(b.kind == "WEBNOVEL" for b in novels) and any(b.id == novel_id for b in novels)
+
+
 async def test_unpublished_not_in_store(sessionmaker):
     book_id = await _make_book(sessionmaker, "초안책")
     async with sessionmaker() as s:

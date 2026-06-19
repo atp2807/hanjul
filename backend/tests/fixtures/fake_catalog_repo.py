@@ -27,8 +27,10 @@ class FakeCatalogRepository:
     async def set_author(self, book_id: UUID, author_id: UUID) -> None:
         self.books[book_id].author_id = author_id
 
-    async def list_published(self, q, limit, offset) -> list[BookSummary]:
+    async def list_published(self, q, limit, offset, kind=None) -> list[BookSummary]:
         rows = [b for b in self.books.values() if b.status == PUBLISHED]
         if q:
             rows = [b for b in rows if q.lower() in b.title.lower()]
+        if kind:
+            rows = [b for b in rows if b.kind == kind]
         return rows[offset : offset + limit]

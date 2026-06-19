@@ -19,5 +19,7 @@ class CatalogRepository(Protocol):
     async def set_author(self, book_id: UUID, author_id: UUID) -> None:
         ...
 
-    async def list_published(self, q: str | None, limit: int, offset: int) -> list[BookSummary]:
+    async def list_published(
+        self, q: str | None, limit: int, offset: int, kind: str | None = None
+    ) -> list[BookSummary]:
         ...

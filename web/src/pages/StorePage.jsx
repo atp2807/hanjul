@@ -41,16 +41,23 @@ export function StorePage() {
   const [items, setItems] = useState([]);
   const [q, setQ] = useState('');
   const [query, setQuery] = useState('');
+  const [kind, setKind] = useState(''); // '' | BOOK | WEBNOVEL
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     setLoading(true);
-    listStore(query)
+    listStore(query, kind || undefined)
       .then((d) => setItems(d.items))
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [query]);
+  }, [query, kind]);
+
+  const TABS = [
+    ['', '전체'],
+    ['BOOK', '일반서적'],
+    ['WEBNOVEL', '웹소설'],
+  ];
 
   return (
     <div style={{ maxWidth: 980, margin: '0 auto', padding: '28px 24px' }}>
@@ -71,6 +78,26 @@ export function StorePage() {
           />
           <button style={{ padding: '8px 14px', borderRadius: 8 }}>검색</button>
         </form>
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
+        {TABS.map(([value, label]) => (
+          <button
+            key={value}
+            onClick={() => setKind(value)}
+            style={{
+              padding: '6px 14px',
+              borderRadius: 999,
+              border: '1px solid #ddd',
+              background: kind === value ? '#111' : '#fff',
+              color: kind === value ? '#fff' : '#333',
+              fontWeight: 600,
+              fontSize: 14,
+            }}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {error && <p style={{ color: 'crimson' }}>불러오기 실패: {error}</p>}

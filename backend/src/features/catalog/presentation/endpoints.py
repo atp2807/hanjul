@@ -75,11 +75,12 @@ async def publish(book_id: UUID, svc: CatalogService = Depends(get_catalog_servi
 @router.get("/store/books", response_model=StoreListResponse)
 async def store_list(
     q: str | None = None,
+    kind: str | None = None,  # BOOK | WEBNOVEL
     limit: int = 20,
     offset: int = 0,
     svc: CatalogService = Depends(get_catalog_service),
 ) -> StoreListResponse:
-    items = await svc.list_store(q, limit, offset)
+    items = await svc.list_store(q, kind, limit, offset)
     return StoreListResponse(items=[_summary_response(s) for s in items], count=len(items))
 
 

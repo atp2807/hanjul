@@ -49,10 +49,14 @@ class SqlCatalogRepository:
         b.author_id = author_id
         await self.session.commit()
 
-    async def list_published(self, q: str | None, limit: int, offset: int) -> list[BookSummary]:
+    async def list_published(
+        self, q: str | None, limit: int, offset: int, kind: str | None = None
+    ) -> list[BookSummary]:
         stmt = select(Book).where(Book.status == PUBLISHED)
         if q:
             stmt = stmt.where(Book.title.ilike(f"%{q}%"))
-        stmt = stmt.order_by(Book.published_at.desc()).limit(limit).offset(offset)
+        if kind:
+            stmt = stmt.where(Book.kind == kind)
+        stmt = stmt.order_by(Book.published_at.desc()).limit(limit).offset(offset)  # 최신순
         rows = (await self.session.execute(stmt)).scalars().all()
         return [_to_summary(b) for b in rows]

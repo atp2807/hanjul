@@ -48,8 +48,10 @@ class CatalogService:
             raise PriceRequired()
         await self.repo.set_status(book_id, PUBLISHED, now or datetime.now(timezone.utc))
 
-    async def list_store(self, q: str | None = None, limit: int = 20, offset: int = 0) -> list[BookSummary]:
-        return await self.repo.list_published(q, limit, offset)
+    async def list_store(
+        self, q: str | None = None, kind: str | None = None, limit: int = 20, offset: int = 0
+    ) -> list[BookSummary]:
+        return await self.repo.list_published(q, limit, offset, kind)
 
     async def get_store_detail(self, book_id: UUID) -> BookSummary:
         s = await self._require(book_id)
