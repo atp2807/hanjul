@@ -48,6 +48,24 @@ class CatalogService:
             raise PriceRequired()
         await self.repo.set_status(book_id, PUBLISHED, now or datetime.now(timezone.utc))
 
+    async def auto_publish(self, book_id: UUID, now: datetime | None = None) -> None:
+        """즉시 출간 — 심사 단계 생략하고 바로 게시. 가격은 필수."""
+        s = await self._require(book_id)
+        if s.price_amt is None:
+            raise PriceRequired()
+        await self.repo.set_status(book_id, PUBLISHED, now or datetime.now(timezone.utc))
+
+    async def schedule_publish(self, book_id: UUID, when: datetime) -> None:
+        """예약 발행 — when 시각에 스케줄러가 자동 게시. 가격은 필수."""
+        s = await self._require(book_id)
+        if s.price_amt is None:
+            raise PriceRequired()
+        await self.repo.set_scheduled(book_id, when)
+
+    async def publish_scheduled_due(self, now: datetime) -> int:
+        """예약 시각이 지난 책들 자동 게시 (스케줄러가 호출)."""
+        return await self.repo.publish_due(now)
+
     async def list_store(
         self, q: str | None = None, kind: str | None = None, limit: int = 20, offset: int = 0
     ) -> list[BookSummary]:

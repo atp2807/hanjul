@@ -23,6 +23,7 @@ from src.features.catalog.presentation.dependencies import get_catalog_service
 from src.features.catalog.presentation.schemas import (
     AssignAuthorRequest,
     BookSummaryResponse,
+    SchedulePublishRequest,
     SetIsbnRequest,
     SetPriceRequest,
     StoreListResponse,
@@ -78,6 +79,30 @@ async def publish(book_id: UUID, svc: CatalogService = Depends(get_catalog_servi
         raise HTTPException(404, "book not found")
     except InvalidTransition as e:
         raise HTTPException(409, str(e))
+    except PriceRequired as e:
+        raise HTTPException(422, str(e))
+
+
+@router.post("/books/{book_id}/publish-now", status_code=204)
+async def publish_now(book_id: UUID, svc: CatalogService = Depends(get_catalog_service)) -> None:
+    """즉시 출간 (심사 생략)."""
+    try:
+        await svc.auto_publish(book_id)
+    except BookNotFound:
+        raise HTTPException(404, "book not found")
+    except PriceRequired as e:
+        raise HTTPException(422, str(e))
+
+
+@router.post("/books/{book_id}/schedule", status_code=204)
+async def schedule_publish(
+    book_id: UUID, body: SchedulePublishRequest, svc: CatalogService = Depends(get_catalog_service)
+) -> None:
+    """예약 발행 — 지정 시각에 자동 게시."""
+    try:
+        await svc.schedule_publish(book_id, body.publish_at)
+    except BookNotFound:
+        raise HTTPException(404, "book not found")
     except PriceRequired as e:
         raise HTTPException(422, str(e))
 

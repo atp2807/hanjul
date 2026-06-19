@@ -39,6 +39,8 @@ class Book(Base):
     price_amt = Column(Numeric(15, 0))
     # 출판(게시) 시각. NULL = 미출판.
     published_at = Column("published_ts", DateTime(timezone=True))
+    # 예약발행 시각. 스케줄러가 이 시각 지나면 자동 게시. NULL = 예약 없음.
+    scheduled_publish_at = Column("scheduled_publish_ts", DateTime(timezone=True))
     # 작가 = usr.account (role_cd=AUTHOR). 미배정 책 허용 위해 nullable.
     author_id = Column(UUID(as_uuid=True), ForeignKey("usr.account.id", ondelete="SET NULL"))
     created_at = Column("created_ts", DateTime(timezone=True), default=_now, nullable=False)

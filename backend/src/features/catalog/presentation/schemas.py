@@ -22,6 +22,10 @@ class SetIsbnRequest(_Camel):
     isbn: str
 
 
+class SchedulePublishRequest(_Camel):
+    publish_at: datetime
+
+
 class BookSummaryResponse(_Camel):
     id: UUID
     title: str

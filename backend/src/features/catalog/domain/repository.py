@@ -22,6 +22,12 @@ class CatalogRepository(Protocol):
     async def set_isbn(self, book_id: UUID, isbn: str) -> None:
         ...
 
+    async def set_scheduled(self, book_id: UUID, when) -> None:
+        ...
+
+    async def publish_due(self, now) -> int:
+        ...
+
     async def list_published(
         self, q: str | None, limit: int, offset: int, kind: str | None = None
     ) -> list[BookSummary]:
