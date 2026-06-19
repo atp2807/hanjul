@@ -1,8 +1,11 @@
 """books API 엔드포인트."""
+from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import Response
 
+from src.engine.publishing.epub import EpubBook, EpubChapter, build_epub
 from src.features.auth.domain.models import AccountPrincipal
 from src.features.auth.presentation.dependencies import get_current_account_optional
 from src.features.billing.application.order_service import OrderService
@@ -75,3 +78,31 @@ async def get_content(
     resp = BookContentResponse.model_validate(to_preview(content, PREVIEW_BLOCK_LIMIT))
     resp.is_preview = True
     return resp
+
+
+@router.get("/{book_id}/epub")
+async def download_epub(
+    book_id: UUID, service: BookService = Depends(get_book_service)
+) -> Response:
+    """정본 → EPUB 3 파일 다운로드 (서점 유통·소장의 기본 산출물)."""
+    try:
+        content = await service.get_content(book_id)
+    except BookNotFound:
+        raise HTTPException(status_code=404, detail="book not found")
+
+    epub_book = EpubBook(
+        title=content.title,
+        language=content.language,
+        identifier=f"urn:uuid:{content.id}",  # ISBN 연동은 #14에서
+        chapters=[
+            EpubChapter(title=ch.title, html="\n".join(b.html for b in ch.blocks))
+            for ch in content.chapters
+        ],
+    )
+    modified = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    data = build_epub(epub_book, modified)
+    return Response(
+        content=data,
+        media_type="application/epub+zip",
+        headers={"Content-Disposition": f'attachment; filename="{content.id}.epub"'},
+    )
