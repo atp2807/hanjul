@@ -33,6 +33,9 @@ export function Header() {
       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12 }}>
         {user ? (
           <>
+            <Link to="/studio" style={{ fontSize: 14, color: '#333', textDecoration: 'none' }}>
+              스튜디오
+            </Link>
             <Link to="/library" style={{ fontSize: 14, color: '#333', textDecoration: 'none' }}>
               내 서재
             </Link>
