@@ -22,3 +22,27 @@ export function submitBook(bookId) {
 export function publishBook(bookId) {
   return apiClient.post(`/books/${bookId}/publish`);
 }
+// 즉시 출간 (심사 생략)
+export function publishNow(bookId) {
+  return apiClient.post(`/books/${bookId}/publish-now`);
+}
+// 예약 발행 — ISO 시각 (백그라운드 스케줄러가 게시)
+export function schedulePublish(bookId, publishAt) {
+  return apiClient.post(`/books/${bookId}/schedule`, { publishAt });
+}
+export function setIsbn(bookId, isbn) {
+  return apiClient.put(`/books/${bookId}/isbn`, { isbn });
+}
+// 서점 배포 — channel: KYOBO | YES24 | ALADIN ...
+export function distributeBook(bookId, channel) {
+  return apiClient.post(`/books/${bookId}/distribute`, { channel });
+}
+export function getDistributions(bookId) {
+  return apiClient.get(`/books/${bookId}/distributions`);
+}
+export function downloadEpub(bookId) {
+  return apiClient.download(`/books/${bookId}/epub`, `${bookId}.epub`);
+}
+export function downloadOnix(bookId) {
+  return apiClient.download(`/books/${bookId}/onix`, `${bookId}.onix.xml`);
+}

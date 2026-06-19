@@ -2,14 +2,38 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { getBookContent } from '../services/api/books';
-import { importText, publishBook, setBookPrice, submitBook } from '../services/api/studio';
+import {
+  distributeBook,
+  downloadEpub,
+  downloadOnix,
+  getDistributions,
+  getMyBooks,
+  importText,
+  publishBook,
+  publishNow,
+  schedulePublish,
+  setBookPrice,
+  setIsbn,
+  submitBook,
+} from '../services/api/studio';
 import { STATUS_LABEL } from './StudioPage';
+
+const CHANNELS = [
+  ['KYOBO', '교보문고'],
+  ['YES24', '예스24'],
+  ['ALADIN', '알라딘'],
+  ['RIDIBOOKS', '리디북스'],
+];
 
 export function StudioEditorPage() {
   const { id } = useParams();
   const [book, setBook] = useState(null);
   const [text, setText] = useState('');
   const [price, setPrice] = useState('');
+  const [isbn, setIsbnValue] = useState('');
+  const [scheduleAt, setScheduleAt] = useState('');
+  const [channel, setChannel] = useState('KYOBO');
+  const [dists, setDists] = useState([]);
   const [msg, setMsg] = useState(null);
   const [error, setError] = useState(null);
 
@@ -17,6 +41,13 @@ export function StudioEditorPage() {
     const c = await getBookContent(id);
     setBook(c);
     setPrice(c.priceAmt != null ? String(c.priceAmt) : '');
+    // ISBN·배포이력은 content 응답 밖이라 별도 조회
+    const mine = await getMyBooks();
+    const summary = mine.items.find((b) => b.id === id);
+    if (summary) setIsbnValue(summary.isbn || '');
+    if (c.status === 'PUBLISHED') {
+      setDists(await getDistributions(id));
+    }
   }
   useEffect(() => {
     load().catch((e) => setError(e.message));
@@ -25,6 +56,17 @@ export function StudioEditorPage() {
   function notify(m) {
     setMsg(m);
     setError(null);
+  }
+  function run(fn, ok) {
+    return async () => {
+      try {
+        await fn();
+        if (ok) notify(ok);
+        await load();
+      } catch (e) {
+        setError(e.message);
+      }
+    };
   }
 
   async function doImport() {
@@ -38,37 +80,34 @@ export function StudioEditorPage() {
       setError(e.message);
     }
   }
-  async function doPrice() {
+  async function doSchedule() {
+    if (!scheduleAt) return setError('발행 시각을 선택하세요.');
     try {
-      await setBookPrice(id, parseInt(price || '0', 10));
-      notify('가격이 저장됐어요.');
+      await schedulePublish(id, new Date(scheduleAt).toISOString());
+      notify(`${new Date(scheduleAt).toLocaleString()}에 자동 발행 예약됐어요.`);
       await load();
     } catch (e) {
       setError(e.message);
     }
   }
-  async function doSubmit() {
+  async function doDistribute() {
     try {
-      await submitBook(id);
-      notify('심사 제출됐어요.');
+      const r = await distributeBook(id, channel);
+      notify(
+        r.statusCd === 'SENT'
+          ? `${labelOf(channel)}로 배포 전송 완료.`
+          : `배포 실패: ${r.message || ''}`,
+      );
       await load();
     } catch (e) {
       setError(e.message);
-    }
-  }
-  async function doPublish() {
-    try {
-      await publishBook(id);
-      notify('출판 완료! 스토어에 노출됩니다.');
-      await load();
-    } catch (e) {
-      setError(`출판 실패: ${e.message} (가격 설정 + 심사 제출이 먼저예요)`);
     }
   }
 
   if (error && !book) return <Center>{error}</Center>;
   if (!book) return <Center>불러오는 중…</Center>;
   const blockCount = book.chapters.reduce((n, ch) => n + ch.blocks.length, 0);
+  const published = book.status === 'PUBLISHED';
 
   return (
     <div style={{ maxWidth: 760, margin: '0 auto', padding: '28px 24px' }}>
@@ -95,23 +134,77 @@ export function StudioEditorPage() {
       </Section>
 
       <Section title="가격">
-        <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} style={{ padding: '8px 12px', border: '1px solid #ddd', borderRadius: 8, width: 140 }} /> 원
-        <button onClick={doPrice} style={btn}>저장</button>
+        <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} style={inp} /> 원
+        <button onClick={run(() => setBookPrice(id, parseInt(price || '0', 10)), '가격이 저장됐어요.')} style={btn}>저장</button>
         <span style={{ color: '#aaa', fontSize: 13, marginLeft: 8 }}>0이면 무료</span>
       </Section>
 
-      <Section title="출판">
-        {book.status === 'DRAFT' && <button onClick={doSubmit} style={btn}>심사 제출</button>}
-        {book.status === 'REVIEW' && <button onClick={doPublish} style={{ ...btn, background: '#111', color: '#fff', border: 'none' }}>출판</button>}
-        {book.status === 'PUBLISHED' && (
-          <Link to={`/books/${id}`} style={{ color: '#111' }}>스토어에서 보기 →</Link>
-        )}
+      <Section title="ISBN">
+        <input value={isbn} onChange={(e) => setIsbnValue(e.target.value)} placeholder="978-89-..." style={{ ...inp, width: 220 }} />
+        <button onClick={run(() => setIsbn(id, isbn), 'ISBN이 저장됐어요.')} style={btn}>저장</button>
+        <span style={{ color: '#aaa', fontSize: 13, marginLeft: 8 }}>없으면 서점에 자체 식별자로 나갑니다</span>
       </Section>
+
+      <Section title="파일 산출물">
+        <button onClick={run(() => downloadEpub(id))} style={btn}>EPUB 내려받기</button>
+        <button onClick={run(() => downloadOnix(id))} style={btn}>ONIX(메타) 내려받기</button>
+      </Section>
+
+      <Section title="출판">
+        {book.status === 'DRAFT' && (
+          <button onClick={run(submitBook.bind(null, id), '심사 제출됐어요.')} style={btn}>심사 제출</button>
+        )}
+        {book.status === 'REVIEW' && (
+          <button onClick={run(publishBook.bind(null, id), '출판 완료! 스토어에 노출됩니다.')} style={primary}>출판</button>
+        )}
+        {!published && (
+          <>
+            <button onClick={run(publishNow.bind(null, id), '즉시 출간됐어요! 스토어에 노출됩니다.')} style={primary}>즉시 출간</button>
+            <span style={{ display: 'block', marginTop: 12 }} />
+            <input type="datetime-local" value={scheduleAt} onChange={(e) => setScheduleAt(e.target.value)} style={inp} />
+            <button onClick={doSchedule} style={btn}>예약 발행</button>
+            <span style={{ color: '#aaa', fontSize: 13, marginLeft: 8 }}>지정 시각에 자동 게시</span>
+          </>
+        )}
+        {published && <Link to={`/books/${id}`} style={{ color: '#111' }}>스토어에서 보기 →</Link>}
+      </Section>
+
+      {published && (
+        <Section title="서점 배포">
+          <select value={channel} onChange={(e) => setChannel(e.target.value)} style={inp}>
+            {CHANNELS.map(([v, l]) => (
+              <option key={v} value={v}>{l}</option>
+            ))}
+          </select>
+          <button onClick={doDistribute} style={primary}>배포 전송</button>
+          {dists.length > 0 && (
+            <ul style={{ listStyle: 'none', padding: 0, marginTop: 14, fontSize: 14 }}>
+              {dists.map((d) => (
+                <li key={d.id} style={{ padding: '6px 0', borderTop: '1px solid #f0f0f0' }}>
+                  <b>{labelOf(d.channelCd)}</b>{' '}
+                  <span style={{ color: d.statusCd === 'SENT' ? 'green' : 'crimson' }}>
+                    {d.statusCd === 'SENT' ? '전송됨' : '실패'}
+                  </span>{' '}
+                  <span style={{ color: '#aaa' }}>{new Date(d.createdAt).toLocaleString()}</span>
+                  {d.message && <span style={{ color: '#c00', marginLeft: 6 }}>{d.message}</span>}
+                </li>
+              ))}
+            </ul>
+          )}
+        </Section>
+      )}
     </div>
   );
 }
 
+function labelOf(cd) {
+  const found = CHANNELS.find(([v]) => v === cd);
+  return found ? found[1] : cd;
+}
+
 const btn = { marginLeft: 8, padding: '8px 14px', borderRadius: 8, border: '1px solid #ddd', background: '#fff', fontWeight: 600 };
+const primary = { ...btn, background: '#111', color: '#fff', border: 'none' };
+const inp = { padding: '8px 12px', border: '1px solid #ddd', borderRadius: 8, width: 160 };
 
 function Section({ title, children }) {
   return (

@@ -31,8 +31,33 @@ async function request(path, options = {}) {
   return res.json();
 }
 
+// 인증 첨부 파일 다운로드 (EPUB·ONIX 등 — JSON 아님). 브라우저 저장 다이얼로그 트리거.
+async function download(path, fallbackName) {
+  const token = getToken();
+  const res = await fetch(`${BASE}/api${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) {
+    const err = new Error(`API ${res.status}: ${path}`);
+    err.status = res.status;
+    throw err;
+  }
+  const blob = await res.blob();
+  const cd = res.headers.get('Content-Disposition') || '';
+  const m = cd.match(/filename="?([^"]+)"?/);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = (m && m[1]) || fallbackName;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 export const apiClient = {
   get: (path) => request(path),
   post: (path, body) => request(path, { method: 'POST', body: body ? JSON.stringify(body) : undefined }),
   put: (path, body) => request(path, { method: 'PUT', body: body ? JSON.stringify(body) : undefined }),
+  download,
 };
