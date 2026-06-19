@@ -56,6 +56,9 @@ class OrderService:
     async def list_library(self, account_id: UUID):
         return await self.repo.list_purchased_books(account_id)
 
+    async def author_sales(self, author_id: UUID):
+        return await self.repo.author_sales(author_id)
+
     async def confirm_payment(
         self, order_id: UUID, pg_tx_id: str, buyer_id: UUID | None = None
     ) -> SettlementView:

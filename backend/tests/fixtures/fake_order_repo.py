@@ -50,6 +50,11 @@ class FakeOrderRepository:
             for o in self.orders.values()
         )
 
+    async def author_sales(self, author_id):
+        from src.features.billing.domain.models import SalesSummary
+
+        return SalesSummary(total_orders=0, total_revenue=0, total_payout=0, books=[])
+
     async def list_purchased_books(self, account_id):
         from src.features.billing.domain.models import PurchasedBook
 

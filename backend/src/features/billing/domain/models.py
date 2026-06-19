@@ -36,6 +36,23 @@ class PurchasedBook:
     cover_url: str | None
 
 
+@dataclass
+class BookSales:
+    book_id: UUID
+    title: str
+    order_count: int
+    revenue: int   # 총 판매액
+    payout: int    # 작가 실지급 합
+
+
+@dataclass
+class SalesSummary:
+    total_orders: int
+    total_revenue: int
+    total_payout: int
+    books: list[BookSales]
+
+
 class BillingError(Exception):
     pass
 

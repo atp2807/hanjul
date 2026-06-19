@@ -2,11 +2,11 @@
 from datetime import datetime, timezone
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.engine.settlement.calculate import SettlementBreakdown
-from src.features.billing.domain.models import OrderView, PurchasedBook
+from src.features.billing.domain.models import BookSales, OrderView, PurchasedBook, SalesSummary
 from src.infrastructure.db.models.book import Book
 from src.infrastructure.db.models.order import Order, Settlement
 
@@ -72,6 +72,33 @@ class SqlOrderRepository:
             .limit(1)
         )
         return (await self.session.execute(stmt)).scalar_one_or_none() is not None
+
+    async def author_sales(self, author_id) -> SalesSummary:
+        stmt = (
+            select(
+                Book.id,
+                Book.title,
+                func.count(Settlement.id),
+                func.coalesce(func.sum(Order.amount_amt), 0),
+                func.coalesce(func.sum(Settlement.payout_amt), 0),
+            )
+            .select_from(Settlement)
+            .join(Order, Order.id == Settlement.order_id)
+            .join(Book, Book.id == Order.book_id)
+            .where(Book.author_id == author_id)
+            .group_by(Book.id, Book.title)
+        )
+        rows = (await self.session.execute(stmt)).all()
+        books = [
+            BookSales(book_id=r[0], title=r[1], order_count=r[2], revenue=int(r[3]), payout=int(r[4]))
+            for r in rows
+        ]
+        return SalesSummary(
+            total_orders=sum(b.order_count for b in books),
+            total_revenue=sum(b.revenue for b in books),
+            total_payout=sum(b.payout for b in books),
+            books=books,
+        )
 
     async def list_purchased_books(self, account_id) -> list[PurchasedBook]:
         stmt = (

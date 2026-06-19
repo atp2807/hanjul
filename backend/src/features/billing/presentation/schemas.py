@@ -42,3 +42,18 @@ class LibraryItemResponse(_Camel):
     kind: str
     price_amt: int | None
     cover_url: str | None
+
+
+class BookSalesResponse(_Camel):
+    book_id: UUID
+    title: str
+    order_count: int
+    revenue: int
+    payout: int
+
+
+class SalesSummaryResponse(_Camel):
+    total_orders: int
+    total_revenue: int
+    total_payout: int
+    books: list[BookSalesResponse]

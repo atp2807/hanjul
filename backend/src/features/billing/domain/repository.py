@@ -3,7 +3,7 @@ from typing import Protocol
 from uuid import UUID
 
 from src.engine.settlement.calculate import SettlementBreakdown
-from src.features.billing.domain.models import OrderView, PurchasedBook
+from src.features.billing.domain.models import OrderView, PurchasedBook, SalesSummary
 
 
 class OrderRepository(Protocol):
@@ -27,4 +27,8 @@ class OrderRepository(Protocol):
 
     async def list_purchased_books(self, account_id: UUID) -> list[PurchasedBook]:
         """계정이 구매한 책 목록 (내 서재)."""
+        ...
+
+    async def author_sales(self, author_id: UUID) -> SalesSummary:
+        """작가가 쓴 책들의 판매·정산 요약."""
         ...

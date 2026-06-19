@@ -4,6 +4,9 @@ import { apiClient } from './api_client';
 export function getMyBooks() {
   return apiClient.get('/me/books');
 }
+export function getSales() {
+  return apiClient.get('/me/sales');
+}
 export function createBook(title, kind = 'BOOK') {
   return apiClient.post('/books', { title, kind });
 }

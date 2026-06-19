@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../auth/AuthContext';
-import { createBook, getMyBooks } from '../services/api/studio';
+import { createBook, getMyBooks, getSales } from '../services/api/studio';
 
 export const STATUS_LABEL = { DRAFT: '초안', REVIEW: '심사중', PUBLISHED: '출판됨' };
 
@@ -10,6 +10,7 @@ export function StudioPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [items, setItems] = useState([]);
+  const [sales, setSales] = useState(null);
   const [title, setTitle] = useState('');
   const [fetching, setFetching] = useState(true);
 
@@ -19,8 +20,11 @@ export function StudioPage() {
       setFetching(false);
       return;
     }
-    getMyBooks()
-      .then((d) => setItems(d.items))
+    Promise.all([getMyBooks(), getSales()])
+      .then(([books, s]) => {
+        setItems(books.items);
+        setSales(s);
+      })
       .finally(() => setFetching(false));
   }, [user, loading]);
 
@@ -37,6 +41,15 @@ export function StudioPage() {
   return (
     <div style={{ maxWidth: 980, margin: '0 auto', padding: '28px 24px' }}>
       <h2 style={{ marginTop: 0, fontWeight: 700 }}>작가 스튜디오</h2>
+
+      {sales && (
+        <div style={{ display: 'flex', gap: 16, marginBottom: 24 }}>
+          <Stat label="판매" value={`${sales.totalOrders.toLocaleString()}건`} />
+          <Stat label="총 매출" value={`${sales.totalRevenue.toLocaleString()}원`} />
+          <Stat label="내 수익(정산)" value={`${sales.totalPayout.toLocaleString()}원`} highlight />
+        </div>
+      )}
+
       <form onSubmit={handleCreate} style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
         <input
           value={title}
@@ -65,6 +78,15 @@ export function StudioPage() {
           </Link>
         ))}
       </div>
+    </div>
+  );
+}
+
+function Stat({ label, value, highlight }) {
+  return (
+    <div style={{ flex: 1, padding: '16px 18px', border: '1px solid #eee', borderRadius: 12, background: highlight ? '#111' : '#fafafa' }}>
+      <div style={{ fontSize: 13, color: highlight ? '#bbb' : '#888' }}>{label}</div>
+      <div style={{ fontSize: 22, fontWeight: 700, marginTop: 4, color: highlight ? '#fff' : '#111' }}>{value}</div>
     </div>
   );
 }
