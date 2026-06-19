@@ -16,6 +16,14 @@ class FakeGateway:
         return self.ok
 
 
+class FakePricing:
+    def __init__(self, price: int | None = 10000):
+        self.price = price
+
+    async def get_purchasable_price(self, book_id) -> int | None:
+        return self.price
+
+
 class FakeOrderRepository:
     def __init__(self) -> None:
         self.orders: dict[UUID, OrderView] = {}

@@ -15,6 +15,7 @@ from src.features.auth.domain.models import SocialProfile  # noqa: E402
 from src.features.auth.infrastructure.account_repo import SqlAccountRepository  # noqa: E402
 from src.features.auth.presentation.dependencies import get_auth_service, token_issuer  # noqa: E402
 from src.features.billing.application.order_service import OrderService  # noqa: E402
+from src.features.billing.infrastructure.book_pricing import SqlBookPricing  # noqa: E402
 from src.features.billing.infrastructure.order_repo import SqlOrderRepository  # noqa: E402
 from src.features.billing.presentation.dependencies import get_order_service  # noqa: E402
 from tests.fixtures.fake_account_repo import FakeProvider  # noqa: E402
@@ -36,7 +37,7 @@ def app_db(sessionmaker):
         )
 
     def _order(session: AsyncSession = Depends(get_session)):
-        return OrderService(SqlOrderRepository(session), FakeGateway(ok=True))
+        return OrderService(SqlOrderRepository(session), FakeGateway(ok=True), SqlBookPricing(session))
 
     app.dependency_overrides[get_session] = _session
     app.dependency_overrides[get_auth_service] = _auth
@@ -56,15 +57,15 @@ async def test_purchased_book_appears_in_library(app_db):
         # 처음엔 빈 서재
         assert (await c.get("/api/me/library", headers=auth)).json() == []
 
-        # 책 생성 → 구매 → 결제확인
+        # 책 생성 → 출판(가격) → 구매 → 결제확인
         book_id = (await c.post("/api/books", json={"title": "산 책"})).json()["bookId"]
+        await c.put(f"/api/books/{book_id}/price", json={"amount": 8000})
+        await c.post(f"/api/books/{book_id}/submit")
+        await c.post(f"/api/books/{book_id}/publish")
         order_id = (
-            await c.post(
-                "/api/orders",
-                json={"bookId": book_id, "buyerAccountId": me_id, "amount": 8000, "channel": "SELF"},
-            )
+            await c.post("/api/orders", json={"bookId": book_id}, headers=auth)
         ).json()["id"]
-        await c.post(f"/api/orders/{order_id}/confirm", json={"pgTxId": "tx"})
+        await c.post(f"/api/orders/{order_id}/confirm", json={"pgTxId": "tx"}, headers=auth)
 
         # 서재에 등장
         lib = (await c.get("/api/me/library", headers=auth)).json()

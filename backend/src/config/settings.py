@@ -35,6 +35,8 @@ class Settings(BaseSettings):
 
     # ── 결제(PG) ────────────────────────────────────────
     PORTONE_API_SECRET: str = ""
+    # 데모 모드: 결제 검증을 건너뛰고 성공 처리 (개발/데모 전용). 운영은 반드시 False.
+    PAYMENT_DEMO: bool = False
 
     # ── AI 표지(novelpotato) ────────────────────────────
     COVER_API_URL: str = ""

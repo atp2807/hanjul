@@ -19,6 +19,7 @@ from src.features.auth.domain.models import SocialProfile  # noqa: E402
 from src.features.auth.infrastructure.account_repo import SqlAccountRepository  # noqa: E402
 from src.features.auth.presentation.dependencies import get_auth_service, token_issuer  # noqa: E402
 from src.features.billing.application.order_service import OrderService  # noqa: E402
+from src.features.billing.infrastructure.book_pricing import SqlBookPricing  # noqa: E402
 from src.features.billing.infrastructure.order_repo import SqlOrderRepository  # noqa: E402
 from src.features.billing.presentation.dependencies import get_order_service  # noqa: E402
 from src.features.cover.application.cover_service import CoverService  # noqa: E402
@@ -47,7 +48,7 @@ def journey(sessionmaker):
         )
 
     def _order(session: AsyncSession = Depends(get_session)):
-        return OrderService(SqlOrderRepository(session), FakeGateway(ok=True))
+        return OrderService(SqlOrderRepository(session), FakeGateway(ok=True), SqlBookPricing(session))
 
     def _cover(session: AsyncSession = Depends(get_session)):
         return CoverService(SqlCoverRepository(session), FakeCoverGenerator("https://img/cover.png"))
@@ -64,10 +65,11 @@ async def test_author_publishes_reader_buys_and_reads(journey):
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
         # 1) 작가 · 독자 소셜 로그인 (서로 다른 provider → 다른 계정)
         _, author = await login_account(c, "google", "a")
-        _, buyer = await login_account(c, "naver", "b")
+        buyer_token, buyer = await login_account(c, "naver", "b")
         assert author["roleCd"] == "READER"
         author_id, buyer_id = author["id"], buyer["id"]
         assert author_id != buyer_id
+        buyer_auth = {"Authorization": f"Bearer {buyer_token}"}
 
         # 2) 작가: 책 생성 → 작가배정 → 원고 import → 가격 → 심사 → 출판
         book_id = (await c.post("/api/books", json={"title": "한 줄"})).json()["bookId"]
@@ -86,13 +88,13 @@ async def test_author_publishes_reader_buys_and_reads(journey):
         )
 
         # 4) 독자: 주문 → 결제확인 → 정산 (자체 70% + 3.3% 원천)
+        # 금액은 안 보냄 — 서버가 책 가격(10000)에서 도출
         order_id = (
-            await c.post(
-                "/api/orders",
-                json={"bookId": book_id, "buyerAccountId": buyer_id, "amount": 10000, "channel": "SELF"},
-            )
+            await c.post("/api/orders", json={"bookId": book_id, "channel": "SELF"}, headers=buyer_auth)
         ).json()["id"]
-        settle = (await c.post(f"/api/orders/{order_id}/confirm", json={"pgTxId": "tx-1"})).json()
+        settle = (
+            await c.post(f"/api/orders/{order_id}/confirm", json={"pgTxId": "tx-1"}, headers=buyer_auth)
+        ).json()
         assert settle["grossAmt"] == 7000
         assert settle["withholdingAmt"] == 231
         assert settle["payoutAmt"] == 6769

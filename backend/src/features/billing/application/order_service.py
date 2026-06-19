@@ -8,25 +8,41 @@ from src.engine.settlement.calculate import calculate_settlement
 from src.features.billing.domain.gateway import PaymentGateway
 from src.features.billing.domain.models import (
     PAID,
+    AlreadyOwned,
     AlreadyPaid,
+    NotPurchasable,
     OrderNotFound,
     OrderView,
     PaymentFailed,
     SettlementView,
 )
+from src.features.billing.domain.pricing import BookPricing
 from src.features.billing.domain.repository import OrderRepository
 
 
 class OrderService:
-    def __init__(self, repo: OrderRepository, gateway: PaymentGateway, is_individual: bool = True):
+    def __init__(
+        self,
+        repo: OrderRepository,
+        gateway: PaymentGateway,
+        pricing: BookPricing,
+        is_individual: bool = True,
+    ):
         self.repo = repo
         self.gateway = gateway
+        self.pricing = pricing
         self.is_individual = is_individual
 
     async def create_order(
-        self, book_id: UUID, buyer_account_id: UUID, amount: int, channel: str = "SELF"
+        self, book_id: UUID, buyer_account_id: UUID, channel: str = "SELF"
     ) -> UUID:
-        return await self.repo.create_order(book_id, buyer_account_id, amount, channel)
+        # 금액은 서버가 책 가격에서 도출 — 클라가 보낸 값 신뢰 금지 (client_always_transparent)
+        price = await self.pricing.get_purchasable_price(book_id)
+        if price is None:
+            raise NotPurchasable(book_id)
+        if await self.repo.owns(buyer_account_id, book_id):
+            raise AlreadyOwned()
+        return await self.repo.create_order(book_id, buyer_account_id, price, channel)
 
     async def get_order(self, order_id: UUID) -> OrderView:
         order = await self.repo.get_order(order_id)
@@ -40,8 +56,13 @@ class OrderService:
     async def list_library(self, account_id: UUID):
         return await self.repo.list_purchased_books(account_id)
 
-    async def confirm_payment(self, order_id: UUID, pg_tx_id: str) -> SettlementView:
+    async def confirm_payment(
+        self, order_id: UUID, pg_tx_id: str, buyer_id: UUID | None = None
+    ) -> SettlementView:
         order = await self.get_order(order_id)
+        # 남의 주문은 못 본 것처럼 처리 (존재 노출 최소화)
+        if buyer_id is not None and order.buyer_account_id != buyer_id:
+            raise OrderNotFound(order_id)
         if order.status_cd == PAID:
             raise AlreadyPaid()
 

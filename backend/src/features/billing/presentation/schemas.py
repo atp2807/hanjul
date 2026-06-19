@@ -11,9 +11,8 @@ class _Camel(BaseModel):
 
 class CreateOrderRequest(_Camel):
     book_id: UUID
-    buyer_account_id: UUID
-    amount: int
     channel: str = "SELF"  # SELF | EXTERNAL
+    # 금액·구매자는 서버가 결정 (책 가격 + 인증된 사용자) — 클라가 못 보냄
 
 
 class OrderResponse(_Camel):

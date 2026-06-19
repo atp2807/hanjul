@@ -53,3 +53,15 @@ class AlreadyPaid(BillingError):
 class PaymentFailed(BillingError):
     def __init__(self):
         super().__init__("payment verification failed")
+
+
+class NotPurchasable(BillingError):
+    """책이 구매 불가 (미출판이거나 가격 미설정)."""
+    def __init__(self, book_id):
+        super().__init__(f"book not purchasable: {book_id}")
+
+
+class AlreadyOwned(BillingError):
+    """이미 구매한 책 (중복 구매 방지)."""
+    def __init__(self):
+        super().__init__("already owned")
