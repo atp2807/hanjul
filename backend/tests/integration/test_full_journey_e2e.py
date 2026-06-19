@@ -15,10 +15,9 @@ settings.DEBUG = False
 from main import app  # noqa: E402
 from src.config.database import get_session  # noqa: E402
 from src.features.auth.application.auth_service import AuthService  # noqa: E402
-from src.features.auth.application.token import JwtTokenIssuer  # noqa: E402
 from src.features.auth.domain.models import SocialProfile  # noqa: E402
 from src.features.auth.infrastructure.account_repo import SqlAccountRepository  # noqa: E402
-from src.features.auth.presentation.dependencies import get_auth_service  # noqa: E402
+from src.features.auth.presentation.dependencies import get_auth_service, token_issuer  # noqa: E402
 from src.features.billing.application.order_service import OrderService  # noqa: E402
 from src.features.billing.infrastructure.order_repo import SqlOrderRepository  # noqa: E402
 from src.features.billing.presentation.dependencies import get_order_service  # noqa: E402
@@ -28,6 +27,7 @@ from src.features.cover.presentation.dependencies import get_cover_service  # no
 from tests.fixtures.fake_account_repo import FakeProvider  # noqa: E402
 from tests.fixtures.fake_cover import FakeCoverGenerator  # noqa: E402
 from tests.fixtures.fake_order_repo import FakeGateway  # noqa: E402
+from tests.integration.auth_helpers import login_account  # noqa: E402
 
 AUTHOR = SocialProfile("GOOGLE", "author-sub", "author@x.com", "박작가")
 BUYER = SocialProfile("NAVER", "buyer-sub", "buyer@x.com", "독자")
@@ -43,7 +43,7 @@ def journey(sessionmaker):
         return AuthService(
             SqlAccountRepository(session),
             {"GOOGLE": FakeProvider("GOOGLE", AUTHOR), "NAVER": FakeProvider("NAVER", BUYER)},
-            JwtTokenIssuer("secret", "HS256", 1),
+            token_issuer(),
         )
 
     def _order(session: AsyncSession = Depends(get_session)):
@@ -63,10 +63,10 @@ def journey(sessionmaker):
 async def test_author_publishes_reader_buys_and_reads(journey):
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
         # 1) 작가 · 독자 소셜 로그인 (서로 다른 provider → 다른 계정)
-        author = (await c.get("/api/auth/google/callback?code=a")).json()
-        buyer = (await c.get("/api/auth/naver/callback?code=b")).json()
-        assert author["isNew"] is True and author["account"]["roleCd"] == "READER"
-        author_id, buyer_id = author["account"]["id"], buyer["account"]["id"]
+        _, author = await login_account(c, "google", "a")
+        _, buyer = await login_account(c, "naver", "b")
+        assert author["roleCd"] == "READER"
+        author_id, buyer_id = author["id"], buyer["id"]
         assert author_id != buyer_id
 
         # 2) 작가: 책 생성 → 작가배정 → 원고 import → 가격 → 심사 → 출판

@@ -12,6 +12,7 @@ from src.features.auth.application.token import JwtTokenIssuer  # noqa: E402
 from src.features.auth.domain.models import SocialProfile  # noqa: E402
 from src.features.auth.presentation.dependencies import get_auth_service  # noqa: E402
 from tests.fixtures.fake_account_repo import FakeAccountRepository, FakeProvider  # noqa: E402
+from tests.integration.auth_helpers import login_token  # noqa: E402
 
 
 @pytest.fixture
@@ -34,14 +35,11 @@ async def test_login_url_over_http(override_auth):
         assert "state=abc" in r.json()["authorizationUrl"]
 
 
-async def test_callback_issues_token_over_http(override_auth):
+async def test_callback_redirects_with_token(override_auth):
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
-        r = await c.get("/api/auth/google/callback?code=xyz")
-        assert r.status_code == 200
-        body = r.json()
-        assert body["isNew"] is True
-        assert body["account"]["email"] == "e@x.com"
-        assert body["token"]
+        token, is_new = await login_token(c, "google", "xyz")
+        assert is_new is True
+        assert token  # 프론트로 리다이렉트되며 fragment 에 토큰 실림
 
 
 async def test_unknown_provider_returns_400(override_auth):

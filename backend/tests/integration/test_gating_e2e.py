@@ -19,6 +19,7 @@ from src.features.billing.infrastructure.order_repo import SqlOrderRepository  #
 from src.features.billing.presentation.dependencies import get_order_service  # noqa: E402
 from tests.fixtures.fake_account_repo import FakeProvider  # noqa: E402
 from tests.fixtures.fake_order_repo import FakeGateway  # noqa: E402
+from tests.integration.auth_helpers import login_account  # noqa: E402
 
 PROFILE = SocialProfile("GOOGLE", "g-sub", "g@x.com", "독자")
 
@@ -61,8 +62,8 @@ async def test_preview_for_non_owner_full_for_owner(app_db):
         assert _count_blocks(anon) == 3
 
         # 로그인했지만 미구매 → 여전히 미리보기
-        login = (await c.get("/api/auth/google/callback?code=x")).json()
-        token, me_id = login["token"], login["account"]["id"]
+        token, me = await login_account(c, "google", "x")
+        me_id = me["id"]
         auth = {"Authorization": f"Bearer {token}"}
         before = (await c.get(f"/api/books/{book_id}/content", headers=auth)).json()
         assert before["isPreview"] is True and _count_blocks(before) == 3

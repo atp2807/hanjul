@@ -19,6 +19,7 @@ from src.features.billing.infrastructure.order_repo import SqlOrderRepository  #
 from src.features.billing.presentation.dependencies import get_order_service  # noqa: E402
 from tests.fixtures.fake_account_repo import FakeProvider  # noqa: E402
 from tests.fixtures.fake_order_repo import FakeGateway  # noqa: E402
+from tests.integration.auth_helpers import login_account  # noqa: E402
 
 PROFILE = SocialProfile("GOOGLE", "lib-sub", "lib@x.com", "독자")
 
@@ -46,8 +47,8 @@ def app_db(sessionmaker):
 
 async def test_purchased_book_appears_in_library(app_db):
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
-        login = (await c.get("/api/auth/google/callback?code=x")).json()
-        token, me_id = login["token"], login["account"]["id"]
+        token, me = await login_account(c, "google", "x")
+        me_id = me["id"]
         auth = {"Authorization": f"Bearer {token}"}
 
         # 미로그인 → 401

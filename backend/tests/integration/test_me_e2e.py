@@ -15,6 +15,7 @@ from src.features.auth.domain.models import SocialProfile  # noqa: E402
 from src.features.auth.infrastructure.account_repo import SqlAccountRepository  # noqa: E402
 from src.features.auth.presentation.dependencies import get_auth_service, token_issuer  # noqa: E402
 from tests.fixtures.fake_account_repo import FakeProvider  # noqa: E402
+from tests.integration.auth_helpers import login_token  # noqa: E402
 
 PROFILE = SocialProfile("GOOGLE", "me-sub", "me@x.com", "나")
 
@@ -47,7 +48,7 @@ async def test_me_requires_token_and_returns_account(app_db):
         assert (await c.get("/api/me", headers={"Authorization": "Bearer garbage"})).status_code == 401
 
         # 로그인 → 토큰 → /me
-        token = (await c.get("/api/auth/google/callback?code=x")).json()["token"]
+        token, _ = await login_token(c, "google", "x")
         r = await c.get("/api/me", headers={"Authorization": f"Bearer {token}"})
         assert r.status_code == 200
         body = r.json()
