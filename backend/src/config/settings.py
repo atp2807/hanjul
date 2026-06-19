@@ -29,7 +29,9 @@ class Settings(BaseSettings):
     AUTH_PROVIDERS: str = "GOOGLE"
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
-    GOOGLE_REDIRECT_URI: str = "http://localhost:8000/api/auth/google/callback"
+    GOOGLE_REDIRECT_URI: str = "http://localhost:28000/api/auth/google/callback"
+    # 소셜 콜백 후 토큰을 들고 돌아갈 프론트 주소 (프로덕션은 https://hanjul.io)
+    FRONTEND_URL: str = "http://localhost:35173"
 
     # ── 결제(PG) ────────────────────────────────────────
     PORTONE_API_SECRET: str = ""
