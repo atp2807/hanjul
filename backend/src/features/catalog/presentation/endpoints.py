@@ -3,6 +3,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from src.features.auth.domain.models import AccountPrincipal
+from src.features.auth.presentation.dependencies import get_current_account
 from src.features.catalog.application.catalog_service import CatalogService
 from src.features.catalog.domain.models import (
     BookNotFound,
@@ -69,6 +71,16 @@ async def publish(book_id: UUID, svc: CatalogService = Depends(get_catalog_servi
         raise HTTPException(409, str(e))
     except PriceRequired as e:
         raise HTTPException(422, str(e))
+
+
+# ── 작가 스튜디오 (내 책, 인증) ───────────────────────
+@router.get("/me/books", response_model=StoreListResponse)
+async def my_books(
+    principal: AccountPrincipal = Depends(get_current_account),
+    svc: CatalogService = Depends(get_catalog_service),
+) -> StoreListResponse:
+    items = await svc.list_my_books(principal.id)
+    return StoreListResponse(items=[_summary_response(s) for s in items], count=len(items))
 
 
 # ── 스토어 (공개) ─────────────────────────────────────

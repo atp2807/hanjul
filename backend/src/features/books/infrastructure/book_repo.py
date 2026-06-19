@@ -13,8 +13,8 @@ class SqlBookRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def create_book(self, *, title: str, kind: str, language: str) -> UUID:
-        book = Book(title=title, kind=kind, language=language)
+    async def create_book(self, *, title: str, kind: str, language: str, author_id=None) -> UUID:
+        book = Book(title=title, kind=kind, language=language, author_id=author_id)
         self.session.add(book)
         await self.session.flush()
         await self.session.commit()

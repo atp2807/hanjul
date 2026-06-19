@@ -53,6 +53,9 @@ class CatalogService:
     ) -> list[BookSummary]:
         return await self.repo.list_published(q, limit, offset, kind)
 
+    async def list_my_books(self, author_id: UUID) -> list[BookSummary]:
+        return await self.repo.list_by_author(author_id)
+
     async def get_store_detail(self, book_id: UUID) -> BookSummary:
         s = await self._require(book_id)
         if s.status != PUBLISHED:

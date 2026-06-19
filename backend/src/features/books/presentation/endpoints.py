@@ -23,9 +23,15 @@ router = APIRouter(prefix="/books", tags=["books"])
 
 @router.post("", response_model=CreateBookResponse, status_code=201)
 async def create_book(
-    body: CreateBookRequest, service: BookService = Depends(get_book_service)
+    body: CreateBookRequest,
+    principal: AccountPrincipal | None = Depends(get_current_account_optional),
+    service: BookService = Depends(get_book_service),
 ) -> CreateBookResponse:
-    book_id = await service.create_book(title=body.title, kind=body.kind, language=body.language)
+    # 로그인 상태면 작가 = 현재 사용자
+    author_id = principal.id if principal else None
+    book_id = await service.create_book(
+        title=body.title, kind=body.kind, language=body.language, author_id=author_id
+    )
     return CreateBookResponse(book_id=book_id)
 
 

@@ -60,3 +60,12 @@ class SqlCatalogRepository:
         stmt = stmt.order_by(Book.published_at.desc()).limit(limit).offset(offset)  # 최신순
         rows = (await self.session.execute(stmt)).scalars().all()
         return [_to_summary(b) for b in rows]
+
+    async def list_by_author(self, author_id):
+        stmt = (
+            select(Book)
+            .where(Book.author_id == author_id)
+            .order_by(Book.created_at.desc())
+        )
+        rows = (await self.session.execute(stmt)).scalars().all()
+        return [_to_summary(b) for b in rows]

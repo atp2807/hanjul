@@ -14,9 +14,11 @@ class BookService:
         self.repo = repo
 
     async def create_book(
-        self, *, title: str, kind: str = "BOOK", language: str = "ko"
+        self, *, title: str, kind: str = "BOOK", language: str = "ko", author_id: UUID | None = None
     ) -> UUID:
-        return await self.repo.create_book(title=title, kind=kind, language=language)
+        return await self.repo.create_book(
+            title=title, kind=kind, language=language, author_id=author_id
+        )
 
     async def import_text(
         self, book_id: UUID, raw_text: str, chapter_title: str | None = None

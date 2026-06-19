@@ -13,9 +13,11 @@ class FakeBookRepository:
         self.books: dict[UUID, dict] = {}      # book_id -> {title, kind, language, status}
         self.chapters: dict[UUID, list[dict]] = {}  # book_id -> [{id,title,order_no,blocks:[...]}]
 
-    async def create_book(self, *, title: str, kind: str, language: str) -> UUID:
+    async def create_book(self, *, title: str, kind: str, language: str, author_id=None) -> UUID:
         book_id = uuid.uuid4()
-        self.books[book_id] = {"title": title, "kind": kind, "language": language, "status": "DRAFT"}
+        self.books[book_id] = {
+            "title": title, "kind": kind, "language": language, "status": "DRAFT", "author_id": author_id,
+        }
         self.chapters[book_id] = []
         return book_id
 

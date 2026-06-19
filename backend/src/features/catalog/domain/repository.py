@@ -23,3 +23,7 @@ class CatalogRepository(Protocol):
         self, q: str | None, limit: int, offset: int, kind: str | None = None
     ) -> list[BookSummary]:
         ...
+
+    async def list_by_author(self, author_id: UUID) -> list[BookSummary]:
+        """작가가 쓴 책 전 상태 목록 (스튜디오용)."""
+        ...
