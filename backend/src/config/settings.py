@@ -42,6 +42,15 @@ class Settings(BaseSettings):
     COVER_API_URL: str = ""
     COVER_API_KEY: str = ""
 
+    # ── 서점 배포 ───────────────────────────────────────
+    # 데모: 실제 전송 없이 성공 기록 (개발). 운영은 False + 아래 SFTP 설정.
+    DISTRIBUTION_DEMO: bool = False
+    DIST_SFTP_HOST: str = ""
+    DIST_SFTP_PORT: int = 22
+    DIST_SFTP_USER: str = ""
+    DIST_SFTP_PASSWORD: str = ""
+    DIST_SFTP_DIR: str = "/upload"
+
     # ── 일반 ────────────────────────────────────────────
     DEBUG: bool = True
 
