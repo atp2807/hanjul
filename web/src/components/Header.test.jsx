@@ -1,0 +1,33 @@
+import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { describe, expect, it, vi } from 'vitest';
+
+import * as authCtx from '../auth/AuthContext';
+import { Header } from './Header';
+
+vi.mock('../auth/AuthContext');
+
+function renderHeader() {
+  return render(
+    <MemoryRouter>
+      <Header />
+    </MemoryRouter>,
+  );
+}
+
+describe('Header', () => {
+  it('미로그인: Google 로그인 버튼', () => {
+    authCtx.useAuth.mockReturnValue({ user: null, logout: vi.fn() });
+    renderHeader();
+    expect(screen.getByText('Google 로그인')).toBeInTheDocument();
+  });
+
+  it('로그인: 이름 + 스튜디오/내서재/로그아웃', () => {
+    authCtx.useAuth.mockReturnValue({ user: { displayName: '박작가', email: 'a@x.com' }, logout: vi.fn() });
+    renderHeader();
+    expect(screen.getByText('박작가')).toBeInTheDocument();
+    expect(screen.getByText('스튜디오')).toBeInTheDocument();
+    expect(screen.getByText('내 서재')).toBeInTheDocument();
+    expect(screen.getByText('로그아웃')).toBeInTheDocument();
+  });
+});
