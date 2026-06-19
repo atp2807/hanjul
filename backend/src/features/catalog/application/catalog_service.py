@@ -53,6 +53,16 @@ class CatalogService:
     ) -> list[BookSummary]:
         return await self.repo.list_published(q, limit, offset, kind)
 
+    async def set_isbn(self, book_id: UUID, isbn: str) -> None:
+        await self._require(book_id)
+        digits = isbn.replace("-", "").replace(" ", "")
+        if not (digits.isdigit() and len(digits) in (10, 13)):
+            raise ValueError("ISBN은 10 또는 13자리 숫자여야 합니다")
+        await self.repo.set_isbn(book_id, isbn)
+
+    async def get_meta(self, book_id: UUID) -> BookSummary:
+        return await self._require(book_id)
+
     async def list_my_books(self, author_id: UUID) -> list[BookSummary]:
         return await self.repo.list_by_author(author_id)
 

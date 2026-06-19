@@ -1,9 +1,17 @@
 """catalog API — 출판 라이프사이클(/books) + 스토어(/store)."""
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from datetime import datetime, timezone
+from uuid import UUID
 
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import Response
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.config.database import get_session
+from src.engine.publishing.onix import OnixProduct, build_onix
 from src.features.auth.domain.models import AccountPrincipal
+from src.features.auth.infrastructure.account_repo import SqlAccountRepository
 from src.features.auth.presentation.dependencies import get_current_account
 from src.features.catalog.application.catalog_service import CatalogService
 from src.features.catalog.domain.models import (
@@ -15,6 +23,7 @@ from src.features.catalog.presentation.dependencies import get_catalog_service
 from src.features.catalog.presentation.schemas import (
     AssignAuthorRequest,
     BookSummaryResponse,
+    SetIsbnRequest,
     SetPriceRequest,
     StoreListResponse,
 )
@@ -71,6 +80,45 @@ async def publish(book_id: UUID, svc: CatalogService = Depends(get_catalog_servi
         raise HTTPException(409, str(e))
     except PriceRequired as e:
         raise HTTPException(422, str(e))
+
+
+@router.put("/books/{book_id}/isbn", status_code=204)
+async def set_isbn(
+    book_id: UUID, body: SetIsbnRequest, svc: CatalogService = Depends(get_catalog_service)
+) -> None:
+    try:
+        await svc.set_isbn(book_id, body.isbn)
+    except BookNotFound:
+        raise HTTPException(404, "book not found")
+    except ValueError as e:
+        raise HTTPException(422, str(e))
+
+
+@router.get("/books/{book_id}/onix")
+async def book_onix(
+    book_id: UUID,
+    svc: CatalogService = Depends(get_catalog_service),
+    session: AsyncSession = Depends(get_session),
+) -> Response:
+    """책 메타 → ONIX 3.0 XML (서점 유통 표준 피드)."""
+    try:
+        meta = await svc.get_meta(book_id)
+    except BookNotFound:
+        raise HTTPException(404, "book not found")
+    author = None
+    if meta.author_id:
+        acc = await SqlAccountRepository(session).get_account(meta.author_id)
+        author = acc.display_name if acc else None
+    product = OnixProduct(
+        record_reference=str(meta.id),
+        title=meta.title,
+        language=meta.language,
+        isbn=meta.isbn,
+        author=author,
+        price_amt=meta.price_amt,
+    )
+    xml = build_onix(product, datetime.now(timezone.utc).strftime("%Y%m%d"))
+    return Response(content=xml, media_type="application/xml")
 
 
 # ── 작가 스튜디오 (내 책, 인증) ───────────────────────

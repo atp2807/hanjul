@@ -51,3 +51,21 @@ async def test_my_books_lists_only_my_authored(app_db):
         ids = [b["id"] for b in books["items"]]
         assert mine in ids
         assert anon not in ids
+
+
+async def test_isbn_set_and_onix_feed(app_db):
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
+        token, _ = await login_account(c, "google", "x")
+        auth = {"Authorization": f"Bearer {token}"}
+        book = (await c.post("/api/books", json={"title": "내 책"}, headers=auth)).json()["bookId"]
+
+        # 잘못된 ISBN → 422, 유효 ISBN-13 → 204
+        assert (await c.put(f"/api/books/{book}/isbn", json={"isbn": "abc"})).status_code == 422
+        assert (await c.put(f"/api/books/{book}/isbn", json={"isbn": "9788912345678"})).status_code == 204
+
+        # ONIX 피드에 ISBN·제목·작가(display_name) 반영
+        onix = (await c.get(f"/api/books/{book}/onix")).text
+        assert "9788912345678" in onix
+        assert "<TitleText>내 책</TitleText>" in onix
+        assert "<ProductForm>EB</ProductForm>" in onix  # ebook
+        assert "작가" in onix  # PROFILE display_name

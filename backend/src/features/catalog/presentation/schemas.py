@@ -18,6 +18,10 @@ class SetPriceRequest(_Camel):
     amount: int  # 원 단위 정수
 
 
+class SetIsbnRequest(_Camel):
+    isbn: str
+
+
 class BookSummaryResponse(_Camel):
     id: UUID
     title: str
@@ -29,6 +33,7 @@ class BookSummaryResponse(_Camel):
     price_amt: int | None
     cover_url: str | None
     published_at: datetime | None
+    isbn: str | None = None
 
 
 class StoreListResponse(_Camel):

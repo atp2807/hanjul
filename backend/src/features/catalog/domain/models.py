@@ -21,6 +21,7 @@ class BookSummary:
     price_amt: int | None
     cover_url: str | None
     published_at: datetime | None
+    isbn: str | None = None
 
 
 class CatalogError(Exception):

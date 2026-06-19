@@ -21,6 +21,7 @@ def _to_summary(b: Book) -> BookSummary:
         price_amt=int(b.price_amt) if b.price_amt is not None else None,
         cover_url=b.cover_url,
         published_at=b.published_at,
+        isbn=b.isbn,
     )
 
 
@@ -47,6 +48,11 @@ class SqlCatalogRepository:
     async def set_author(self, book_id: UUID, author_id: UUID) -> None:
         b = await self.session.get(Book, book_id)
         b.author_id = author_id
+        await self.session.commit()
+
+    async def set_isbn(self, book_id: UUID, isbn: str) -> None:
+        b = await self.session.get(Book, book_id)
+        b.isbn = isbn
         await self.session.commit()
 
     async def list_published(
