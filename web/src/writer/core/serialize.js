@@ -19,8 +19,8 @@ function spansToHtml(spans) {
   return (spans || [])
     .map((sp) => {
       let h = escape(sp.text);
-      // 고정 순서로 감싸 결정성 유지
-      for (const m of MARKS) if (sp.marks?.includes(m)) h = `<${m}>${h}</${m}>`;
+      // 역순 적용 → MARKS 앞쪽(strong)이 바깥으로. 결정적 + 관례(<strong><em>).
+      for (const m of [...MARKS].reverse()) if (sp.marks?.includes(m)) h = `<${m}>${h}</${m}>`;
       return h;
     })
     .join('');

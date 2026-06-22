@@ -8,6 +8,7 @@ import { ReaderPage } from './pages/ReaderPage';
 import { StorePage } from './pages/StorePage';
 import { StudioEditorPage } from './pages/StudioEditorPage';
 import { StudioPage } from './pages/StudioPage';
+import { WritePage } from './pages/WritePage';
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="/library" element={<LibraryPage />} />
         <Route path="/studio" element={<StudioPage />} />
         <Route path="/studio/:id" element={<StudioEditorPage />} />
+        <Route path="/write/:id" element={<WritePage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
       </Routes>
     </>

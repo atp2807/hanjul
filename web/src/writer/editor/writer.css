@@ -1,0 +1,24 @@
+.writer-pm .ProseMirror {
+  min-height: 60vh;
+  outline: none;
+  font-size: 17px;
+  line-height: 1.8;
+  word-break: keep-all; /* CJK 줄바꿈 */
+}
+.writer-pm .ProseMirror p {
+  margin: 0 0 1em;
+}
+.writer-pm .ProseMirror h1 { font-size: 1.6em; margin: 1em 0 0.5em; }
+.writer-pm .ProseMirror h2 { font-size: 1.35em; margin: 1em 0 0.5em; }
+.writer-pm .ProseMirror h3 { font-size: 1.15em; margin: 1em 0 0.5em; }
+.writer-pm .ProseMirror blockquote {
+  border-left: 3px solid #ddd;
+  margin: 0 0 1em;
+  padding-left: 14px;
+  color: #555;
+}
+.writer-pm .ProseMirror hr {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 1.5em 0;
+}
