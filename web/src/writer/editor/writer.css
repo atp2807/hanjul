@@ -2,12 +2,28 @@
   min-height: 60vh;
   outline: none;
   font-size: 17px;
-  line-height: 1.8;
+  line-height: 1.6;
   word-break: keep-all; /* CJK 줄바꿈 */
 }
 .writer-pm .ProseMirror p {
-  margin: 0 0 1em;
+  margin: 0 0 0.7em;
 }
+.writer-status {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-bottom: 10px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.writer-status .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #d1d5db;
+}
+.writer-status.is-saved .dot { background: #22c55e; }
+.writer-status.is-saving .dot { background: #f59e0b; }
 .writer-pm .ProseMirror h1 { font-size: 1.6em; margin: 1em 0 0.5em; }
 .writer-pm .ProseMirror h2 { font-size: 1.35em; margin: 1em 0 0.5em; }
 .writer-pm .ProseMirror h3 { font-size: 1.15em; margin: 1em 0 0.5em; }

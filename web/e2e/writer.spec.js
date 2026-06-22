@@ -8,6 +8,9 @@ test('입력 → 새로고침 후에도 남아있다 (안 날아감)', async ({ 
   await page.keyboard.type('첫 문장은 절대 사라지면 안 된다');
   await expect(editor).toContainText('절대 사라지면 안 된다');
 
+  // 저장 상태가 눈에 보인다 (안 날아감 체감)
+  await expect(page.getByTestId('writer-status')).toContainText('저장됨');
+
   await page.waitForTimeout(600); // y-indexeddb 로컬 플러시 대기
   await page.reload();
 
