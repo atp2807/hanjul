@@ -41,6 +41,10 @@ export function updateMeta(bookId, { subtitle, description, category }) {
 export function generateCover(bookId, prompt) {
   return apiClient.post(`/books/${bookId}/cover`, { prompt });
 }
+// 에디터 정본 전체 교체 (원클릭 출판) — chapters=[{title, blocks:[{type,html}]}]
+export function setBookContent(bookId, chapters) {
+  return apiClient.put(`/books/${bookId}/content`, { chapters });
+}
 // 서점 배포 — channel: KYOBO | YES24 | ALADIN ...
 export function distributeBook(bookId, channel) {
   return apiClient.post(`/books/${bookId}/distribute`, { channel });

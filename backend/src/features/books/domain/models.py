@@ -67,3 +67,11 @@ class BookNotFound(Exception):
     def __init__(self, book_id: UUID):
         self.book_id = book_id
         super().__init__(f"book not found: {book_id}")
+
+
+class NotOwner(Exception):
+    """책의 작가가 아닌 사용자의 변경 시도 → 표현 레이어에서 403."""
+
+    def __init__(self, book_id: UUID):
+        self.book_id = book_id
+        super().__init__(f"not the owner of book: {book_id}")

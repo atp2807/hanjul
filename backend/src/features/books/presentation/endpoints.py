@@ -7,11 +7,14 @@ from fastapi.responses import Response
 
 from src.engine.publishing.epub import EpubBook, EpubChapter, build_epub
 from src.features.auth.domain.models import AccountPrincipal
-from src.features.auth.presentation.dependencies import get_current_account_optional
+from src.features.auth.presentation.dependencies import (
+    get_current_account,
+    get_current_account_optional,
+)
 from src.features.billing.application.order_service import OrderService
 from src.features.billing.presentation.dependencies import get_order_service
 from src.features.books.application.book_service import BookService
-from src.features.books.domain.models import BookNotFound, to_preview
+from src.features.books.domain.models import BookNotFound, NotOwner, to_preview
 from src.features.books.presentation.dependencies import get_book_service
 from src.features.books.presentation.schemas import (
     BookContentResponse,
@@ -19,6 +22,7 @@ from src.features.books.presentation.schemas import (
     CreateBookResponse,
     ImportTextRequest,
     ImportTextResponse,
+    SetContentRequest,
 )
 
 router = APIRouter(prefix="/books", tags=["books"])
@@ -49,6 +53,26 @@ async def import_text(
     except BookNotFound:
         raise HTTPException(status_code=404, detail="book not found")
     return ImportTextResponse(chapter_id=result.chapter_id, block_count=result.block_count)
+
+
+@router.put("/{book_id}/content", status_code=204)
+async def set_content(
+    book_id: UUID,
+    body: SetContentRequest,
+    principal: AccountPrincipal = Depends(get_current_account),
+    service: BookService = Depends(get_book_service),
+) -> None:
+    """에디터 원클릭 출판 — 정본 전체를 헤딩 기준 챕터로 교체. 작가 본인만."""
+    chapters = [
+        {"title": c.title, "blocks": [{"type": b.type, "html": b.html} for b in c.blocks]}
+        for c in body.chapters
+    ]
+    try:
+        await service.set_content(book_id, chapters, principal.id)
+    except BookNotFound:
+        raise HTTPException(status_code=404, detail="book not found")
+    except NotOwner:
+        raise HTTPException(status_code=403, detail="not the owner")
 
 
 # 미구매·미로그인 독자에게 보여줄 미리보기 블록 수

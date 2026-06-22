@@ -4,7 +4,7 @@ import uuid
 import pytest
 
 from src.features.books.application.book_service import BookService
-from src.features.books.domain.models import BookNotFound
+from src.features.books.domain.models import BookNotFound, NotOwner
 from tests.fixtures.fake_book_repo import FakeBookRepository
 
 
@@ -55,3 +55,32 @@ async def test_multiple_imports_append_chapters_in_order(service):
     await service.import_text(book_id, "2화 내용")
     content = await service.get_content(book_id)
     assert [c.order_no for c in content.chapters] == [0, 1]
+
+
+async def test_set_content_replaces_and_owner_only(service):
+    author = uuid.uuid4()
+    book_id = await service.create_book(title="집필책", author_id=author)
+    await service.import_text(book_id, "옛 내용")  # 교체될 기존 장
+
+    chapters = [
+        {"title": "1장", "blocks": [{"type": "P", "html": "<p>새 본문</p>"}]},
+        {"title": "2장", "blocks": [{"type": "P", "html": "<p>둘째</p>"}]},
+    ]
+    n = await service.set_content(book_id, chapters, requester_id=author)
+    assert n == 2
+
+    content = await service.get_content(book_id)
+    assert [c.title for c in content.chapters] == ["1장", "2장"]  # 옛 장 사라짐
+    assert content.chapters[0].blocks[0].html == "<p>새 본문</p>"
+
+
+async def test_set_content_rejects_non_owner(service):
+    author = uuid.uuid4()
+    book_id = await service.create_book(title="내책", author_id=author)
+    with pytest.raises(NotOwner):
+        await service.set_content(book_id, [], requester_id=uuid.uuid4())
+
+
+async def test_set_content_unknown_book_raises(service):
+    with pytest.raises(BookNotFound):
+        await service.set_content(uuid.uuid4(), [], requester_id=uuid.uuid4())

@@ -9,8 +9,10 @@ from src.features.books.domain.models import BookView
 
 
 class BookRepository(Protocol):
-    async def create_book(self, *, title: str, kind: str, language: str) -> UUID:
-        """책을 만들고 id 를 반환."""
+    async def create_book(
+        self, *, title: str, kind: str, language: str, author_id: UUID | None = None
+    ) -> UUID:
+        """책을 만들고 id 를 반환. author_id 미지정 = 작가 미배정."""
         ...
 
     async def book_exists(self, book_id: UUID) -> bool:
@@ -20,6 +22,15 @@ class BookRepository(Protocol):
         self, book_id: UUID, title: str | None, blocks: list[dict]
     ) -> UUID:
         """장 1개 + 블록들을 추가하고 chapter_id 반환. blocks = [{"type","html"}, ...]."""
+        ...
+
+    async def get_author_id(self, book_id: UUID) -> UUID | None:
+        """책의 작가 id. 책이 없거나 미배정이면 None."""
+        ...
+
+    async def replace_content(self, book_id: UUID, chapters: list[dict]) -> int:
+        """책의 모든 장/블록을 주어진 챕터로 교체. 장 수 반환.
+        chapters = [{"title": str|None, "blocks": [{"type","html"}]}, ...]."""
         ...
 
     async def get_content(self, book_id: UUID) -> BookView | None:

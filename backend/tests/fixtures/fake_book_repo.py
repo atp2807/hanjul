@@ -38,6 +38,25 @@ class FakeBookRepository:
         })
         return chapter_id
 
+    async def get_author_id(self, book_id: UUID):
+        meta = self.books.get(book_id)
+        return meta.get("author_id") if meta else None
+
+    async def replace_content(self, book_id: UUID, chapters: list[dict]) -> int:
+        self.chapters[book_id] = [
+            {
+                "id": uuid.uuid4(),
+                "title": c.get("title"),
+                "order_no": order,
+                "blocks": [
+                    {"id": uuid.uuid4(), "order_no": i, "block_type": b["type"], "html": b["html"]}
+                    for i, b in enumerate(c.get("blocks", []))
+                ],
+            }
+            for order, c in enumerate(chapters)
+        ]
+        return len(chapters)
+
     async def get_content(self, book_id: UUID) -> BookView | None:
         meta = self.books.get(book_id)
         if meta is None:

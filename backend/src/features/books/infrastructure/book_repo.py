@@ -40,6 +40,29 @@ class SqlBookRepository:
         await self.session.commit()
         return chapter.id
 
+    async def get_author_id(self, book_id: UUID) -> UUID | None:
+        book = await self.session.get(Book, book_id)
+        return book.author_id if book else None
+
+    async def replace_content(self, book_id: UUID, chapters: list[dict]) -> int:
+        """기존 장 전부 삭제(블록 cascade) 후 새 챕터들로 재생성."""
+        existing = (
+            await self.session.execute(select(Chapter).where(Chapter.book_id == book_id))
+        ).scalars().all()
+        for ch in existing:
+            await self.session.delete(ch)
+        await self.session.flush()
+        for order, c in enumerate(chapters):
+            chapter = Chapter(book_id=book_id, title=c.get("title"), order_no=order)
+            self.session.add(chapter)
+            await self.session.flush()
+            for i, b in enumerate(c.get("blocks", [])):
+                self.session.add(
+                    Block(chapter_id=chapter.id, order_no=i, block_type=b["type"], html=b["html"])
+                )
+        await self.session.commit()
+        return len(chapters)
+
     async def get_content(self, book_id: UUID) -> BookView | None:
         stmt = (
             select(Book)

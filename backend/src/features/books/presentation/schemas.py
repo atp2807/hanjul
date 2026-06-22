@@ -29,6 +29,21 @@ class ImportTextResponse(_Camel):
     block_count: int
 
 
+class BlockInput(_Camel):
+    type: str   # P | H1 | H2 | H3 | QUOTE | HR (정본 코드)
+    html: str
+
+
+class ChapterInput(_Camel):
+    title: str | None = None
+    blocks: list[BlockInput] = []
+
+
+class SetContentRequest(_Camel):
+    """에디터 원클릭 출판 — 정본 전체 교체."""
+    chapters: list[ChapterInput]
+
+
 class BlockResponse(_Camel):
     id: UUID
     order_no: int
