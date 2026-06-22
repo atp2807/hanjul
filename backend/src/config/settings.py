@@ -53,6 +53,8 @@ class Settings(BaseSettings):
 
     # ── 일반 ────────────────────────────────────────────
     DEBUG: bool = True
+    # E2E/로컬 전용 로그인 우회(/api/auth/test-login) 허용. 운영은 반드시 False(fail-closed).
+    E2E_LOGIN_ENABLED: bool = False
 
     @property
     def auth_provider_list(self) -> list[str]:

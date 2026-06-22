@@ -46,3 +46,22 @@ async def test_unknown_provider_returns_400(override_auth):
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
         r = await c.get("/api/auth/naver/login")
         assert r.status_code == 400
+
+
+async def test_test_login_blocked_by_default(override_auth):
+    # fail-closed: 플래그 꺼져 있으면 404
+    settings.E2E_LOGIN_ENABLED = False
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
+        r = await c.get("/api/auth/test-login?email=e2e@x.com")
+        assert r.status_code == 404
+
+
+async def test_test_login_issues_token_when_enabled(override_auth):
+    settings.E2E_LOGIN_ENABLED = True
+    try:
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
+            r = await c.get("/api/auth/test-login?email=e2e@x.com&name=작가", follow_redirects=False)
+            assert r.status_code == 302
+            assert "/auth/callback#token=" in r.headers["location"]
+    finally:
+        settings.E2E_LOGIN_ENABLED = False

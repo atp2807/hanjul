@@ -19,3 +19,6 @@ dist/
 
 # Claude Code (로컬 개인 설정)
 .claude/settings.local.json
+web/test-results/
+web/playwright-report/
+web/blob-report/

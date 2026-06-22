@@ -4,7 +4,7 @@ from fastapi.responses import RedirectResponse
 
 from src.config.settings import settings
 from src.features.auth.application.auth_service import AuthService
-from src.features.auth.domain.models import UnknownProvider
+from src.features.auth.domain.models import SocialProfile, UnknownProvider
 from src.features.auth.presentation.dependencies import get_auth_service
 from src.features.auth.presentation.schemas import LoginUrlResponse
 
@@ -20,6 +20,23 @@ async def login(
     except UnknownProvider:
         raise HTTPException(status_code=400, detail="unknown provider")
     return LoginUrlResponse(authorization_url=url)
+
+
+@router.get("/test-login")
+async def test_login(
+    email: str, name: str = "테스트작가", service: AuthService = Depends(get_auth_service)
+) -> RedirectResponse:
+    """E2E/로컬 전용 로그인 우회 — Google 콜백과 동일하게 토큰을 프론트로 전달.
+
+    settings.E2E_LOGIN_ENABLED 가 True 일 때만 동작. 운영 기본값은 차단(404, fail-closed).
+    경로는 1세그먼트라 /{provider}/login·/{provider}/callback 과 충돌하지 않는다.
+    """
+    if not settings.E2E_LOGIN_ENABLED:
+        raise HTTPException(status_code=404, detail="not found")
+    profile = SocialProfile("GOOGLE", f"e2e:{email}", email, name)
+    result = await service.login_with_profile(profile)
+    fragment = f"token={result.token}&isNew={'1' if result.is_new else '0'}"
+    return RedirectResponse(url=f"{settings.FRONTEND_URL}/auth/callback#{fragment}", status_code=302)
 
 
 @router.get("/{provider}/callback")
