@@ -12,6 +12,6 @@ class CoverService:
     async def generate_for_book(self, book_id: UUID, prompt: str) -> str:
         if not await self.repo.book_exists(book_id):
             raise BookNotFound(book_id)
-        cover_url = await self.generator.generate(prompt)
+        cover_url = await self.generator.generate(prompt, reference=str(book_id))
         await self.repo.set_cover(book_id, cover_url)
         return cover_url

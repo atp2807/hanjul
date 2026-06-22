@@ -37,6 +37,21 @@ describe('StudioEditorPage', () => {
     expect(screen.queryByText('서점 배포')).not.toBeInTheDocument(); // 미출판
   });
 
+  it('AI 표지 생성 → 미리보기 이미지가 뜬다', async () => {
+    books.getBookContent.mockResolvedValue({
+      id: 'b1', title: '내 책', status: 'DRAFT', priceAmt: 0, chapters: [],
+    });
+    studio.generateCover.mockResolvedValue({ coverUrl: 'data:image/svg+xml;utf8,<svg/>' });
+
+    renderEditor();
+    await screen.findByText('내 책');
+    fireEvent.change(screen.getByPlaceholderText(/표지 분위기/), { target: { value: '따뜻한 에세이' } });
+    fireEvent.click(screen.getByRole('button', { name: 'AI 표지 생성' }));
+
+    await waitFor(() => expect(studio.generateCover).toHaveBeenCalledWith('b1', '따뜻한 에세이'));
+    expect(await screen.findByRole('img', { name: '표지' })).toBeInTheDocument();
+  });
+
   it('출판본: 서점 배포 → 전송됨 이력이 다시 로드된다', async () => {
     books.getBookContent.mockResolvedValue({
       id: 'b1', title: '내 책', status: 'PUBLISHED', priceAmt: 9000, chapters: [],

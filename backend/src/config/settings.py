@@ -39,7 +39,9 @@ class Settings(BaseSettings):
     PAYMENT_DEMO: bool = False
 
     # ── AI 표지(novelpotato) ────────────────────────────
-    COVER_API_URL: str = ""
+    # 데모: 외부 호출 없이 placeholder 반환 (dev/E2E). 운영은 False + 아래 설정.
+    COVER_DEMO: bool = False
+    COVER_API_URL: str = ""  # novelpotato /generate-cover
     COVER_API_KEY: str = ""
 
     # ── 서점 배포 ───────────────────────────────────────

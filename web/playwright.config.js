@@ -29,6 +29,7 @@ export default defineConfig({
         E2E_LOGIN_ENABLED: 'true',
         PAYMENT_DEMO: 'true',
         DISTRIBUTION_DEMO: 'true',
+        COVER_DEMO: 'true',
         FRONTEND_URL: FRONT,
         DEBUG: 'false',
       },

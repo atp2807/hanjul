@@ -37,6 +37,10 @@ export function setIsbn(bookId, isbn) {
 export function updateMeta(bookId, { subtitle, description, category }) {
   return apiClient.put(`/books/${bookId}/meta`, { subtitle, description, category });
 }
+// AI 표지 생성 (프롬프트 → 이미지 URL, 책에 연결)
+export function generateCover(bookId, prompt) {
+  return apiClient.post(`/books/${bookId}/cover`, { prompt });
+}
 // 서점 배포 — channel: KYOBO | YES24 | ALADIN ...
 export function distributeBook(bookId, channel) {
   return apiClient.post(`/books/${bookId}/distribute`, { channel });

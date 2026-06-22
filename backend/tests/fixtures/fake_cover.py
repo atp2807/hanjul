@@ -6,9 +6,11 @@ class FakeCoverGenerator:
     def __init__(self, url: str = "https://img.hanjul.io/cover.png"):
         self.url = url
         self.prompts: list[str] = []
+        self.references: list[str] = []
 
-    async def generate(self, prompt: str) -> str:
+    async def generate(self, prompt: str, reference: str) -> str:
         self.prompts.append(prompt)
+        self.references.append(reference)
         return self.url
 
 

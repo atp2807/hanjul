@@ -6,6 +6,7 @@ import {
   distributeBook,
   downloadEpub,
   downloadOnix,
+  generateCover,
   getDistributions,
   getMyBooks,
   importText,
@@ -37,6 +38,9 @@ export function StudioEditorPage() {
   const [subtitle, setSubtitle] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
+  const [coverUrl, setCoverUrl] = useState(null);
+  const [coverPrompt, setCoverPrompt] = useState('');
+  const [coverBusy, setCoverBusy] = useState(false);
   const [scheduleAt, setScheduleAt] = useState('');
   const [channel, setChannel] = useState('KYOBO');
   const [dists, setDists] = useState([]);
@@ -55,6 +59,7 @@ export function StudioEditorPage() {
       setSubtitle(summary.subtitle || '');
       setDescription(summary.description || '');
       setCategory(summary.category || '');
+      setCoverUrl(summary.coverUrl || null);
     }
     if (c.status === 'PUBLISHED') {
       setDists(await getDistributions(id));
@@ -89,6 +94,20 @@ export function StudioEditorPage() {
       await load();
     } catch (e) {
       setError(e.message);
+    }
+  }
+  async function doCover() {
+    if (!coverPrompt.trim()) return setError('표지 설명을 입력하세요.');
+    setCoverBusy(true);
+    setError(null);
+    try {
+      const r = await generateCover(id, coverPrompt);
+      setCoverUrl(r.coverUrl);
+      notify('표지가 생성됐어요.');
+    } catch (e) {
+      setError(e.status === 503 ? 'AI 표지 생성이 비활성 상태예요(운영 설정 필요).' : e.message);
+    } finally {
+      setCoverBusy(false);
     }
   }
   async function doSchedule() {
@@ -159,6 +178,32 @@ export function StudioEditorPage() {
         >
           정보 저장
         </button>
+      </Section>
+
+      <Section title="표지">
+        <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+          <div style={{ width: 120, flexShrink: 0 }}>
+            {coverUrl ? (
+              <img src={coverUrl} alt="표지" style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: 8, border: '1px solid #eee' }} />
+            ) : (
+              <div style={{ width: '100%', aspectRatio: '3/4', borderRadius: 8, background: '#f1f2f4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa', fontSize: 12 }}>
+                표지 없음
+              </div>
+            )}
+          </div>
+          <div style={{ flex: 1 }}>
+            <textarea
+              value={coverPrompt}
+              onChange={(e) => setCoverPrompt(e.target.value)}
+              rows={3}
+              placeholder="표지 분위기·소재를 설명하세요 (예: 잔잔한 한국 에세이, 따뜻한 색감)"
+              style={{ width: '100%', boxSizing: 'border-box', padding: 12, border: '1px solid #ddd', borderRadius: 8, fontFamily: 'inherit' }}
+            />
+            <button onClick={doCover} disabled={coverBusy} style={primary}>
+              {coverBusy ? '생성 중…' : 'AI 표지 생성'}
+            </button>
+          </div>
+        </div>
       </Section>
 
       <Section title="원고 추가">
