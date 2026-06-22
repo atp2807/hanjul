@@ -76,8 +76,9 @@ export function WritePage() {
           </ul>
         )}
       </aside>
-      <main style={{ flex: 1, padding: '28px 24px' }}>
-        <div style={{ maxWidth: 720, margin: '0 auto' }}>
+      <main style={{ flex: 1, padding: '28px 32px' }}>
+        {/* 왼쪽 기준 정렬 — 가독 폭 제한, 오른쪽은 빈 여백으로 늘어남 */}
+        <div style={{ maxWidth: 720 }}>
           <WriterEditor docId={id} onReady={handleReady} onChange={handleChange} />
         </div>
       </main>
