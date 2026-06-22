@@ -33,6 +33,16 @@ test('제목(# )을 쓰면 목차가 자동 생성된다 (파일 관리 0)', asy
   await expect(outline).toContainText('작은 절');
 });
 
+test('툴바 제목 버튼 → 마크다운 몰라도 헤딩+목차 생성', async ({ page }) => {
+  await page.goto('/write/e2e-toolbar');
+  const editor = page.locator('.ProseMirror');
+  await editor.click();
+  await page.keyboard.type('1장 발단'); // # 없이 평범하게
+  await page.getByRole('button', { name: '제목', exact: true }).click();
+  await expect(editor.locator('h1')).toHaveText('1장 발단');
+  await expect(page.getByTestId('outline')).toContainText('1장 발단');
+});
+
 test('서식 단축키 → 정본으로 직렬화 가능한 마크 적용', async ({ page }) => {
   await page.goto('/write/e2e-fmt');
   const editor = page.locator('.ProseMirror');

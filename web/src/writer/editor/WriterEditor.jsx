@@ -1,7 +1,7 @@
 // 로컬우선 에디터 — ProseMirror + Yjs + y-indexeddb.
 // 타이핑 핫패스 = 메모리 Y.Doc(즉시) → y-indexeddb 가 매 변경 로컬 영속(안 날아감).
 // 저장 상태를 눈에 보이게 표시 + 마크다운 입력룰(#,##,>) + 문서변경 콜백(자동 목차용).
-import { baseKeymap, toggleMark } from 'prosemirror-commands';
+import { baseKeymap, setBlockType, toggleMark } from 'prosemirror-commands';
 import { inputRules, textblockTypeInputRule, wrappingInputRule } from 'prosemirror-inputrules';
 import { keymap } from 'prosemirror-keymap';
 import { EditorState } from 'prosemirror-state';
@@ -36,6 +36,7 @@ function headingEnter(state, dispatch) {
 
 export function WriterEditor({ docId, onReady, onChange }) {
   const mount = useRef(null);
+  const viewRef = useRef(null);
   const [status, setStatus] = useState('loading'); // loading | saving | saved
   const [savedAt, setSavedAt] = useState(null);
 
@@ -87,6 +88,7 @@ export function WriterEditor({ docId, onReady, onChange }) {
       },
     });
 
+    viewRef.current = view;
     onReady?.({ ydoc, view, persistence });
     onChange?.(view.state.doc); // 초기/복원 목차
 
@@ -96,8 +98,17 @@ export function WriterEditor({ docId, onReady, onChange }) {
       view.destroy();
       persistence.destroy();
       ydoc.destroy();
+      viewRef.current = null;
     };
   }, [docId]);
+
+  // 툴바: 마크다운 몰라도 클릭으로 블록/서식 지정 (현재 줄/선택에 적용)
+  const run = (command) => () => {
+    const v = viewRef.current;
+    if (!v) return;
+    command(v.state, v.dispatch, v);
+    v.focus();
+  };
 
   const label =
     status === 'loading'
@@ -110,6 +121,24 @@ export function WriterEditor({ docId, onReady, onChange }) {
 
   return (
     <div>
+      <div className="writer-toolbar" data-testid="writer-toolbar">
+        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={run(setBlockType(schema.nodes.heading, { level: 1 }))}>
+          제목
+        </button>
+        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={run(setBlockType(schema.nodes.heading, { level: 2 }))}>
+          소제목
+        </button>
+        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={run(setBlockType(schema.nodes.paragraph))}>
+          본문
+        </button>
+        <span className="sep" />
+        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={run(toggleMark(schema.marks.strong))}>
+          굵게
+        </button>
+        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={run(toggleMark(schema.marks.em))}>
+          기울임
+        </button>
+      </div>
       <div className={`writer-status is-${status}`} data-testid="writer-status">
         <span className="dot" />
         {label}
