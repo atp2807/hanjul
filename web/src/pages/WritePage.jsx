@@ -26,18 +26,16 @@ export function WritePage() {
   }
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div style={{ display: 'flex', height: '100%' }}>
+      {/* 목차 — 독립 스크롤 */}
       <aside
         style={{
           width: 240,
           flexShrink: 0,
+          height: '100%',
+          overflowY: 'auto',
           padding: '28px 16px',
           borderRight: '1px solid #f0f0f0',
-          position: 'sticky',
-          top: 0,
-          alignSelf: 'flex-start',
-          height: '100vh',
-          overflowY: 'auto',
           boxSizing: 'border-box',
         }}
       >
@@ -76,8 +74,8 @@ export function WritePage() {
           </ul>
         )}
       </aside>
-      <main style={{ flex: 1, padding: '28px 32px' }}>
-        {/* 왼쪽 기준 정렬 — 가독 폭 제한, 오른쪽은 빈 여백으로 늘어남 */}
+      {/* 에디터 — 독립 스크롤. 왼쪽 기준 정렬, 오른쪽은 빈 여백으로 늘어남 */}
+      <main style={{ flex: 1, height: '100%', overflowY: 'auto', padding: '28px 32px' }}>
         <div style={{ maxWidth: 720 }}>
           <WriterEditor docId={id} onReady={handleReady} onChange={handleChange} />
         </div>
