@@ -5,10 +5,11 @@ import { useCallback, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { setBookContent, publishNow } from '../services/api/studio';
+import { docxToNeutral } from '../writer/adapters/docx_import';
 import { splitIntoChapters } from '../writer/core/chapters';
 import { docToOutline } from '../writer/core/outline';
 import { charCount } from '../writer/core/wordcount';
-import { pmToNeutral } from '../writer/editor/pm_doc';
+import { neutralToPmDoc, pmToNeutral } from '../writer/editor/pm_doc';
 import { WriterEditor } from '../writer/editor/WriterEditor';
 
 export function WritePage() {
@@ -50,6 +51,32 @@ export function WritePage() {
       setMsg({ ok: false, text });
     } finally {
       setPublishing(false);
+    }
+  }
+
+  function replaceContent(neutral) {
+    const view = viewRef.current;
+    if (!view || !neutral.blocks.length) return;
+    const newDoc = neutralToPmDoc(neutral);
+    view.dispatch(view.state.tr.replaceWith(0, view.state.doc.content.size, newDoc.content));
+    view.focus();
+  }
+
+  async function importDocx(e) {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // 같은 파일 재선택 허용
+    if (!file) return;
+    setMsg(null);
+    try {
+      const neutral = await docxToNeutral(await file.arrayBuffer());
+      if (!neutral.blocks.length) {
+        setMsg({ ok: false, text: '가져올 내용이 없어요.' });
+        return;
+      }
+      replaceContent(neutral);
+      setMsg({ ok: true, text: `DOCX ${neutral.blocks.length}개 블록을 가져왔어요.` });
+    } catch (err) {
+      setMsg({ ok: false, text: `가져오기 실패: ${err?.message ?? String(err)}` });
     }
   }
 
@@ -121,6 +148,10 @@ export function WritePage() {
             >
               {publishing ? '출판 중…' : '출판'}
             </button>
+            <label style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #ddd', background: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
+              가져오기(.docx)
+              <input type="file" accept=".docx" onChange={importDocx} style={{ display: 'none' }} />
+            </label>
             {msg && <span style={{ fontSize: 13, color: msg.ok ? 'green' : 'crimson' }}>{msg.text}</span>}
           </div>
           <WriterEditor docId={id} onReady={handleReady} onChange={handleChange} />
