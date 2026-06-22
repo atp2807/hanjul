@@ -22,6 +22,8 @@ def _to_summary(b: Book) -> BookSummary:
         cover_url=b.cover_url,
         published_at=b.published_at,
         isbn=b.isbn,
+        description=b.description,
+        category=b.category,
     )
 
 
@@ -53,6 +55,19 @@ class SqlCatalogRepository:
     async def set_isbn(self, book_id: UUID, isbn: str) -> None:
         b = await self.session.get(Book, book_id)
         b.isbn = isbn
+        await self.session.commit()
+
+    async def update_meta(
+        self,
+        book_id: UUID,
+        subtitle: str | None,
+        description: str | None,
+        category: str | None,
+    ) -> None:
+        b = await self.session.get(Book, book_id)
+        b.subtitle = subtitle
+        b.description = description
+        b.category = category
         await self.session.commit()
 
     async def set_scheduled(self, book_id, when) -> None:

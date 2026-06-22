@@ -22,6 +22,11 @@ class CatalogRepository(Protocol):
     async def set_isbn(self, book_id: UUID, isbn: str) -> None:
         ...
 
+    async def update_meta(
+        self, book_id: UUID, subtitle: str | None, description: str | None, category: str | None
+    ) -> None:
+        ...
+
     async def set_scheduled(self, book_id: UUID, when) -> None:
         ...
 

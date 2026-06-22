@@ -33,6 +33,10 @@ export function schedulePublish(bookId, publishAt) {
 export function setIsbn(bookId, isbn) {
   return apiClient.put(`/books/${bookId}/isbn`, { isbn });
 }
+// 부제·소개·분류 일괄 저장
+export function updateMeta(bookId, { subtitle, description, category }) {
+  return apiClient.put(`/books/${bookId}/meta`, { subtitle, description, category });
+}
 // 서점 배포 — channel: KYOBO | YES24 | ALADIN ...
 export function distributeBook(bookId, channel) {
   return apiClient.post(`/books/${bookId}/distribute`, { channel });

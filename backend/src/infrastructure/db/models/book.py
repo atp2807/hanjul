@@ -27,6 +27,10 @@ class Book(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     title = Column(String(500), nullable=False)
     subtitle = Column(String(500))
+    # 책 소개(시놉시스). 스토어 상세·ONIX 피드에 노출.
+    description = Column(Text)
+    # 분류 — 소설 | 에세이 | 시 | 자기계발 | ... (자유 코드). 스토어 탐색/필터용.
+    category = Column("category_cd", String(40))
     # 콘텐츠 종류 — BOOK(일반서적) | WEBNOVEL(웹소설)
     kind = Column("kind_cd", String(20), nullable=False, default="BOOK")
     # 원어 — ko | en | ja ...

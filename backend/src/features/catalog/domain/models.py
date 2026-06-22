@@ -22,6 +22,8 @@ class BookSummary:
     cover_url: str | None
     published_at: datetime | None
     isbn: str | None = None
+    description: str | None = None
+    category: str | None = None
 
 
 class CatalogError(Exception):

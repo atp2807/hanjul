@@ -18,14 +18,21 @@ test('작가: 생성→출간→서점 배포까지 한 흐름', async ({ page }
   await page.getByRole('button', { name: '장 추가' }).click();
   await expect(page.getByText(/블록이 새 장으로 추가/)).toBeVisible();
 
+  // 책 정보 (부제·소개·분류)
+  await page.getByPlaceholder('부제 (선택)').fill('E2E 부제');
+  await page.getByPlaceholder(/책 소개/).fill('자동 테스트로 만든 책 소개.');
+  await page.getByRole('combobox').first().selectOption('에세이');
+  await page.getByRole('button', { name: '정보 저장' }).click();
+  await expect(page.getByText('책 정보가 저장됐어요.')).toBeVisible();
+
   // 가격
   await page.locator('input[type=number]').fill('9000');
-  await page.getByRole('button', { name: '저장' }).first().click();
+  await page.getByRole('button', { name: '가격 저장' }).click();
   await expect(page.getByText('가격이 저장됐어요.')).toBeVisible();
 
   // ISBN
   await page.getByPlaceholder('978-89-...').fill('9788912345678');
-  await page.getByRole('button', { name: '저장' }).nth(1).click();
+  await page.getByRole('button', { name: 'ISBN 저장' }).click();
   await expect(page.getByText('ISBN이 저장됐어요.')).toBeVisible();
 
   // EPUB 다운로드

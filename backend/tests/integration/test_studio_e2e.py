@@ -69,3 +69,26 @@ async def test_isbn_set_and_onix_feed(app_db):
         assert "<TitleText>내 책</TitleText>" in onix
         assert "<ProductForm>EB</ProductForm>" in onix  # ebook
         assert "작가" in onix  # PROFILE display_name
+
+
+async def test_update_meta_reflected_in_store(app_db):
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
+        token, _ = await login_account(c, "google", "x")
+        auth = {"Authorization": f"Bearer {token}"}
+        book = (await c.post("/api/books", json={"title": "메타책"}, headers=auth)).json()["bookId"]
+
+        r = await c.put(
+            f"/api/books/{book}/meta",
+            json={"subtitle": "부제다", "description": "한 줄 소개입니다.", "category": "에세이"},
+        )
+        assert r.status_code == 204
+
+        # 빈 문자열은 NULL 로 정규화 (부제 지움)
+        await c.put(f"/api/books/{book}/meta", json={"subtitle": "  ", "description": "수정된 소개", "category": "소설"})
+
+        # /me/books 요약에 반영
+        mine = (await c.get("/api/me/books", headers=auth)).json()["items"]
+        meta = next(b for b in mine if b["id"] == book)
+        assert meta["subtitle"] is None
+        assert meta["description"] == "수정된 소개"
+        assert meta["category"] == "소설"

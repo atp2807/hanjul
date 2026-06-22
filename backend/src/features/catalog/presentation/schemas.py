@@ -22,6 +22,12 @@ class SetIsbnRequest(_Camel):
     isbn: str
 
 
+class UpdateMetaRequest(_Camel):
+    subtitle: str | None = None
+    description: str | None = None
+    category: str | None = None
+
+
 class SchedulePublishRequest(_Camel):
     publish_at: datetime
 
@@ -38,6 +44,8 @@ class BookSummaryResponse(_Camel):
     cover_url: str | None
     published_at: datetime | None
     isbn: str | None = None
+    description: str | None = None
+    category: str | None = None
 
 
 class StoreListResponse(_Camel):

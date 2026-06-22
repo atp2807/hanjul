@@ -34,6 +34,22 @@ class CatalogService:
             raise ValueError("price must be >= 0")
         await self.repo.set_price(book_id, amount)
 
+    async def update_meta(
+        self,
+        book_id: UUID,
+        subtitle: str | None,
+        description: str | None,
+        category: str | None,
+    ) -> None:
+        """부제·소개·분류 일괄 갱신 (빈 문자열은 NULL 로 정규화)."""
+        await self._require(book_id)
+
+        def _clean(v: str | None) -> str | None:
+            v = v.strip() if v else None
+            return v or None
+
+        await self.repo.update_meta(book_id, _clean(subtitle), _clean(description), _clean(category))
+
     async def submit_for_review(self, book_id: UUID) -> None:
         s = await self._require(book_id)
         if s.status != DRAFT:

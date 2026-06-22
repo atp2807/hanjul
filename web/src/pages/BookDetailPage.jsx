@@ -57,6 +57,14 @@ export function BookDetailPage() {
       <div style={{ flex: 1 }}>
         <h1 style={{ margin: '0 0 6px', fontWeight: 700 }}>{book.title}</h1>
         {book.subtitle && <p style={{ color: '#666', marginTop: 0 }}>{book.subtitle}</p>}
+        {book.category && (
+          <span style={{ display: 'inline-block', fontSize: 12, color: '#555', background: '#f1f2f4', borderRadius: 999, padding: '3px 10px' }}>
+            {book.category}
+          </span>
+        )}
+        {book.description && (
+          <p style={{ color: '#444', marginTop: 14, whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{book.description}</p>
+        )}
         <p style={{ fontSize: 20, fontWeight: 700, margin: '16px 0' }}>
           {book.priceAmt != null ? `${book.priceAmt.toLocaleString()}원` : '무료'}
         </p>

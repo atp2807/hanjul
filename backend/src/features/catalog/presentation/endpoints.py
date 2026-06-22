@@ -27,6 +27,7 @@ from src.features.catalog.presentation.schemas import (
     SetIsbnRequest,
     SetPriceRequest,
     StoreListResponse,
+    UpdateMetaRequest,
 )
 
 router = APIRouter(tags=["catalog"])
@@ -57,6 +58,17 @@ async def set_price(
         raise HTTPException(404, "book not found")
     except ValueError as e:
         raise HTTPException(422, str(e))
+
+
+@router.put("/books/{book_id}/meta", status_code=204)
+async def update_meta(
+    book_id: UUID, body: UpdateMetaRequest, svc: CatalogService = Depends(get_catalog_service)
+) -> None:
+    """부제·소개·분류 편집 (스토어 노출·검색 품질)."""
+    try:
+        await svc.update_meta(book_id, body.subtitle, body.description, body.category)
+    except BookNotFound:
+        raise HTTPException(404, "book not found")
 
 
 @router.post("/books/{book_id}/submit", status_code=204)

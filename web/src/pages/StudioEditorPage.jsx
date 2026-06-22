@@ -15,6 +15,7 @@ import {
   setBookPrice,
   setIsbn,
   submitBook,
+  updateMeta,
 } from '../services/api/studio';
 import { STATUS_LABEL } from './StudioPage';
 
@@ -25,12 +26,17 @@ const CHANNELS = [
   ['RIDIBOOKS', '리디북스'],
 ];
 
+const CATEGORIES = ['소설', '에세이', '시', '자기계발', '경제경영', '인문', '과학', '판타지', '로맨스', '기타'];
+
 export function StudioEditorPage() {
   const { id } = useParams();
   const [book, setBook] = useState(null);
   const [text, setText] = useState('');
   const [price, setPrice] = useState('');
   const [isbn, setIsbnValue] = useState('');
+  const [subtitle, setSubtitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('');
   const [scheduleAt, setScheduleAt] = useState('');
   const [channel, setChannel] = useState('KYOBO');
   const [dists, setDists] = useState([]);
@@ -44,7 +50,12 @@ export function StudioEditorPage() {
     // ISBN·배포이력은 content 응답 밖이라 별도 조회
     const mine = await getMyBooks();
     const summary = mine.items.find((b) => b.id === id);
-    if (summary) setIsbnValue(summary.isbn || '');
+    if (summary) {
+      setIsbnValue(summary.isbn || '');
+      setSubtitle(summary.subtitle || '');
+      setDescription(summary.description || '');
+      setCategory(summary.category || '');
+    }
     if (c.status === 'PUBLISHED') {
       setDists(await getDistributions(id));
     }
@@ -122,6 +133,34 @@ export function StudioEditorPage() {
       {msg && <p style={{ color: 'green' }}>{msg}</p>}
       {error && <p style={{ color: 'crimson' }}>{error}</p>}
 
+      <Section title="책 정보">
+        <input
+          value={subtitle}
+          onChange={(e) => setSubtitle(e.target.value)}
+          placeholder="부제 (선택)"
+          style={{ ...inp, width: '100%', boxSizing: 'border-box', marginBottom: 8 }}
+        />
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={4}
+          placeholder="책 소개 (스토어 상세에 노출)"
+          style={{ width: '100%', boxSizing: 'border-box', padding: 12, border: '1px solid #ddd', borderRadius: 8, fontFamily: 'inherit', marginBottom: 8 }}
+        />
+        <select value={category} onChange={(e) => setCategory(e.target.value)} style={inp}>
+          <option value="">분류 선택</option>
+          {CATEGORIES.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+        <button
+          onClick={run(() => updateMeta(id, { subtitle, description, category }), '책 정보가 저장됐어요.')}
+          style={btn}
+        >
+          정보 저장
+        </button>
+      </Section>
+
       <Section title="원고 추가">
         <textarea
           value={text}
@@ -135,13 +174,13 @@ export function StudioEditorPage() {
 
       <Section title="가격">
         <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} style={inp} /> 원
-        <button onClick={run(() => setBookPrice(id, parseInt(price || '0', 10)), '가격이 저장됐어요.')} style={btn}>저장</button>
+        <button onClick={run(() => setBookPrice(id, parseInt(price || '0', 10)), '가격이 저장됐어요.')} style={btn}>가격 저장</button>
         <span style={{ color: '#aaa', fontSize: 13, marginLeft: 8 }}>0이면 무료</span>
       </Section>
 
       <Section title="ISBN">
         <input value={isbn} onChange={(e) => setIsbnValue(e.target.value)} placeholder="978-89-..." style={{ ...inp, width: 220 }} />
-        <button onClick={run(() => setIsbn(id, isbn), 'ISBN이 저장됐어요.')} style={btn}>저장</button>
+        <button onClick={run(() => setIsbn(id, isbn), 'ISBN이 저장됐어요.')} style={btn}>ISBN 저장</button>
         <span style={{ color: '#aaa', fontSize: 13, marginLeft: 8 }}>없으면 서점에 자체 식별자로 나갑니다</span>
       </Section>
 
