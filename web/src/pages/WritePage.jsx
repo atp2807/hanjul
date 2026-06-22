@@ -26,8 +26,21 @@ export function WritePage() {
   }
 
   return (
-    <div style={{ display: 'flex', maxWidth: 1040, margin: '0 auto', minHeight: '100vh' }}>
-      <aside style={{ width: 220, flexShrink: 0, padding: '28px 14px', borderRight: '1px solid #f0f0f0' }}>
+    <div style={{ display: 'flex', minHeight: '100vh' }}>
+      <aside
+        style={{
+          width: 240,
+          flexShrink: 0,
+          padding: '28px 16px',
+          borderRight: '1px solid #f0f0f0',
+          position: 'sticky',
+          top: 0,
+          alignSelf: 'flex-start',
+          height: '100vh',
+          overflowY: 'auto',
+          boxSizing: 'border-box',
+        }}
+      >
         <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 10 }}>목차 (자동)</div>
         {outline.length === 0 ? (
           <p style={{ fontSize: 13, color: '#cbd5e1', lineHeight: 1.6 }}>
@@ -64,7 +77,9 @@ export function WritePage() {
         )}
       </aside>
       <main style={{ flex: 1, padding: '28px 24px' }}>
-        <WriterEditor docId={id} onReady={handleReady} onChange={handleChange} />
+        <div style={{ maxWidth: 720, margin: '0 auto' }}>
+          <WriterEditor docId={id} onReady={handleReady} onChange={handleChange} />
+        </div>
       </main>
     </div>
   );
