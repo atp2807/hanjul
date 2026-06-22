@@ -35,11 +35,19 @@ export default defineConfig({
       },
     },
     {
+      // CRDT 동기화 릴레이 서버 (TCP 포트로 준비 감지)
+      command: 'node sync-server.mjs',
+      port: 1236,
+      reuseExistingServer: false,
+      timeout: 30_000,
+      env: { SYNC_PORT: '1236' },
+    },
+    {
       command: 'npm run dev',
       url: FRONT,
       reuseExistingServer: false,
       timeout: 60_000,
-      env: { VITE_PORT: '35200', VITE_API_TARGET: API },
+      env: { VITE_PORT: '35200', VITE_API_TARGET: API, VITE_SYNC_URL: 'ws://localhost:1236' },
     },
   ],
 });

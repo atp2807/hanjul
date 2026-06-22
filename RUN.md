@@ -39,6 +39,15 @@ npm run dev                           # http://localhost:35173
 - 샘플 한글책이 **Pretext로 조판**되어 페이지로 표시
 - **A+/A-** → 즉시 재조판 / **이전·다음** → 페이지 넘김
 
+## 3b. (선택) 여러 기기 동기화 — CRDT 릴레이 서버
+글쓰기(`/write/:id`)는 기본 **로컬 단독**(IndexedDB, 안 날아감). 다기기 실시간 동기화를 켜려면:
+```bash
+cd web
+npm run sync                          # ws://localhost:1234 (SYNC_PORT 로 변경)
+VITE_SYNC_URL=ws://localhost:1234 npm run dev   # 프론트가 동기화 연결
+```
+미설정 시 동기화 없이 로컬만(오프라인 우선). ⚠️ 서버 무인증 — 운영 배포 전 인증 필요.
+
 ## 4. (선택) 라이브 외부 연동 — `.env`에 채우면 활성
 | 변수 | 용도 |
 |---|---|

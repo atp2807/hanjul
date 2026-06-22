@@ -9,6 +9,7 @@ import { EditorView } from 'prosemirror-view';
 import { useEffect, useRef, useState } from 'react';
 import { ySyncPlugin, yUndoPlugin, redo as yRedo, undo as yUndo } from 'y-prosemirror';
 import { IndexeddbPersistence } from 'y-indexeddb';
+import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
 
 import 'prosemirror-view/style/prosemirror.css';
@@ -39,6 +40,7 @@ export function WriterEditor({ docId, onReady, onChange }) {
   const viewRef = useRef(null);
   const [status, setStatus] = useState('loading'); // loading | saving | saved
   const [savedAt, setSavedAt] = useState(null);
+  const [synced, setSynced] = useState(false); // 서버 동기화 연결 여부
 
   useEffect(() => {
     const ydoc = new Y.Doc();
@@ -46,6 +48,14 @@ export function WriterEditor({ docId, onReady, onChange }) {
     const yXml = ydoc.getXmlFragment('prosemirror');
 
     persistence.whenSynced.then(() => setStatus('saved'));
+
+    // 백그라운드 서버 동기화 (SyncPort 웹 어댑터). URL 미설정 시 로컬 단독(오프라인 우선).
+    let wsProvider = null;
+    const syncUrl = import.meta.env.VITE_SYNC_URL;
+    if (syncUrl) {
+      wsProvider = new WebsocketProvider(syncUrl, docId, ydoc); // 룸 = docId
+      wsProvider.on('status', (e) => setSynced(e.status === 'connected'));
+    }
 
     // 사용자 편집마다 저장상태 갱신 (y-indexeddb 가 매 update 영속 = saved 가 로컬 확정)
     let timer;
@@ -96,6 +106,7 @@ export function WriterEditor({ docId, onReady, onChange }) {
       clearTimeout(timer);
       ydoc.off('update', onUpdate);
       view.destroy();
+      wsProvider?.destroy();
       persistence.destroy();
       ydoc.destroy();
       viewRef.current = null;
@@ -142,7 +153,9 @@ export function WriterEditor({ docId, onReady, onChange }) {
       <div className={`writer-status is-${status}`} data-testid="writer-status">
         <span className="dot" />
         {label}
-        <span style={{ color: '#cbd5e1' }}>· 오프라인·새로고침에도 안전</span>
+        <span style={{ color: synced ? '#16a34a' : '#cbd5e1' }}>
+          {synced ? '· 동기화됨(여러 기기)' : '· 오프라인·새로고침에도 안전'}
+        </span>
       </div>
       <div ref={mount} className="writer-pm" data-testid="writer-pm" />
     </div>
