@@ -18,6 +18,21 @@ test('입력 → 새로고침 후에도 남아있다 (안 날아감)', async ({ 
   await expect(page.locator('.ProseMirror')).toContainText('절대 사라지면 안 된다');
 });
 
+test('제목(# )을 쓰면 목차가 자동 생성된다 (파일 관리 0)', async ({ page }) => {
+  await page.goto('/write/e2e-outline');
+  const editor = page.locator('.ProseMirror');
+  await editor.click();
+  await page.keyboard.type('# 1장 발단'); // '# ' 입력룰 → h1
+  await page.keyboard.press('Enter'); // 제목 끝 Enter → 본문 문단
+  await page.keyboard.type('주인공이 등장한다');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('## 작은 절');
+
+  const outline = page.getByTestId('outline');
+  await expect(outline).toContainText('1장 발단');
+  await expect(outline).toContainText('작은 절');
+});
+
 test('서식 단축키 → 정본으로 직렬화 가능한 마크 적용', async ({ page }) => {
   await page.goto('/write/e2e-fmt');
   const editor = page.locator('.ProseMirror');
