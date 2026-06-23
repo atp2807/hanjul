@@ -17,21 +17,48 @@ export function WritePage() {
   const { id } = useParams();
   const [outline, setOutline] = useState([]);
   const [snapshots, setSnapshots] = useState([]);
+  const [totalChars, setTotalChars] = useState(0);
+  const [goal, setGoalState] = useState(() => Number(localStorage.getItem(`hanjul-goal-${id}`)) || 0);
   const [msg, setMsg] = useState(null);
   const [publishing, setPublishing] = useState(false);
+  const [focus, setFocus] = useState(false); // 집중 모드(방해 없는 쓰기)
+  const [notes, setNotes] = useState(''); // 자료(인물·설정 메모)
   const viewRef = useRef(null);
   const ydocRef = useRef(null);
   const snapOffRef = useRef(null);
+  const metaOffRef = useRef(null);
 
-  const handleChange = useCallback((doc) => setOutline(docToOutline(doc)), []);
+  const handleChange = useCallback((doc) => {
+    setOutline(docToOutline(doc));
+    setTotalChars(doc.textContent.length); // 진행도(글자수)
+  }, []);
+
+  function setGoal(n) {
+    setGoalState(n);
+    if (n > 0) localStorage.setItem(`hanjul-goal-${id}`, String(n));
+    else localStorage.removeItem(`hanjul-goal-${id}`);
+  }
   const handleReady = useCallback(({ view, ydoc }) => {
     viewRef.current = view;
     ydocRef.current = ydoc;
     snapOffRef.current?.(); // 이전 에디터 옵저버 해제
     setSnapshots(listSnapshots(ydoc));
     snapOffRef.current = observeSnapshots(ydoc, setSnapshots);
+
+    // 자료 메모 (Y.Map LWW, 동기화·영속)
+    metaOffRef.current?.();
+    const meta = ydoc.getMap('writerMeta');
+    setNotes(meta.get('notes') || '');
+    const onMeta = () => setNotes(meta.get('notes') || '');
+    meta.observe(onMeta);
+    metaOffRef.current = () => meta.unobserve(onMeta);
   }, []);
-  useEffect(() => () => snapOffRef.current?.(), []);
+  useEffect(() => () => { snapOffRef.current?.(); metaOffRef.current?.(); }, []);
+
+  function updateNotes(text) {
+    setNotes(text);
+    ydocRef.current?.getMap('writerMeta').set('notes', text);
+  }
 
   function saveSnapshot() {
     const view = viewRef.current;
@@ -125,8 +152,10 @@ export function WritePage() {
 
   return (
     <div style={{ display: 'flex', height: '100%' }}>
-      {/* 목차 — 독립 스크롤 */}
+      {/* 목차 — 독립 스크롤. 집중 모드면 숨김 */}
+      {!focus && (
       <aside
+        data-testid="outline-aside"
         style={{
           width: 240,
           flexShrink: 0,
@@ -190,10 +219,33 @@ export function WritePage() {
             </ul>
           </div>
         )}
+
+        <div style={{ marginTop: 22, paddingTop: 14, borderTop: '1px solid #f0f0f0' }}>
+          <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 8 }}>자료 📎 (인물·설정 메모)</div>
+          <textarea
+            data-testid="notes"
+            value={notes}
+            onChange={(e) => updateNotes(e.target.value)}
+            rows={8}
+            placeholder="등장인물, 설정, 자료를 여기에…"
+            style={{ width: '100%', boxSizing: 'border-box', padding: 10, border: '1px solid #ddd', borderRadius: 8, fontFamily: 'inherit', fontSize: 13, resize: 'vertical' }}
+          />
+        </div>
       </aside>
+      )}
       {/* 에디터 — 독립 스크롤. 왼쪽 기준 정렬, 오른쪽은 빈 여백으로 늘어남 */}
       <main style={{ flex: 1, height: '100%', overflowY: 'auto', padding: '28px 32px' }}>
         <div style={{ maxWidth: 720 }}>
+          {focus && (
+            <button
+              onClick={() => setFocus(false)}
+              style={{ position: 'fixed', top: 12, right: 16, zIndex: 20, padding: '6px 12px', borderRadius: 8, border: '1px solid #ddd', background: '#fff', fontSize: 13, cursor: 'pointer' }}
+            >
+              집중 해제
+            </button>
+          )}
+          {!focus && (
+          <>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
             <button
               onClick={publish}
@@ -212,8 +264,40 @@ export function WritePage() {
             >
               지점 저장
             </button>
+            <button
+              onClick={() => setFocus(true)}
+              style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #ddd', background: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
+            >
+              집중
+            </button>
             {msg && <span style={{ fontSize: 13, color: msg.ok ? 'green' : 'crimson' }}>{msg.text}</span>}
           </div>
+
+          {/* 목표/진행 — 동기부여 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10, fontSize: 13, color: '#666' }}>
+            <span>목표</span>
+            <input
+              type="number"
+              min="0"
+              data-testid="goal-input"
+              value={goal || ''}
+              onChange={(e) => setGoal(Math.max(0, Number(e.target.value) || 0))}
+              placeholder="0"
+              style={{ width: 80, padding: '4px 8px', border: '1px solid #ddd', borderRadius: 6 }}
+            />
+            <span>자</span>
+            <span data-testid="progress" style={{ marginLeft: 6, color: goal && totalChars >= goal ? '#16a34a' : '#666' }}>
+              {goal ? (totalChars >= goal ? `목표 달성 🎉 ${totalChars.toLocaleString()} / ${goal.toLocaleString()}자` : `${totalChars.toLocaleString()} / ${goal.toLocaleString()}자`) : `${totalChars.toLocaleString()}자`}
+            </span>
+            {goal > 0 && (
+              <span style={{ flex: 1, height: 6, background: '#f0f0f0', borderRadius: 3, overflow: 'hidden', maxWidth: 180 }}>
+                <span style={{ display: 'block', height: '100%', width: `${Math.min(100, (totalChars / goal) * 100)}%`, background: totalChars >= goal ? '#16a34a' : '#111' }} />
+              </span>
+            )}
+          </div>
+          </>
+          )}
+
           <WriterEditor docId={id} onReady={handleReady} onChange={handleChange} />
         </div>
       </main>
