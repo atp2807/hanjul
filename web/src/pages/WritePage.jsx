@@ -58,7 +58,7 @@ export function WritePage() {
 
   const refreshMeta = useCallback(() => {
     getMyBooks()
-      .then((r) => setMeta(r.items.find((b) => b.id === id) || null))
+      .then((r) => setMeta(r?.items?.find((b) => b.id === id) || null)) // 응답 형태 변경에도 안전
       .catch(() => {}); // 미로그인/네트워크면 점검 숨김
   }, [id]);
   useEffect(() => { refreshMeta(); }, [refreshMeta]);
