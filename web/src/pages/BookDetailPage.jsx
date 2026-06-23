@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthContext';
 import { getLoginUrl } from '../services/api/auth';
 import { getStoreDetail } from '../services/api/books';
 import { confirmPayment, createOrder } from '../services/api/orders';
+import { addReview, getReviews } from '../services/api/reviews';
 
 export function BookDetailPage() {
   const { id } = useParams();
@@ -13,10 +14,26 @@ export function BookDetailPage() {
   const [book, setBook] = useState(null);
   const [error, setError] = useState(null);
   const [buying, setBuying] = useState(false);
+  const [reviews, setReviews] = useState(null);
+  const [rating, setRating] = useState(5);
+  const [reviewBody, setReviewBody] = useState('');
 
   useEffect(() => {
     getStoreDetail(id).then(setBook).catch((e) => setError(e.message));
   }, [id]);
+
+  const loadReviews = () => getReviews(id).then(setReviews).catch(() => {});
+  useEffect(() => { loadReviews(); }, [id]);
+
+  async function submitReview() {
+    try {
+      await addReview(id, rating, reviewBody);
+      setReviewBody('');
+      await loadReviews();
+    } catch (e) {
+      setError(`리뷰 실패: ${e.message}`);
+    }
+  }
 
   async function handleBuy() {
     if (!user) {
@@ -89,6 +106,41 @@ export function BookDetailPage() {
         <p style={{ color: '#aaa', fontSize: 12, marginTop: 24 }}>
           {book.kind === 'WEBNOVEL' ? '웹소설' : '일반서적'} · {book.language}
         </p>
+
+        <section style={{ marginTop: 28, borderTop: '1px solid #eee', paddingTop: 18 }}>
+          <h3 style={{ fontSize: 16, margin: '0 0 12px' }}>
+            리뷰{reviews && reviews.count > 0 ? ` · ★${reviews.average} (${reviews.count})` : ''}
+          </h3>
+          {user && (
+            <div data-testid="review-form" style={{ marginBottom: 16 }}>
+              <select value={rating} onChange={(e) => setRating(Number(e.target.value))} aria-label="평점" style={{ padding: '6px 10px', border: '1px solid #ddd', borderRadius: 6 }}>
+                {[5, 4, 3, 2, 1].map((n) => (
+                  <option key={n} value={n}>{'★'.repeat(n)} {n}</option>
+                ))}
+              </select>
+              <textarea
+                value={reviewBody}
+                onChange={(e) => setReviewBody(e.target.value)}
+                placeholder="리뷰를 남겨주세요 (선택)"
+                rows={2}
+                style={{ display: 'block', width: '100%', boxSizing: 'border-box', marginTop: 8, padding: 10, border: '1px solid #ddd', borderRadius: 8, fontFamily: 'inherit' }}
+              />
+              <button onClick={submitReview} style={{ marginTop: 8, padding: '8px 16px', borderRadius: 8, background: '#111', color: '#fff', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
+                리뷰 등록
+              </button>
+            </div>
+          )}
+          <ul data-testid="review-list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+            {reviews?.items.map((r) => (
+              <li key={r.id} style={{ padding: '8px 0', borderTop: '1px solid #f3f3f3' }}>
+                <span style={{ color: '#f59e0b' }}>{'★'.repeat(r.rating)}</span>{' '}
+                <b style={{ fontSize: 13 }}>{r.author || '익명'}</b>
+                {r.body && <p style={{ margin: '4px 0 0', color: '#444' }}>{r.body}</p>}
+              </li>
+            ))}
+            {reviews && reviews.count === 0 && <li style={{ color: '#aaa', fontSize: 13 }}>아직 리뷰가 없어요.</li>}
+          </ul>
+        </section>
       </div>
     </div>
   );

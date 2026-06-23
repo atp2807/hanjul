@@ -19,7 +19,7 @@ async def sessionmaker():
         "sqlite+aiosqlite://",
         poolclass=StaticPool,
         connect_args={"check_same_thread": False},
-        execution_options={"schema_translate_map": {"pub": None, "usr": None, "bill": None, "dist": None}},
+        execution_options={"schema_translate_map": {"pub": None, "usr": None, "bill": None, "dist": None, "commu": None}},
     )
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
