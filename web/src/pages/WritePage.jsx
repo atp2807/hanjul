@@ -1,7 +1,7 @@
 // 로컬우선 글쓰기 페이지 — 자동 목차 사이드바 + 에디터.
 // 작가는 파일/챕터를 "관리"하지 않는다: 제목(# )만 쓰면 목차가 자동 생성·점프.
 import { TextSelection } from 'prosemirror-state';
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { setBookContent, publishNow } from '../services/api/studio';
@@ -11,18 +11,53 @@ import { docToOutline } from '../writer/core/outline';
 import { charCount } from '../writer/core/wordcount';
 import { neutralToPmDoc, pmToNeutral } from '../writer/editor/pm_doc';
 import { WriterEditor } from '../writer/editor/WriterEditor';
+import { listSnapshots, observeSnapshots, takeSnapshot } from '../writer/snapshots';
 
 export function WritePage() {
   const { id } = useParams();
   const [outline, setOutline] = useState([]);
+  const [snapshots, setSnapshots] = useState([]);
   const [msg, setMsg] = useState(null);
   const [publishing, setPublishing] = useState(false);
   const viewRef = useRef(null);
+  const ydocRef = useRef(null);
+  const snapOffRef = useRef(null);
 
   const handleChange = useCallback((doc) => setOutline(docToOutline(doc)), []);
-  const handleReady = useCallback(({ view }) => {
+  const handleReady = useCallback(({ view, ydoc }) => {
     viewRef.current = view;
+    ydocRef.current = ydoc;
+    snapOffRef.current?.(); // 이전 에디터 옵저버 해제
+    setSnapshots(listSnapshots(ydoc));
+    snapOffRef.current = observeSnapshots(ydoc, setSnapshots);
   }, []);
+  useEffect(() => () => snapOffRef.current?.(), []);
+
+  function saveSnapshot() {
+    const view = viewRef.current;
+    const ydoc = ydocRef.current;
+    if (!view || !ydoc) return;
+    takeSnapshot(ydoc, pmToNeutral(view.state.doc), Date.now());
+    setMsg({ ok: true, text: '되돌리기 지점을 저장했어요.' });
+  }
+
+  function restoreSnapshot(snap) {
+    const view = viewRef.current;
+    const ydoc = ydocRef.current;
+    if (!view || !ydoc) return;
+    if (!snap?.neutral?.blocks?.length) {
+      setMsg({ ok: false, text: '복원할 내용이 없는 지점이에요.' });
+      return;
+    }
+    try {
+      // 복원 전 현재 상태도 지점으로 저장 → 잘못 눌러도 되돌릴 수 있음
+      takeSnapshot(ydoc, pmToNeutral(view.state.doc), Date.now());
+      replaceContent(snap.neutral);
+      setMsg({ ok: true, text: '그 지점으로 되돌렸어요. (직전 상태도 지점으로 저장됨)' });
+    } catch (e) {
+      setMsg({ ok: false, text: `복원 실패: ${e?.message ?? String(e)}` });
+    }
+  }
 
   async function publish() {
     const view = viewRef.current;
@@ -136,6 +171,25 @@ export function WritePage() {
             ))}
           </ul>
         )}
+
+        {snapshots.length > 0 && (
+          <div style={{ marginTop: 22, paddingTop: 14, borderTop: '1px solid #f0f0f0' }}>
+            <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 8 }}>되돌리기 지점</div>
+            <ul data-testid="snapshots" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              {snapshots.map((s) => (
+                <li key={s.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px', fontSize: 13 }}>
+                  <span style={{ color: '#666' }}>{new Date(s.ts).toLocaleTimeString()}</span>
+                  <button
+                    onClick={() => restoreSnapshot(s)}
+                    style={{ border: '1px solid #ddd', background: '#fff', borderRadius: 6, padding: '2px 8px', fontSize: 12, cursor: 'pointer' }}
+                  >
+                    복원
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </aside>
       {/* 에디터 — 독립 스크롤. 왼쪽 기준 정렬, 오른쪽은 빈 여백으로 늘어남 */}
       <main style={{ flex: 1, height: '100%', overflowY: 'auto', padding: '28px 32px' }}>
@@ -152,6 +206,12 @@ export function WritePage() {
               가져오기(.docx)
               <input type="file" accept=".docx" onChange={importDocx} style={{ display: 'none' }} />
             </label>
+            <button
+              onClick={saveSnapshot}
+              style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #ddd', background: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
+            >
+              지점 저장
+            </button>
             {msg && <span style={{ fontSize: 13, color: msg.ok ? 'green' : 'crimson' }}>{msg.text}</span>}
           </div>
           <WriterEditor docId={id} onReady={handleReady} onChange={handleChange} />
