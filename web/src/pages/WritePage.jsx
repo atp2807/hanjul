@@ -82,8 +82,13 @@ export function WritePage() {
   function openPreview() {
     const view = viewRef.current;
     if (!view) return;
+    const neutral = pmToNeutral(view.state.doc);
+    if (charCount(neutral) === 0) {
+      setMsg({ ok: false, text: '미리볼 내용이 없어요.' });
+      return;
+    }
     // 편집 정본 → 독자 리더가 받는 블록 형태 [{id,type,html}]
-    const flat = blocksToCanonical(pmToNeutral(view.state.doc)).map((b, i) => ({ id: String(i), type: b.type, html: b.html }));
+    const flat = blocksToCanonical(neutral).map((b, i) => ({ id: String(i), type: b.type, html: b.html }));
     setPreviewBlocks(flat);
   }
 
