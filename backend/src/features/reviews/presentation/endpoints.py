@@ -8,6 +8,7 @@ from src.config.database import get_session
 from src.features.auth.domain.models import AccountPrincipal
 from src.features.auth.presentation.dependencies import get_current_account
 from src.features.reviews.application.review_service import ReviewService
+from src.features.reviews.domain.models import BookNotFound
 from src.features.reviews.infrastructure.review_repo import SqlReviewRepository
 from src.features.reviews.presentation.schemas import (
     AddReviewRequest,
@@ -32,6 +33,8 @@ async def add_review(
     """리뷰·평점 작성(로그인 필요). (책,계정)당 한 건 — 다시 쓰면 갱신."""
     try:
         await _svc(session).add(book_id, principal.id, body.rating, body.body)
+    except BookNotFound:
+        raise HTTPException(404, "book not found")
     except ValueError as e:
         raise HTTPException(422, str(e))
     return {"ok": True}

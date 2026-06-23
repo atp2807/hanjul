@@ -2,10 +2,12 @@
 from uuid import UUID
 
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.features.reviews.domain.models import ReviewSummary, ReviewView
 from src.infrastructure.db.models.account import Account
+from src.infrastructure.db.models.book import Book
 from src.infrastructure.db.models.review import Review
 
 
@@ -13,18 +15,32 @@ class SqlReviewRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def upsert(self, book_id: UUID, account_id: UUID, rating: int, body: str | None) -> None:
-        existing = (
+    async def book_exists(self, book_id: UUID) -> bool:
+        return await self.session.get(Book, book_id) is not None
+
+    async def _find(self, book_id: UUID, account_id: UUID):
+        return (
             await self.session.execute(
                 select(Review).where(Review.book_id == book_id, Review.account_id == account_id)
             )
         ).scalar_one_or_none()
+
+    async def upsert(self, book_id: UUID, account_id: UUID, rating: int, body: str | None) -> None:
+        existing = await self._find(book_id, account_id)
         if existing:
-            existing.rating = rating
-            existing.body = body
-        else:
-            self.session.add(Review(book_id=book_id, account_id=account_id, rating=rating, body=body))
-        await self.session.commit()
+            existing.rating, existing.body = rating, body
+            await self.session.commit()
+            return
+        self.session.add(Review(book_id=book_id, account_id=account_id, rating=rating, body=body))
+        try:
+            await self.session.commit()
+        except IntegrityError:
+            # 동시 삽입 경쟁(유니크 위반) → 롤백 후 갱신으로 처리(멱등)
+            await self.session.rollback()
+            again = await self._find(book_id, account_id)
+            if again:
+                again.rating, again.body = rating, body
+                await self.session.commit()
 
     async def list_for_book(self, book_id: UUID) -> list[ReviewView]:
         stmt = (

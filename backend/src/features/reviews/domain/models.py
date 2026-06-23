@@ -20,7 +20,14 @@ class ReviewSummary:
     count: int
 
 
+class BookNotFound(Exception):
+    """리뷰 대상 책 없음 → 404."""
+
+
 class ReviewRepository(Protocol):
+    async def book_exists(self, book_id: UUID) -> bool:
+        ...
+
     async def upsert(self, book_id: UUID, account_id: UUID, rating: int, body: str | None) -> None:
         """(책,계정) 한 건 — 있으면 갱신, 없으면 생성."""
         ...

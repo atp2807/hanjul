@@ -47,6 +47,9 @@ async def test_review_add_list_validate_upsert(app_db):
         assert (await c.post(f"/api/books/{book}/reviews", json={"rating": 5})).status_code == 401
         # 잘못된 평점 422
         assert (await c.post(f"/api/books/{book}/reviews", json={"rating": 6}, headers=auth)).status_code == 422
+        # 없는 책 404 (ghost 리뷰 방지)
+        import uuid as _uuid
+        assert (await c.post(f"/api/books/{_uuid.uuid4()}/reviews", json={"rating": 5}, headers=auth)).status_code == 404
 
         # 작성 → 201
         assert (await c.post(f"/api/books/{book}/reviews", json={"rating": 4, "body": "좋아요"}, headers=auth)).status_code == 201
