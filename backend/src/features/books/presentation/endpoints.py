@@ -23,6 +23,7 @@ from src.features.books.presentation.schemas import (
     ImportTextRequest,
     ImportTextResponse,
     SetContentRequest,
+    SetPreviewLimitRequest,
 )
 
 router = APIRouter(prefix="/books", tags=["books"])
@@ -75,8 +76,20 @@ async def set_content(
         raise HTTPException(status_code=403, detail="not the owner")
 
 
-# 미구매·미로그인 독자에게 보여줄 미리보기 블록 수
-PREVIEW_BLOCK_LIMIT = 3
+@router.put("/{book_id}/preview-limit", status_code=204)
+async def set_preview_limit(
+    book_id: UUID,
+    body: SetPreviewLimitRequest,
+    principal: AccountPrincipal = Depends(get_current_account),
+    service: BookService = Depends(get_book_service),
+) -> None:
+    """무료 미리보기 공개 분량(블록 수) 설정 — 작가 본인만."""
+    try:
+        await service.set_preview_limit(book_id, body.limit, principal.id)
+    except BookNotFound:
+        raise HTTPException(status_code=404, detail="book not found")
+    except NotOwner:
+        raise HTTPException(status_code=403, detail="not the owner")
 
 
 @router.get("/{book_id}/content", response_model=BookContentResponse)
@@ -99,7 +112,7 @@ async def get_content(
         resp.is_preview = False
         return resp
 
-    resp = BookContentResponse.model_validate(to_preview(content, PREVIEW_BLOCK_LIMIT))
+    resp = BookContentResponse.model_validate(to_preview(content, content.preview_limit))
     resp.is_preview = True
     return resp
 

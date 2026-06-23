@@ -84,3 +84,16 @@ async def test_set_content_rejects_non_owner(service):
 async def test_set_content_unknown_book_raises(service):
     with pytest.raises(BookNotFound):
         await service.set_content(uuid.uuid4(), [], requester_id=uuid.uuid4())
+
+
+async def test_set_preview_limit_owner_only_and_clamped(service):
+    author = uuid.uuid4()
+    book_id = await service.create_book(title="책", author_id=author)
+    await service.set_preview_limit(book_id, 7, requester_id=author)
+    assert (await service.get_content(book_id)).preview_limit == 7
+
+    await service.set_preview_limit(book_id, -3, requester_id=author)  # 음수 → 0
+    assert (await service.get_content(book_id)).preview_limit == 0
+
+    with pytest.raises(NotOwner):
+        await service.set_preview_limit(book_id, 5, requester_id=uuid.uuid4())

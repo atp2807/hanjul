@@ -44,6 +44,10 @@ class SetContentRequest(_Camel):
     chapters: list[ChapterInput]
 
 
+class SetPreviewLimitRequest(_Camel):
+    limit: int  # 무료 공개 블록 수
+
+
 class BlockResponse(_Camel):
     id: UUID
     order_no: int

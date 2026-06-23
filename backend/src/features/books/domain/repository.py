@@ -28,6 +28,10 @@ class BookRepository(Protocol):
         """책의 작가 id. 책이 없거나 미배정이면 None."""
         ...
 
+    async def set_preview_limit(self, book_id: UUID, limit: int) -> None:
+        """무료 미리보기 공개 블록 수 설정."""
+        ...
+
     async def replace_content(self, book_id: UUID, chapters: list[dict]) -> int:
         """책의 모든 장/블록을 주어진 챕터로 교체. 장 수 반환.
         chapters = [{"title": str|None, "blocks": [{"type","html"}]}, ...]."""

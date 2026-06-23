@@ -4,7 +4,7 @@ import { TextSelection } from 'prosemirror-state';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
-import { getMyBooks, setBookContent, publishNow, unpublishBook } from '../services/api/studio';
+import { getMyBooks, setBookContent, publishNow, setPreviewLimit, unpublishBook } from '../services/api/studio';
 import { Reader } from '../reader/Reader';
 import { docxToNeutral } from '../writer/adapters/docx_import';
 import { splitIntoChapters } from '../writer/core/chapters';
@@ -77,6 +77,16 @@ export function WritePage() {
     if (!view || !ydoc) return;
     takeSnapshot(ydoc, pmToNeutral(view.state.doc), Date.now());
     setMsg({ ok: true, text: '되돌리기 지점을 저장했어요.' });
+  }
+
+  const [previewLimit, setPreviewLimitState] = useState('');
+  async function savePreviewLimit() {
+    try {
+      await setPreviewLimit(id, Math.max(0, Number(previewLimit) || 0));
+      setMsg({ ok: true, text: '무료 공개 분량을 저장했어요.' });
+    } catch (e) {
+      setMsg({ ok: false, text: `저장 실패: ${e?.message ?? String(e)}` });
+    }
   }
 
   async function unpublish() {
@@ -361,6 +371,24 @@ export function WritePage() {
                 </span>
               ))}
               <Link to={`/studio/${id}`} style={{ color: '#111', marginLeft: 4 }}>책 정보 설정 →</Link>
+            </div>
+          )}
+
+          {meta && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, fontSize: 13, color: '#666' }}>
+              <span>무료 공개 분량</span>
+              <input
+                type="number"
+                min="0"
+                data-testid="preview-limit-input"
+                value={previewLimit}
+                onChange={(e) => setPreviewLimitState(e.target.value)}
+                placeholder="블록 수"
+                style={{ width: 90, padding: '4px 8px', border: '1px solid #ddd', borderRadius: 6 }}
+              />
+              <span>블록</span>
+              <button onClick={savePreviewLimit} style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid #ddd', background: '#fff', fontWeight: 600, cursor: 'pointer' }}>저장</button>
+              <span style={{ color: '#cbd5e1' }}>미구매 독자에게 앞 N블록 무료 공개</span>
             </div>
           )}
           </>

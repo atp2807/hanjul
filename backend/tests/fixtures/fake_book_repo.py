@@ -16,7 +16,8 @@ class FakeBookRepository:
     async def create_book(self, *, title: str, kind: str, language: str, author_id=None) -> UUID:
         book_id = uuid.uuid4()
         self.books[book_id] = {
-            "title": title, "kind": kind, "language": language, "status": "DRAFT", "author_id": author_id,
+            "title": title, "kind": kind, "language": language, "status": "DRAFT",
+            "author_id": author_id, "preview_limit": 3,
         }
         self.chapters[book_id] = []
         return book_id
@@ -41,6 +42,9 @@ class FakeBookRepository:
     async def get_author_id(self, book_id: UUID):
         meta = self.books.get(book_id)
         return meta.get("author_id") if meta else None
+
+    async def set_preview_limit(self, book_id: UUID, limit: int) -> None:
+        self.books[book_id]["preview_limit"] = limit
 
     async def replace_content(self, book_id: UUID, chapters: list[dict]) -> int:
         self.chapters[book_id] = [
@@ -68,6 +72,7 @@ class FakeBookRepository:
             language=meta["language"],
             status=meta["status"],
             price_amt=meta.get("price_amt"),
+            preview_limit=meta.get("preview_limit", 3),
             chapters=[
                 ChapterView(
                     id=c["id"],

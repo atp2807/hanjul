@@ -40,6 +40,14 @@ class BookService:
             raise NotOwner(book_id)
         return await self.repo.replace_content(book_id, chapters)
 
+    async def set_preview_limit(self, book_id: UUID, limit: int, requester_id: UUID) -> None:
+        """무료 미리보기 공개 블록 수 — 작가 본인만. 음수 금지."""
+        if not await self.repo.book_exists(book_id):
+            raise BookNotFound(book_id)
+        if await self.repo.get_author_id(book_id) != requester_id:
+            raise NotOwner(book_id)
+        await self.repo.set_preview_limit(book_id, max(0, limit))
+
     async def get_content(self, book_id: UUID) -> BookView:
         content = await self.repo.get_content(book_id)
         if content is None:

@@ -39,6 +39,8 @@ class Book(Base):
     status = Column("status_cd", String(20), nullable=False, default="DRAFT")
     cover_url = Column(String(1000))
     isbn = Column(String(20))
+    # 무료 미리보기로 공개할 블록 수 (미구매 독자 유입). 기본 3.
+    preview_limit = Column("preview_block_cnt", Integer, nullable=False, default=3)
     # 판매가 (원 단위 정수). 출판 전엔 NULL 가능.
     price_amt = Column(Numeric(15, 0))
     # 출판(게시) 시각. NULL = 미출판.

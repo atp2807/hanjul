@@ -30,6 +30,10 @@ export function publishNow(bookId) {
 export function unpublishBook(bookId) {
   return apiClient.post(`/books/${bookId}/unpublish`);
 }
+// 무료 미리보기 공개 분량(블록 수)
+export function setPreviewLimit(bookId, limit) {
+  return apiClient.put(`/books/${bookId}/preview-limit`, { limit });
+}
 // 예약 발행 — ISO 시각 (백그라운드 스케줄러가 게시)
 export function schedulePublish(bookId, publishAt) {
   return apiClient.post(`/books/${bookId}/schedule`, { publishAt });

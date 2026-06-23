@@ -44,6 +44,11 @@ class SqlBookRepository:
         book = await self.session.get(Book, book_id)
         return book.author_id if book else None
 
+    async def set_preview_limit(self, book_id: UUID, limit: int) -> None:
+        book = await self.session.get(Book, book_id)
+        book.preview_limit = limit
+        await self.session.commit()
+
     async def replace_content(self, book_id: UUID, chapters: list[dict]) -> int:
         """기존 장 전부 삭제(블록 cascade) 후 새 챕터들로 재생성."""
         existing = (
@@ -79,6 +84,7 @@ class SqlBookRepository:
             language=book.language,
             status=book.status,
             price_amt=int(book.price_amt) if book.price_amt is not None else None,
+            preview_limit=book.preview_limit,
             chapters=[
                 ChapterView(
                     id=c.id,

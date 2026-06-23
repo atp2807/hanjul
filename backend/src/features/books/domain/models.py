@@ -31,6 +31,7 @@ class BookView:
     language: str
     status: str
     price_amt: int | None = None
+    preview_limit: int = 3
     chapters: list[ChapterView] = field(default_factory=list)
 
 
