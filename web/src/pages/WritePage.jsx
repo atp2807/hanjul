@@ -5,9 +5,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { getMyBooks, setBookContent, publishNow } from '../services/api/studio';
+import { Reader } from '../reader/Reader';
 import { docxToNeutral } from '../writer/adapters/docx_import';
 import { splitIntoChapters } from '../writer/core/chapters';
 import { docToOutline } from '../writer/core/outline';
+import { blocksToCanonical } from '../writer/core/serialize';
 import { charCount } from '../writer/core/wordcount';
 import { neutralToPmDoc, pmToNeutral } from '../writer/editor/pm_doc';
 import { WriterEditor } from '../writer/editor/WriterEditor';
@@ -24,6 +26,7 @@ export function WritePage() {
   const [focus, setFocus] = useState(false); // 집중 모드(방해 없는 쓰기)
   const [notes, setNotes] = useState(''); // 자료(인물·설정 메모)
   const [meta, setMeta] = useState(null); // 책 메타(표지·가격·소개·ISBN) — 출판 전 점검
+  const [previewBlocks, setPreviewBlocks] = useState(null); // 출판 전 미리보기(독자 모습)
   const viewRef = useRef(null);
   const ydocRef = useRef(null);
   const snapOffRef = useRef(null);
@@ -74,6 +77,14 @@ export function WritePage() {
     if (!view || !ydoc) return;
     takeSnapshot(ydoc, pmToNeutral(view.state.doc), Date.now());
     setMsg({ ok: true, text: '되돌리기 지점을 저장했어요.' });
+  }
+
+  function openPreview() {
+    const view = viewRef.current;
+    if (!view) return;
+    // 편집 정본 → 독자 리더가 받는 블록 형태 [{id,type,html}]
+    const flat = blocksToCanonical(pmToNeutral(view.state.doc)).map((b, i) => ({ id: String(i), type: b.type, html: b.html }));
+    setPreviewBlocks(flat);
   }
 
   function restoreSnapshot(snap) {
@@ -274,6 +285,12 @@ export function WritePage() {
               지점 저장
             </button>
             <button
+              onClick={openPreview}
+              style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #ddd', background: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
+            >
+              미리보기
+            </button>
+            <button
               onClick={() => setFocus(true)}
               style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #ddd', background: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
             >
@@ -329,6 +346,22 @@ export function WritePage() {
           <WriterEditor docId={id} onReady={handleReady} onChange={handleChange} />
         </div>
       </main>
+
+      {/* 출판 전 미리보기 — 독자가 볼 리더 모습(기존 Reader/Pretext 재사용) */}
+      {previewBlocks && (
+        <div
+          onClick={() => setPreviewBlocks(null)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+        >
+          <div data-testid="preview-body" onClick={(e) => e.stopPropagation()} style={{ background: '#fff', padding: 20, borderRadius: 12, maxHeight: '92vh', overflow: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, gap: 16 }}>
+              <strong data-testid="preview-title">출판 전 미리보기 (독자가 볼 모습)</strong>
+              <button onClick={() => setPreviewBlocks(null)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #ddd', cursor: 'pointer' }}>닫기</button>
+            </div>
+            {previewBlocks.length ? <Reader blocks={previewBlocks} /> : <p style={{ color: '#999' }}>아직 내용이 없어요.</p>}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
