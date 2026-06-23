@@ -4,7 +4,7 @@ import { TextSelection } from 'prosemirror-state';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
-import { getMyBooks, setBookContent, publishNow } from '../services/api/studio';
+import { getMyBooks, setBookContent, publishNow, unpublishBook } from '../services/api/studio';
 import { Reader } from '../reader/Reader';
 import { docxToNeutral } from '../writer/adapters/docx_import';
 import { splitIntoChapters } from '../writer/core/chapters';
@@ -77,6 +77,16 @@ export function WritePage() {
     if (!view || !ydoc) return;
     takeSnapshot(ydoc, pmToNeutral(view.state.doc), Date.now());
     setMsg({ ok: true, text: '되돌리기 지점을 저장했어요.' });
+  }
+
+  async function unpublish() {
+    try {
+      await unpublishBook(id);
+      setMsg({ ok: true, text: '출판을 취소했어요(비공개). 스토어에서 내려갑니다.' });
+      refreshMeta();
+    } catch (e) {
+      setMsg({ ok: false, text: `출판 취소 실패: ${e?.message ?? String(e)}` });
+    }
   }
 
   function openPreview() {
@@ -279,6 +289,14 @@ export function WritePage() {
             >
               {publishing ? '출판 중…' : '출판'}
             </button>
+            {meta?.status === 'PUBLISHED' && (
+              <button
+                onClick={unpublish}
+                style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #ddd', background: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
+              >
+                출판 취소
+              </button>
+            )}
             <label style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #ddd', background: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
               가져오기(.docx)
               <input type="file" accept=".docx" onChange={importDocx} style={{ display: 'none' }} />

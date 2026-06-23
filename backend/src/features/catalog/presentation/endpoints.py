@@ -95,6 +95,15 @@ async def publish(book_id: UUID, svc: CatalogService = Depends(get_catalog_servi
         raise HTTPException(422, str(e))
 
 
+@router.post("/books/{book_id}/unpublish", status_code=204)
+async def unpublish(book_id: UUID, svc: CatalogService = Depends(get_catalog_service)) -> None:
+    """출판 취소 — 스토어에서 비공개로 내림."""
+    try:
+        await svc.unpublish(book_id)
+    except BookNotFound:
+        raise HTTPException(404, "book not found")
+
+
 @router.post("/books/{book_id}/publish-now", status_code=204)
 async def publish_now(book_id: UUID, svc: CatalogService = Depends(get_catalog_service)) -> None:
     """즉시 출간 (심사 생략)."""

@@ -26,6 +26,10 @@ export function publishBook(bookId) {
 export function publishNow(bookId) {
   return apiClient.post(`/books/${bookId}/publish-now`);
 }
+// 출판 취소 (비공개로 내림)
+export function unpublishBook(bookId) {
+  return apiClient.post(`/books/${bookId}/unpublish`);
+}
 // 예약 발행 — ISO 시각 (백그라운드 스케줄러가 게시)
 export function schedulePublish(bookId, publishAt) {
   return apiClient.post(`/books/${bookId}/schedule`, { publishAt });

@@ -66,6 +66,13 @@ async def test_publish_success_sets_published():
     assert repo.books[book.id].published_at is not None
 
 
+async def test_unpublish_moves_published_to_draft():
+    book = mkbook(PUBLISHED, price=5000)
+    svc, repo = svc_with(book)
+    await svc.unpublish(book.id)
+    assert repo.books[book.id].status == DRAFT  # 스토어에서 내려감
+
+
 async def test_set_price_negative_rejected():
     book = mkbook(DRAFT)
     svc, _ = svc_with(book)

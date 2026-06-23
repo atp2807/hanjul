@@ -56,6 +56,11 @@ class CatalogService:
             raise InvalidTransition(s.status, REVIEW)
         await self.repo.set_status(book_id, REVIEW)
 
+    async def unpublish(self, book_id: UUID) -> None:
+        """출판 취소(비공개) — 스토어에서 내림. PUBLISHED → DRAFT."""
+        await self._require(book_id)
+        await self.repo.set_status(book_id, DRAFT)
+
     async def publish(self, book_id: UUID, now: datetime | None = None) -> None:
         s = await self._require(book_id)
         if s.status != REVIEW:
