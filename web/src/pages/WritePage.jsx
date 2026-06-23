@@ -2,9 +2,9 @@
 // 작가는 파일/챕터를 "관리"하지 않는다: 제목(# )만 쓰면 목차가 자동 생성·점프.
 import { TextSelection } from 'prosemirror-state';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 
-import { setBookContent, publishNow } from '../services/api/studio';
+import { getMyBooks, setBookContent, publishNow } from '../services/api/studio';
 import { docxToNeutral } from '../writer/adapters/docx_import';
 import { splitIntoChapters } from '../writer/core/chapters';
 import { docToOutline } from '../writer/core/outline';
@@ -23,6 +23,7 @@ export function WritePage() {
   const [publishing, setPublishing] = useState(false);
   const [focus, setFocus] = useState(false); // 집중 모드(방해 없는 쓰기)
   const [notes, setNotes] = useState(''); // 자료(인물·설정 메모)
+  const [meta, setMeta] = useState(null); // 책 메타(표지·가격·소개·ISBN) — 출판 전 점검
   const viewRef = useRef(null);
   const ydocRef = useRef(null);
   const snapOffRef = useRef(null);
@@ -47,13 +48,20 @@ export function WritePage() {
 
     // 자료 메모 (Y.Map LWW, 동기화·영속)
     metaOffRef.current?.();
-    const meta = ydoc.getMap('writerMeta');
-    setNotes(meta.get('notes') || '');
-    const onMeta = () => setNotes(meta.get('notes') || '');
-    meta.observe(onMeta);
-    metaOffRef.current = () => meta.unobserve(onMeta);
+    const wmeta = ydoc.getMap('writerMeta');
+    setNotes(wmeta.get('notes') || '');
+    const onMeta = () => setNotes(wmeta.get('notes') || '');
+    wmeta.observe(onMeta);
+    metaOffRef.current = () => wmeta.unobserve(onMeta);
   }, []);
   useEffect(() => () => { snapOffRef.current?.(); metaOffRef.current?.(); }, []);
+
+  const refreshMeta = useCallback(() => {
+    getMyBooks()
+      .then((r) => setMeta(r.items.find((b) => b.id === id) || null))
+      .catch(() => {}); // 미로그인/네트워크면 점검 숨김
+  }, [id]);
+  useEffect(() => { refreshMeta(); }, [refreshMeta]);
 
   function updateNotes(text) {
     setNotes(text);
@@ -104,6 +112,7 @@ export function WritePage() {
       await setBookContent(id, chapters);
       await publishNow(id);
       setMsg({ ok: true, text: '출판 완료! 스토어에 노출됩니다.' });
+      refreshMeta();
     } catch (e) {
       const text =
         e.status === 422 ? '가격을 먼저 정하세요 (스튜디오에서 설정).'
@@ -295,6 +304,25 @@ export function WritePage() {
               </span>
             )}
           </div>
+
+          {/* 출판 전 점검 — 누락 항목 안내(차단 아님) */}
+          {meta && (
+            <div data-testid="checklist" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 12, fontSize: 13 }}>
+              {[
+                { label: '내용', ok: totalChars > 0 },
+                { label: '표지', ok: !!meta.coverUrl },
+                { label: '가격', ok: meta.priceAmt != null },
+                { label: '소개', ok: !!meta.description },
+                { label: 'ISBN', ok: !!meta.isbn, optional: true },
+              ].map((c) => (
+                <span key={c.label} style={{ color: c.ok ? '#16a34a' : c.optional ? '#9ca3af' : '#d97706' }}>
+                  {c.ok ? '✓' : '✗'} {c.label}
+                  {c.optional && !c.ok ? '(선택)' : ''}
+                </span>
+              ))}
+              <Link to={`/studio/${id}`} style={{ color: '#111', marginLeft: 4 }}>책 정보 설정 →</Link>
+            </div>
+          )}
           </>
           )}
 
