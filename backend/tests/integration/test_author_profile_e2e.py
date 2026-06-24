@@ -50,8 +50,8 @@ async def test_author_profile_bio_and_published_books(app_db):
 
         # 출판작 1
         book = (await c.post("/api/books", json={"title": "내 소설"}, headers=auth)).json()["bookId"]
-        await c.put(f"/api/books/{book}/price", json={"amount": 5000})
-        await c.post(f"/api/books/{book}/publish-now")
+        await c.put(f"/api/books/{book}/price", json={"amount": 5000}, headers=auth)
+        await c.post(f"/api/books/{book}/publish-now", headers=auth)
 
         # 공개 프로필
         prof = (await c.get(f"/api/authors/{author_id}")).json()

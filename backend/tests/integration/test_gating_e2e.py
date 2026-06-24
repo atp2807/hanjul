@@ -52,12 +52,14 @@ def app_db(sessionmaker):
 
 async def test_preview_for_non_owner_full_for_owner(app_db):
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
-        # 5블록짜리 유료책 준비
-        book_id = (await c.post("/api/books", json={"title": "유료책"})).json()["bookId"]
+        # 5블록짜리 유료책 준비 (작가 인증으로 생성 → 변경 권한)
+        token, _ = await login_account(c, "google", "x")
+        auth = {"Authorization": f"Bearer {token}"}
+        book_id = (await c.post("/api/books", json={"title": "유료책"}, headers=auth)).json()["bookId"]
         await c.post(f"/api/books/{book_id}/import", json={"rawText": "1\n\n2\n\n3\n\n4\n\n5"})
-        await c.put(f"/api/books/{book_id}/price", json={"amount": 5000})
-        await c.post(f"/api/books/{book_id}/submit")
-        await c.post(f"/api/books/{book_id}/publish")
+        await c.put(f"/api/books/{book_id}/price", json={"amount": 5000}, headers=auth)
+        await c.post(f"/api/books/{book_id}/submit", headers=auth)
+        await c.post(f"/api/books/{book_id}/publish", headers=auth)
 
         # 미로그인 → 미리보기 3블록
         anon = (await c.get(f"/api/books/{book_id}/content")).json()

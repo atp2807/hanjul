@@ -60,8 +60,8 @@ async def test_isbn_set_and_onix_feed(app_db):
         book = (await c.post("/api/books", json={"title": "내 책"}, headers=auth)).json()["bookId"]
 
         # 잘못된 ISBN → 422, 유효 ISBN-13 → 204
-        assert (await c.put(f"/api/books/{book}/isbn", json={"isbn": "abc"})).status_code == 422
-        assert (await c.put(f"/api/books/{book}/isbn", json={"isbn": "9788912345678"})).status_code == 204
+        assert (await c.put(f"/api/books/{book}/isbn", json={"isbn": "abc"}, headers=auth)).status_code == 422
+        assert (await c.put(f"/api/books/{book}/isbn", json={"isbn": "9788912345678"}, headers=auth)).status_code == 204
 
         # ONIX 피드에 ISBN·제목·작가(display_name) 반영
         onix = (await c.get(f"/api/books/{book}/onix")).text
@@ -80,11 +80,12 @@ async def test_update_meta_reflected_in_store(app_db):
         r = await c.put(
             f"/api/books/{book}/meta",
             json={"subtitle": "부제다", "description": "한 줄 소개입니다.", "category": "에세이"},
+            headers=auth,
         )
         assert r.status_code == 204
 
         # 빈 문자열은 NULL 로 정규화 (부제 지움)
-        await c.put(f"/api/books/{book}/meta", json={"subtitle": "  ", "description": "수정된 소개", "category": "소설"})
+        await c.put(f"/api/books/{book}/meta", json={"subtitle": "  ", "description": "수정된 소개", "category": "소설"}, headers=auth)
 
         # /me/books 요약에 반영
         mine = (await c.get("/api/me/books", headers=auth)).json()["items"]

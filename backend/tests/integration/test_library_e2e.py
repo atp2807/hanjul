@@ -58,10 +58,10 @@ async def test_purchased_book_appears_in_library(app_db):
         assert (await c.get("/api/me/library", headers=auth)).json() == []
 
         # 책 생성 → 출판(가격) → 구매 → 결제확인
-        book_id = (await c.post("/api/books", json={"title": "산 책"})).json()["bookId"]
-        await c.put(f"/api/books/{book_id}/price", json={"amount": 8000})
-        await c.post(f"/api/books/{book_id}/submit")
-        await c.post(f"/api/books/{book_id}/publish")
+        book_id = (await c.post("/api/books", json={"title": "산 책"}, headers=auth)).json()["bookId"]
+        await c.put(f"/api/books/{book_id}/price", json={"amount": 8000}, headers=auth)
+        await c.post(f"/api/books/{book_id}/submit", headers=auth)
+        await c.post(f"/api/books/{book_id}/publish", headers=auth)
         order_id = (
             await c.post("/api/orders", json={"bookId": book_id}, headers=auth)
         ).json()["id"]

@@ -48,10 +48,10 @@ async def test_publish_now_skips_review(app_db):
         book = (await c.post("/api/books", json={"title": "즉시책"}, headers=auth)).json()["bookId"]
 
         # 가격 없이 즉시출간 → 422
-        assert (await c.post(f"/api/books/{book}/publish-now")).status_code == 422
-        await c.put(f"/api/books/{book}/price", json={"amount": 5000})
+        assert (await c.post(f"/api/books/{book}/publish-now", headers=auth)).status_code == 422
+        await c.put(f"/api/books/{book}/price", json={"amount": 5000}, headers=auth)
         # 즉시출간 → 204 (DRAFT에서 바로, 심사 생략)
-        assert (await c.post(f"/api/books/{book}/publish-now")).status_code == 204
+        assert (await c.post(f"/api/books/{book}/publish-now", headers=auth)).status_code == 204
         # 스토어 노출
         store = (await c.get("/api/store/books")).json()
         assert any(i["id"] == book for i in store["items"])

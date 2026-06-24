@@ -39,6 +39,20 @@ def _summary_response(s) -> BookSummaryResponse:
     return BookSummaryResponse.model_validate(s)
 
 
+async def require_book_owner(
+    book_id: UUID,
+    principal: AccountPrincipal = Depends(get_current_account),
+    svc: CatalogService = Depends(get_catalog_service),
+) -> None:
+    """책 변경 권한 = 소유 작가만. 없는 책 404 / 타인 403 (fail-closed)."""
+    try:
+        meta = await svc.get_meta(book_id)
+    except BookNotFound:
+        raise HTTPException(404, "book not found")
+    if meta.author_id != principal.id:
+        raise HTTPException(403, "not the owner")
+
+
 # ── 출판 라이프사이클 ─────────────────────────────────
 @router.put("/books/{book_id}/author", status_code=204)
 async def assign_author(
@@ -52,7 +66,7 @@ async def assign_author(
 
 @router.put("/books/{book_id}/price", status_code=204)
 async def set_price(
-    book_id: UUID, body: SetPriceRequest, svc: CatalogService = Depends(get_catalog_service)
+    book_id: UUID, body: SetPriceRequest, svc: CatalogService = Depends(get_catalog_service), _owner: None = Depends(require_book_owner)
 ) -> None:
     try:
         await svc.set_price(book_id, body.amount)
@@ -64,7 +78,7 @@ async def set_price(
 
 @router.put("/books/{book_id}/meta", status_code=204)
 async def update_meta(
-    book_id: UUID, body: UpdateMetaRequest, svc: CatalogService = Depends(get_catalog_service)
+    book_id: UUID, body: UpdateMetaRequest, svc: CatalogService = Depends(get_catalog_service), _owner: None = Depends(require_book_owner)
 ) -> None:
     """부제·소개·분류 편집 (스토어 노출·검색 품질)."""
     try:
@@ -75,7 +89,7 @@ async def update_meta(
 
 @router.put("/books/{book_id}/discount", status_code=204)
 async def set_discount(
-    book_id: UUID, body: SetDiscountRequest, svc: CatalogService = Depends(get_catalog_service)
+    book_id: UUID, body: SetDiscountRequest, svc: CatalogService = Depends(get_catalog_service), _owner: None = Depends(require_book_owner)
 ) -> None:
     """기간 할인 설정 (종료시각까지 할인가 적용)."""
     try:
@@ -88,7 +102,7 @@ async def set_discount(
 
 @router.post("/books/{book_id}/submit", status_code=204)
 async def submit_for_review(
-    book_id: UUID, svc: CatalogService = Depends(get_catalog_service)
+    book_id: UUID, svc: CatalogService = Depends(get_catalog_service), _owner: None = Depends(require_book_owner)
 ) -> None:
     try:
         await svc.submit_for_review(book_id)
@@ -99,7 +113,7 @@ async def submit_for_review(
 
 
 @router.post("/books/{book_id}/publish", status_code=204)
-async def publish(book_id: UUID, svc: CatalogService = Depends(get_catalog_service)) -> None:
+async def publish(book_id: UUID, svc: CatalogService = Depends(get_catalog_service), _owner: None = Depends(require_book_owner)) -> None:
     try:
         await svc.publish(book_id)
     except BookNotFound:
@@ -111,7 +125,7 @@ async def publish(book_id: UUID, svc: CatalogService = Depends(get_catalog_servi
 
 
 @router.post("/books/{book_id}/unpublish", status_code=204)
-async def unpublish(book_id: UUID, svc: CatalogService = Depends(get_catalog_service)) -> None:
+async def unpublish(book_id: UUID, svc: CatalogService = Depends(get_catalog_service), _owner: None = Depends(require_book_owner)) -> None:
     """출판 취소 — 스토어에서 비공개로 내림."""
     try:
         await svc.unpublish(book_id)
@@ -120,7 +134,7 @@ async def unpublish(book_id: UUID, svc: CatalogService = Depends(get_catalog_ser
 
 
 @router.post("/books/{book_id}/publish-now", status_code=204)
-async def publish_now(book_id: UUID, svc: CatalogService = Depends(get_catalog_service)) -> None:
+async def publish_now(book_id: UUID, svc: CatalogService = Depends(get_catalog_service), _owner: None = Depends(require_book_owner)) -> None:
     """즉시 출간 (심사 생략)."""
     try:
         await svc.auto_publish(book_id)
@@ -132,7 +146,7 @@ async def publish_now(book_id: UUID, svc: CatalogService = Depends(get_catalog_s
 
 @router.post("/books/{book_id}/schedule", status_code=204)
 async def schedule_publish(
-    book_id: UUID, body: SchedulePublishRequest, svc: CatalogService = Depends(get_catalog_service)
+    book_id: UUID, body: SchedulePublishRequest, svc: CatalogService = Depends(get_catalog_service), _owner: None = Depends(require_book_owner)
 ) -> None:
     """예약 발행 — 지정 시각에 자동 게시."""
     try:
@@ -145,7 +159,7 @@ async def schedule_publish(
 
 @router.put("/books/{book_id}/isbn", status_code=204)
 async def set_isbn(
-    book_id: UUID, body: SetIsbnRequest, svc: CatalogService = Depends(get_catalog_service)
+    book_id: UUID, body: SetIsbnRequest, svc: CatalogService = Depends(get_catalog_service), _owner: None = Depends(require_book_owner)
 ) -> None:
     try:
         await svc.set_isbn(book_id, body.isbn)

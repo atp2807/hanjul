@@ -42,8 +42,8 @@ def app_db(sessionmaker):
 
 async def _publish(c, auth, price):
     book = (await c.post("/api/books", json={"title": "할인책"}, headers=auth)).json()["bookId"]
-    await c.put(f"/api/books/{book}/price", json={"amount": price})
-    await c.post(f"/api/books/{book}/publish-now")
+    await c.put(f"/api/books/{book}/price", json={"amount": price}, headers=auth)
+    await c.post(f"/api/books/{book}/publish-now", headers=auth)
     return book
 
 
@@ -54,7 +54,7 @@ async def test_active_discount_applies_to_order(app_db):
         book = await _publish(c, auth, 10000)
 
         until = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
-        assert (await c.put(f"/api/books/{book}/discount", json={"amount": 6000, "until": until})).status_code == 204
+        assert (await c.put(f"/api/books/{book}/discount", json={"amount": 6000, "until": until}, headers=auth)).status_code == 204
 
         # 스토어 상세에 할인 노출
         detail = (await c.get(f"/api/store/books/{book}")).json()
@@ -71,7 +71,7 @@ async def test_expired_discount_uses_original(app_db):
         auth = {"Authorization": f"Bearer {token}"}
         book = await _publish(c, auth, 10000)
         past = (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()
-        await c.put(f"/api/books/{book}/discount", json={"amount": 6000, "until": past})
+        await c.put(f"/api/books/{book}/discount", json={"amount": 6000, "until": past}, headers=auth)
 
         order = (await c.post("/api/orders", json={"bookId": book}, headers=auth)).json()
         assert order["amountAmt"] == 10000  # 만료 → 정가

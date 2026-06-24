@@ -48,9 +48,9 @@ async def test_publish_then_distribute_to_store(app_db):
         # 출판본 준비 (즉시출간)
         book = (await c.post("/api/books", json={"title": "유통책"}, headers=auth)).json()["bookId"]
         await c.post(f"/api/books/{book}/import", json={"rawText": "# 1장\n\n본문"})
-        await c.put(f"/api/books/{book}/price", json={"amount": 9000})
-        await c.put(f"/api/books/{book}/isbn", json={"isbn": "9788912345678"})
-        await c.post(f"/api/books/{book}/publish-now")
+        await c.put(f"/api/books/{book}/price", json={"amount": 9000}, headers=auth)
+        await c.put(f"/api/books/{book}/isbn", json={"isbn": "9788912345678"}, headers=auth)
+        await c.post(f"/api/books/{book}/publish-now", headers=auth)
 
         # 교보로 배포 (데모) → SENT
         r = await c.post(f"/api/books/{book}/distribute", json={"channel": "KYOBO"})

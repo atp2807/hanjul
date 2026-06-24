@@ -64,21 +64,21 @@ def journey(sessionmaker):
 async def test_author_publishes_reader_buys_and_reads(journey):
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
         # 1) 작가 · 독자 소셜 로그인 (서로 다른 provider → 다른 계정)
-        _, author = await login_account(c, "google", "a")
+        author_token, author = await login_account(c, "google", "a")
         buyer_token, buyer = await login_account(c, "naver", "b")
         assert author["roleCd"] == "READER"
         author_id, buyer_id = author["id"], buyer["id"]
         assert author_id != buyer_id
+        author_auth = {"Authorization": f"Bearer {author_token}"}
         buyer_auth = {"Authorization": f"Bearer {buyer_token}"}
 
-        # 2) 작가: 책 생성 → 작가배정 → 원고 import → 가격 → 심사 → 출판
-        book_id = (await c.post("/api/books", json={"title": "한 줄"})).json()["bookId"]
-        assert (await c.put(f"/api/books/{book_id}/author", json={"authorId": author_id})).status_code == 204
+        # 2) 작가: 책 생성(소유) → 원고 import → 가격 → 심사 → 출판
+        book_id = (await c.post("/api/books", json={"title": "한 줄"}, headers=author_auth)).json()["bookId"]
         imp = (await c.post(f"/api/books/{book_id}/import", json={"rawText": "# 1장\n\n본문입니다."})).json()
         assert imp["blockCount"] == 2
-        assert (await c.put(f"/api/books/{book_id}/price", json={"amount": 10000})).status_code == 204
-        assert (await c.post(f"/api/books/{book_id}/submit")).status_code == 204
-        assert (await c.post(f"/api/books/{book_id}/publish")).status_code == 204
+        assert (await c.put(f"/api/books/{book_id}/price", json={"amount": 10000}, headers=author_auth)).status_code == 204
+        assert (await c.post(f"/api/books/{book_id}/submit", headers=author_auth)).status_code == 204
+        assert (await c.post(f"/api/books/{book_id}/publish", headers=author_auth)).status_code == 204
 
         # 3) 스토어에 공개로 노출
         store = (await c.get("/api/store/books")).json()

@@ -55,9 +55,9 @@ async def test_author_sales_summary(app_db):
         author_token, _ = await login_account(c, "google", "a")
         a_auth = {"Authorization": f"Bearer {author_token}"}
         book_id = (await c.post("/api/books", json={"title": "내 책"}, headers=a_auth)).json()["bookId"]
-        await c.put(f"/api/books/{book_id}/price", json={"amount": 10000})
-        await c.post(f"/api/books/{book_id}/submit")
-        await c.post(f"/api/books/{book_id}/publish")
+        await c.put(f"/api/books/{book_id}/price", json={"amount": 10000}, headers=a_auth)
+        await c.post(f"/api/books/{book_id}/submit", headers=a_auth)
+        await c.post(f"/api/books/{book_id}/publish", headers=a_auth)
 
         # 처음엔 매출 0
         empty = (await c.get("/api/me/sales", headers=a_auth)).json()

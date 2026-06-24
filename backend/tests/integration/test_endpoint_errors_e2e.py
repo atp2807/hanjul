@@ -59,20 +59,22 @@ def _client():
 async def test_catalog_http_errors(app_db):
     rnd = uuid.uuid4()
     async with _client() as c:
-        # 없는 책 → 404
+        token, _ = await login_account(c, "google", "x")
+        auth = {"Authorization": f"Bearer {token}"}
+        # 없는 책 → 404 (author 배정은 미게이트; 나머지는 인증+소유)
         assert (await c.put(f"/api/books/{rnd}/author", json={"authorId": str(uuid.uuid4())})).status_code == 404
-        assert (await c.put(f"/api/books/{rnd}/price", json={"amount": 1000})).status_code == 404
-        assert (await c.post(f"/api/books/{rnd}/submit")).status_code == 404
+        assert (await c.put(f"/api/books/{rnd}/price", json={"amount": 1000}, headers=auth)).status_code == 404
+        assert (await c.post(f"/api/books/{rnd}/submit", headers=auth)).status_code == 404
         assert (await c.get(f"/api/store/books/{rnd}")).status_code == 404  # 미출판 비공개
 
-        book = (await c.post("/api/books", json={"title": "x"})).json()["bookId"]
+        book = (await c.post("/api/books", json={"title": "x"}, headers=auth)).json()["bookId"]
         # DRAFT에서 바로 출판 → 409 (전이 위반)
-        assert (await c.post(f"/api/books/{book}/publish")).status_code == 409
+        assert (await c.post(f"/api/books/{book}/publish", headers=auth)).status_code == 409
         # 음수 가격 → 422
-        assert (await c.put(f"/api/books/{book}/price", json={"amount": -5})).status_code == 422
+        assert (await c.put(f"/api/books/{book}/price", json={"amount": -5}, headers=auth)).status_code == 422
         # 가격 없이 심사→출판 → 422 (PriceRequired)
-        await c.post(f"/api/books/{book}/submit")
-        assert (await c.post(f"/api/books/{book}/publish")).status_code == 422
+        await c.post(f"/api/books/{book}/submit", headers=auth)
+        assert (await c.post(f"/api/books/{book}/publish", headers=auth)).status_code == 422
 
 
 async def test_billing_http_errors(app_db):
@@ -89,9 +91,9 @@ async def test_billing_http_errors(app_db):
         assert (await c.get(f"/api/orders/{rnd}", headers=auth)).status_code == 404
 
         # 출판 후 구매 → 이중 confirm 409, 재구매 409
-        await c.put(f"/api/books/{book}/price", json={"amount": 1000})
-        await c.post(f"/api/books/{book}/submit")
-        await c.post(f"/api/books/{book}/publish")
+        await c.put(f"/api/books/{book}/price", json={"amount": 1000}, headers=auth)
+        await c.post(f"/api/books/{book}/submit", headers=auth)
+        await c.post(f"/api/books/{book}/publish", headers=auth)
         oid = (await c.post("/api/orders", json={"bookId": book}, headers=auth)).json()["id"]
         await c.post(f"/api/orders/{oid}/confirm", json={"pgTxId": "x"}, headers=auth)
         assert (await c.post(f"/api/orders/{oid}/confirm", json={"pgTxId": "x"}, headers=auth)).status_code == 409
