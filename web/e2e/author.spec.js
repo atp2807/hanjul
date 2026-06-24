@@ -32,7 +32,7 @@ test('작가: 생성→출간→서점 배포까지 한 흐름', async ({ page }
   await expect(page.getByText('책 정보가 저장됐어요.')).toBeVisible();
 
   // 가격
-  await page.locator('input[type=number]').fill('9000');
+  await page.locator('input[type=number]').first().fill('9000'); // 가격(할인가 input 추가됨)
   await page.getByRole('button', { name: '가격 저장' }).click();
   await expect(page.getByText('가격이 저장됐어요.')).toBeVisible();
 
