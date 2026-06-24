@@ -4,8 +4,36 @@ import uuid
 import pytest
 
 from src.features.books.application.book_service import BookService
-from src.features.books.domain.models import BookNotFound, NotOwner
+from src.features.books.domain.models import (
+    BlockView,
+    BookNotFound,
+    BookView,
+    ChapterView,
+    NotOwner,
+    suggest_blurb,
+)
 from tests.fixtures.fake_book_repo import FakeBookRepository
+
+
+def test_suggest_blurb_strips_html_and_truncates():
+    content = BookView(
+        id=uuid.uuid4(), title="t", kind="BOOK", language="ko", status="PUBLISHED",
+        chapters=[ChapterView(id=uuid.uuid4(), title="1장", order_no=0, blocks=[
+            BlockView(id=uuid.uuid4(), order_no=0, block_type="H1", html="<h1>제목</h1>"),
+            BlockView(id=uuid.uuid4(), order_no=1, block_type="P", html="<p>첫 <strong>문장</strong>입니다.</p>"),
+        ])],
+    )
+    b = suggest_blurb(content)
+    assert "<" not in b
+    assert b == "제목 첫 문장입니다."
+
+    long = BookView(
+        id=uuid.uuid4(), title="t", kind="BOOK", language="ko", status="PUBLISHED",
+        chapters=[ChapterView(id=uuid.uuid4(), title=None, order_no=0, blocks=[
+            BlockView(id=uuid.uuid4(), order_no=0, block_type="P", html="<p>" + "가" * 300 + "</p>"),
+        ])],
+    )
+    assert suggest_blurb(long).endswith("…") and len(suggest_blurb(long)) == 151
 
 
 @pytest.fixture

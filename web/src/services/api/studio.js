@@ -49,6 +49,10 @@ export function setIsbn(bookId, isbn) {
 export function updateMeta(bookId, { subtitle, description, category }) {
   return apiClient.put(`/books/${bookId}/meta`, { subtitle, description, category });
 }
+// 본문 기반 소개문 추천
+export function suggestBlurb(bookId) {
+  return apiClient.get(`/books/${bookId}/suggest-blurb`);
+}
 // AI 표지 생성 (프롬프트 → 이미지 URL, 책에 연결)
 export function generateCover(bookId, prompt) {
   return apiClient.post(`/books/${bookId}/cover`, { prompt });

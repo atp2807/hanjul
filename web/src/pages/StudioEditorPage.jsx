@@ -15,6 +15,7 @@ import {
   schedulePublish,
   setBookPrice,
   setDiscount,
+  suggestBlurb,
   setIsbn,
   submitBook,
   updateMeta,
@@ -169,6 +170,20 @@ export function StudioEditorPage() {
           placeholder="책 소개 (스토어 상세에 노출)"
           style={{ width: '100%', boxSizing: 'border-box', padding: 12, border: '1px solid #ddd', borderRadius: 8, fontFamily: 'inherit', marginBottom: 8 }}
         />
+        <button
+          onClick={async () => {
+            try {
+              const { blurb } = await suggestBlurb(id);
+              setDescription(blurb);
+              notify('본문에서 소개문을 추천했어요. 다듬은 뒤 저장하세요.');
+            } catch (e) {
+              setError(e.message);
+            }
+          }}
+          style={{ ...btn, marginLeft: 0, marginBottom: 8 }}
+        >
+          소개문 추천
+        </button>
         <select value={category} onChange={(e) => setCategory(e.target.value)} style={inp}>
           <option value="">분류 선택</option>
           {CATEGORIES.map((c) => (

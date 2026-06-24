@@ -56,6 +56,20 @@ def to_preview(content: BookView, limit: int) -> BookView:
     )
 
 
+def suggest_blurb(content: BookView, limit: int = 150) -> str:
+    """본문 앞부분에서 소개문을 추천 (HTML 제거·공백 정규화). LLM 고도화는 키 주입 시."""
+    import re
+
+    parts = [
+        re.sub(r"<[^>]+>", "", b.html)
+        for ch in content.chapters
+        for b in ch.blocks
+        if b.block_type != "HR"
+    ]
+    text = re.sub(r"\s+", " ", " ".join(parts)).strip()
+    return f"{text[:limit]}…" if len(text) > limit else text
+
+
 @dataclass
 class ImportResult:
     chapter_id: UUID

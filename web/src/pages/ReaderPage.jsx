@@ -15,6 +15,13 @@ export function ReaderPage() {
   const [price, setPrice] = useState(null);
   const [error, setError] = useState(null);
   const [buying, setBuying] = useState(false);
+  const [memo, setMemo] = useState('');
+
+  useEffect(() => { setMemo(localStorage.getItem(`hanjul-reader-memo-${id}`) || ''); }, [id]);
+  function updateMemo(v) {
+    setMemo(v);
+    localStorage.setItem(`hanjul-reader-memo-${id}`, v);
+  }
 
   async function load() {
     const content = await getBookContent(id);
@@ -55,6 +62,20 @@ export function ReaderPage() {
       {error && <p style={{ color: 'crimson' }}>{error}</p>}
       {!blocks && !error && <p style={{ color: '#999' }}>불러오는 중…</p>}
       {blocks && <Reader blocks={blocks} />}
+
+      {blocks && (
+        <section style={{ marginTop: 22 }}>
+          <div style={{ fontSize: 13, color: '#9ca3af', marginBottom: 6 }}>독서 메모 (이 기기에 저장)</div>
+          <textarea
+            data-testid="reader-memo"
+            value={memo}
+            onChange={(e) => updateMemo(e.target.value)}
+            rows={4}
+            placeholder="기억하고 싶은 구절·생각을 적어두세요"
+            style={{ width: '100%', boxSizing: 'border-box', padding: 12, border: '1px solid #ddd', borderRadius: 8, fontFamily: 'inherit', fontSize: 14 }}
+          />
+        </section>
+      )}
 
       {isPreview && (
         <div

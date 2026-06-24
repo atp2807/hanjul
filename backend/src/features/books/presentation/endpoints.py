@@ -14,7 +14,7 @@ from src.features.auth.presentation.dependencies import (
 from src.features.billing.application.order_service import OrderService
 from src.features.billing.presentation.dependencies import get_order_service
 from src.features.books.application.book_service import BookService
-from src.features.books.domain.models import BookNotFound, NotOwner, to_preview
+from src.features.books.domain.models import BookNotFound, NotOwner, suggest_blurb, to_preview
 from src.features.books.presentation.dependencies import get_book_service
 from src.features.books.presentation.schemas import (
     BookContentResponse,
@@ -54,6 +54,18 @@ async def import_text(
     except BookNotFound:
         raise HTTPException(status_code=404, detail="book not found")
     return ImportTextResponse(chapter_id=result.chapter_id, block_count=result.block_count)
+
+
+@router.get("/{book_id}/suggest-blurb")
+async def suggest_blurb_endpoint(
+    book_id: UUID, service: BookService = Depends(get_book_service)
+) -> dict:
+    """본문 기반 소개문 추천 (작가가 검토 후 저장)."""
+    try:
+        content = await service.get_content(book_id)
+    except BookNotFound:
+        raise HTTPException(status_code=404, detail="book not found")
+    return {"blurb": suggest_blurb(content)}
 
 
 @router.put("/{book_id}/content", status_code=204)
