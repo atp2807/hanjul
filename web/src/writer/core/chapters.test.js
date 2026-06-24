@@ -29,6 +29,22 @@ describe('splitIntoChapters', () => {
     expect(out[1]).toEqual({ title: '1장', blocks: [] });
   });
 
+  it('장(h2)·절(h3)은 챕터 경계 아님 — 챕터 본문에 남는다', () => {
+    const out = splitIntoChapters({
+      blocks: [
+        { type: 'h1', spans: [{ text: '1챕터', marks: [] }] },
+        { type: 'h2', spans: [{ text: '1장', marks: [] }] },
+        { type: 'p', spans: [{ text: '본문', marks: [] }] },
+      ],
+    });
+    expect(out).toHaveLength(1); // 챕터 1개
+    expect(out[0].title).toBe('1챕터');
+    expect(out[0].blocks).toEqual([
+      { type: 'H2', html: '<h2>1장</h2>' }, // 장은 본문 블록
+      { type: 'P', html: '<p>본문</p>' },
+    ]);
+  });
+
   it('빈 문서 → 빈 챕터 목록', () => {
     expect(splitIntoChapters({ blocks: [] })).toEqual([]);
   });

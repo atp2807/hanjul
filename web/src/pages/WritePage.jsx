@@ -215,7 +215,7 @@ export function WritePage() {
         <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 10 }}>목차 (자동)</div>
         {outline.length === 0 ? (
           <p style={{ fontSize: 13, color: '#cbd5e1', lineHeight: 1.6 }}>
-            제목(<code>#&nbsp;</code> 입력)을 넣으면 목차가 자동으로 생겨요.
+            챕터(<code>###&nbsp;</code> 입력)를 넣으면 목차가 자동으로 생겨요.
           </p>
         ) : (
           <ul data-testid="outline" style={{ listStyle: 'none', padding: 0, margin: 0 }}>

@@ -22,25 +22,26 @@ test('제목(# )을 쓰면 목차가 자동 생성된다 (파일 관리 0)', asy
   await page.goto('/write/e2e-outline');
   const editor = page.locator('.ProseMirror');
   await editor.click();
-  await page.keyboard.type('# 1장 발단'); // '# ' 입력룰 → h1
-  await page.keyboard.press('Enter'); // 제목 끝 Enter → 본문 문단
+  await page.keyboard.type('### 1장 발단'); // ### → 챕터(h1)
+  await page.keyboard.press('Enter'); // 챕터 끝 Enter → 본문 문단
   await page.keyboard.type('주인공이 등장한다');
   await page.keyboard.press('Enter');
-  await page.keyboard.type('## 작은 절');
+  await page.keyboard.type('## 작은 절'); // ## → 장(h2)
 
   const outline = page.getByTestId('outline');
   await expect(outline).toContainText('1장 발단');
   await expect(outline).toContainText('작은 절');
 });
 
-test('툴바 제목 버튼 → 마크다운 몰라도 헤딩+목차 생성', async ({ page }) => {
-  await page.goto('/write/e2e-toolbar');
+test('마커 규칙 — ### 챕터(h1), ## 장(h2)', async ({ page }) => {
+  await page.goto('/write/e2e-marker');
   const editor = page.locator('.ProseMirror');
   await editor.click();
-  await page.keyboard.type('1장 발단'); // # 없이 평범하게
-  await page.getByRole('button', { name: '제목', exact: true }).click();
-  await expect(editor.locator('h1')).toHaveText('1장 발단');
-  await expect(page.getByTestId('outline')).toContainText('1장 발단');
+  await page.keyboard.type('### 1챕터'); // 가장 큰 단위 = h1
+  await expect(editor.locator('h1')).toHaveText('1챕터');
+  await page.keyboard.press('Enter');
+  await page.keyboard.type('## 1장'); // 장 = h2
+  await expect(editor.locator('h2')).toHaveText('1장');
 });
 
 test('서식 단축키 → 정본으로 직렬화 가능한 마크 적용', async ({ page }) => {

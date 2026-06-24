@@ -3,8 +3,7 @@
 // 순수 — blocksToCanonical 로 정본 {type,html} 까지 변환해 반환.
 import { blocksToCanonical } from './serialize';
 
-const HEADINGS = new Set(['h1', 'h2', 'h3']);
-
+// 챕터 경계 = h1(=### 마커, 가장 큰 단위)만. 장(##=h2)·절(#=h3)은 챕터 본문에 남는다.
 export function splitIntoChapters(doc) {
   const chapters = [];
   let cur = null;
@@ -14,12 +13,12 @@ export function splitIntoChapters(doc) {
   };
 
   for (const b of doc.blocks || []) {
-    if (HEADINGS.has(b.type)) {
+    if (b.type === 'h1') {
       const title = (b.spans || []).map((s) => s.text).join('').trim() || null;
       open(title);
     } else {
-      if (!cur) open(null); // 첫 헤딩 전 본문
-      cur.neutral.push(b);
+      if (!cur) open(null); // 첫 챕터 전 본문 = 무제 챕터
+      cur.neutral.push(b); // 장/절/문단 모두 본문 블록으로 보존
     }
   }
 

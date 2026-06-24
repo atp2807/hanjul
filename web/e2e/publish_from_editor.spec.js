@@ -21,11 +21,11 @@ test('에디터 원클릭 출판 → 정본(챕터 분리) + 스토어 노출', 
   await editor.click();
 
   // 제목으로 챕터 2개 + 본문 (마크다운 입력룰)
-  await page.keyboard.type('# 1장 발단');
+  await page.keyboard.type('### 1장 발단');
   await page.keyboard.press('Enter');
   await page.keyboard.type('첫 장 본문입니다.');
   await page.keyboard.press('Enter');
-  await page.keyboard.type('# 2장 전개');
+  await page.keyboard.type('### 2장 전개');
   await page.keyboard.press('Enter');
   await page.keyboard.type('둘째 장 본문.');
 

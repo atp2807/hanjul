@@ -1,7 +1,7 @@
 // 로컬우선 에디터 — ProseMirror + Yjs + y-indexeddb.
 // 타이핑 핫패스 = 메모리 Y.Doc(즉시) → y-indexeddb 가 매 변경 로컬 영속(안 날아감).
 // 저장 상태를 눈에 보이게 표시 + 마크다운 입력룰(#,##,>) + 문서변경 콜백(자동 목차용).
-import { baseKeymap, setBlockType, toggleMark } from 'prosemirror-commands';
+import { baseKeymap, toggleMark } from 'prosemirror-commands';
 import { inputRules, textblockTypeInputRule, wrappingInputRule } from 'prosemirror-inputrules';
 import { keymap } from 'prosemirror-keymap';
 import { EditorState } from 'prosemirror-state';
@@ -16,11 +16,12 @@ import 'prosemirror-view/style/prosemirror.css';
 import './writer.css';
 import { schema } from './schema';
 
-// 마크다운식 입력룰: '# '·'## '·'### ' → 헤딩, '> ' → 인용
+// 마커 규칙: 해시 많을수록 큰 단위 (### 챕터 > ## 장 > # 절). 흔한 #은 작은 단위,
+// 드문 ###은 중요한 챕터 경계 → 실수 방지. level = 4 - 해시수 (h1=챕터).
 function markdownInputRules() {
   return inputRules({
     rules: [
-      textblockTypeInputRule(/^(#{1,3})\s$/, schema.nodes.heading, (m) => ({ level: m[1].length })),
+      textblockTypeInputRule(/^(#{1,3})\s$/, schema.nodes.heading, (m) => ({ level: 4 - m[1].length })),
       wrappingInputRule(/^\s*>\s$/, schema.nodes.blockquote),
     ],
   });
@@ -133,15 +134,9 @@ export function WriterEditor({ docId, onReady, onChange }) {
   return (
     <div>
       <div className="writer-toolbar" data-testid="writer-toolbar">
-        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={run(setBlockType(schema.nodes.heading, { level: 1 }))}>
-          제목
-        </button>
-        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={run(setBlockType(schema.nodes.heading, { level: 2 }))}>
-          소제목
-        </button>
-        <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={run(setBlockType(schema.nodes.paragraph))}>
-          본문
-        </button>
+        <span style={{ fontSize: 12, color: '#9ca3af' }}>
+          <code>###</code> 챕터 · <code>##</code> 장 · <code>#</code> 절
+        </span>
         <span className="sep" />
         <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={run(toggleMark(schema.marks.strong))}>
           굵게

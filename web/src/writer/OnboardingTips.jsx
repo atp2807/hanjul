@@ -24,7 +24,7 @@ export function OnboardingTips() {
         </button>
       </div>
       <ol style={{ margin: 0, paddingLeft: 20, color: '#555', fontSize: 14, lineHeight: 1.7 }}>
-        <li><b>쓰기</b> — 그냥 쓰면 이 기기에 자동 저장돼요(오프라인·새로고침에도 안전). 제목은 <code>#&nbsp;</code> 또는 ‘제목’ 버튼.</li>
+        <li><b>쓰기</b> — 그냥 쓰면 이 기기에 자동 저장돼요(오프라인·새로고침에도 안전). 구조는 <code>###</code> 챕터 · <code>##</code> 장 · <code>#</code> 절.</li>
         <li><b>미리보기</b> — ‘미리보기’로 독자가 볼 모습을 확인.</li>
         <li><b>출판</b> — ‘출판’ 한 번이면 스토어에 올라가요. 표지·가격은 ‘책 정보 설정’에서.</li>
       </ol>
