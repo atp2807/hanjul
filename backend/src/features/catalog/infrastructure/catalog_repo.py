@@ -83,8 +83,8 @@ class SqlCatalogRepository:
         b.scheduled_publish_at = when
         await self.session.commit()
 
-    async def publish_due(self, now) -> int:
-        """예약 시각이 지난 미출판 책들을 자동 게시. 게시 건수 반환."""
+    async def publish_due(self, now) -> list[tuple]:
+        """예약 시각이 지난 미출판 책들을 자동 게시. 게시된 (book_id, author_id, title) 목록 반환."""
         stmt = select(Book).where(
             Book.scheduled_publish_at.isnot(None),
             Book.scheduled_publish_at <= now,
@@ -92,12 +92,14 @@ class SqlCatalogRepository:
             Book.price_amt.isnot(None),
         )
         rows = (await self.session.execute(stmt)).scalars().all()
+        published = []
         for b in rows:
             b.status = PUBLISHED
             b.published_at = now
             b.scheduled_publish_at = None
+            published.append((b.id, b.author_id, b.title))
         await self.session.commit()
-        return len(rows)
+        return published
 
     async def list_published(
         self, q: str | None, limit: int, offset: int, kind: str | None = None

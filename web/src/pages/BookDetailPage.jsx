@@ -150,6 +150,7 @@ export function BookDetailPage() {
               <li key={r.id} style={{ padding: '8px 0', borderTop: '1px solid #f3f3f3' }}>
                 <span style={{ color: '#f59e0b' }}>{'★'.repeat(r.rating)}</span>{' '}
                 <b style={{ fontSize: 13 }}>{r.author || '익명'}</b>
+                {r.updatedAt && <span style={{ marginLeft: 6, fontSize: 12, color: '#aaa' }}>(수정됨)</span>}
                 {r.body && <p style={{ margin: '4px 0 0', color: '#444' }}>{r.body}</p>}
               </li>
             ))}

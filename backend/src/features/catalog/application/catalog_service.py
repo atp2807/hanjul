@@ -83,8 +83,8 @@ class CatalogService:
             raise PriceRequired()
         await self.repo.set_scheduled(book_id, when)
 
-    async def publish_scheduled_due(self, now: datetime) -> int:
-        """예약 시각이 지난 책들 자동 게시 (스케줄러가 호출)."""
+    async def publish_scheduled_due(self, now: datetime) -> list[tuple]:
+        """예약 시각이 지난 책들 자동 게시 (스케줄러가 호출). 게시된 (id, author_id, title) 목록."""
         return await self.repo.publish_due(now)
 
     async def list_store(

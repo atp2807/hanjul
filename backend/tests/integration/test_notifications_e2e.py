@@ -172,6 +172,40 @@ async def test_revision_notifies_buyers_and_relights(app_db):
         assert len(revisions) == 1 and again["unreadCount"] == 1
 
 
+async def test_scheduled_publish_notifies_followers(app_db, sessionmaker):
+    """예약발행(스케줄러 자동 게시) 경로도 팔로워에게 신간 알림."""
+    from datetime import datetime, timedelta, timezone
+
+    from main import publish_due_and_notify
+
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
+        author_token, author = await login_account(c, "google", "a")
+        follower_token, _ = await login_account(c, "naver", "f")
+        author_auth = {"Authorization": f"Bearer {author_token}"}
+        follower_auth = {"Authorization": f"Bearer {follower_token}"}
+
+        await c.post(f"/api/authors/{author['id']}/follow", headers=follower_auth)
+
+        # 과거 시각으로 예약 (아직 DRAFT, 게시 안 됨)
+        book = (await c.post("/api/books", json={"title": "예약신간"}, headers=author_auth)).json()["bookId"]
+        await c.put(f"/api/books/{book}/price", json={"amount": 4000}, headers=author_auth)
+        past = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
+        await c.post(f"/api/books/{book}/schedule", json={"publishAt": past}, headers=author_auth)
+
+        # 아직 알림 없음
+        assert (await c.get("/api/me/notifications", headers=follower_auth)).json()["unreadCount"] == 0
+
+        # 스케줄러 본체 실행 → 게시 + 신간 알림
+        async with sessionmaker() as s:
+            n = await publish_due_and_notify(s, datetime.now(timezone.utc))
+        assert n == 1
+
+        inbox = (await c.get("/api/me/notifications", headers=follower_auth)).json()
+        assert inbox["unreadCount"] == 1
+        assert inbox["items"][0]["kindCd"] == "NEW_BOOK"
+        assert inbox["items"][0]["bookId"] == book
+
+
 async def test_follow_gates(app_db):
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
         author_token, author = await login_account(c, "google", "a")

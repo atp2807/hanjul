@@ -12,6 +12,7 @@ class ReviewView:
     body: str | None
     author: str | None
     created_at: datetime
+    updated_at: datetime | None = None
 
 
 @dataclass

@@ -65,7 +65,8 @@ async def test_scheduled_due_is_published(sessionmaker):
         await cat.set_scheduled(bid, datetime.now(timezone.utc) - timedelta(hours=1))  # 이미 지남
 
     async with sessionmaker() as s:
-        assert await SqlCatalogRepository(s).publish_due(datetime.now(timezone.utc)) == 1
+        published = await SqlCatalogRepository(s).publish_due(datetime.now(timezone.utc))
+        assert len(published) == 1 and published[0][0] == bid
 
     async with sessionmaker() as s2:
         summary = await SqlCatalogRepository(s2).get_summary(bid)
@@ -80,7 +81,7 @@ async def test_future_scheduled_not_yet_published(sessionmaker):
         await cat.set_scheduled(bid, datetime.now(timezone.utc) + timedelta(days=1))  # 미래
 
     async with sessionmaker() as s:
-        assert await SqlCatalogRepository(s).publish_due(datetime.now(timezone.utc)) == 0
+        assert await SqlCatalogRepository(s).publish_due(datetime.now(timezone.utc)) == []
 
     async with sessionmaker() as s2:
         assert (await SqlCatalogRepository(s2).get_summary(bid)).status != "PUBLISHED"

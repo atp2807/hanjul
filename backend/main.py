@@ -19,16 +19,36 @@ logger = logging.getLogger("app")
 SCHEDULER_INTERVAL_SEC = 30
 
 
-async def _publish_scheduler():
-    """예약 발행: 주기적으로 예약 시각 지난 책을 자동 게시."""
-    from src.config.database import get_session_factory
+async def publish_due_and_notify(session, now) -> int:
+    """예약 시각 지난 책 자동 게시 + 게시된 책마다 작가 팔로워에게 신간 알림. 게시 건수 반환."""
     from src.features.catalog.infrastructure.catalog_repo import SqlCatalogRepository
+    from src.features.notifications.application.notification_service import NotificationService
+    from src.features.notifications.infrastructure.notification_repo import (
+        SqlFollowRepository,
+        SqlNotificationRepository,
+    )
+
+    published = await SqlCatalogRepository(session).publish_due(now)
+    if not published:
+        return 0
+    notif = NotificationService(SqlFollowRepository(session), SqlNotificationRepository(session))
+    for book_id, author_id, title in published:
+        try:
+            await notif.notify_new_book(book_id, author_id, title)
+        except Exception:
+            logger.exception("예약발행 신간 알림 실패 (book=%s) — 게시는 정상", book_id)
+    return len(published)
+
+
+async def _publish_scheduler():
+    """예약 발행: 주기적으로 예약 시각 지난 책을 자동 게시 + 신간 알림."""
+    from src.config.database import get_session_factory
 
     while True:
         await asyncio.sleep(SCHEDULER_INTERVAL_SEC)
         try:
             async with get_session_factory()() as session:
-                n = await SqlCatalogRepository(session).publish_due(datetime.now(timezone.utc))
+                n = await publish_due_and_notify(session, datetime.now(timezone.utc))
                 if n:
                     logger.info("예약발행 %d건 자동 게시", n)
         except Exception:

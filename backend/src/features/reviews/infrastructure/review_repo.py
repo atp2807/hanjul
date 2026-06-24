@@ -51,7 +51,10 @@ class SqlReviewRepository:
         )
         rows = (await self.session.execute(stmt)).all()
         return [
-            ReviewView(id=r.id, rating=r.rating, body=r.body, author=name, created_at=r.created_at)
+            ReviewView(
+                id=r.id, rating=r.rating, body=r.body, author=name,
+                created_at=r.created_at, updated_at=r.updated_at,
+            )
             for r, name in rows
         ]
 

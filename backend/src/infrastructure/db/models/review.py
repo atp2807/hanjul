@@ -22,3 +22,5 @@ class Review(Base):
     rating = Column(Integer, nullable=False)  # 1~5
     body = Column(Text)
     created_at = Column("created_ts", DateTime(timezone=True), default=_now, nullable=False)
+    # 재작성(upsert update) 시 갱신. 최초 작성 땐 NULL → '수정됨' 미표시.
+    updated_at = Column("updated_ts", DateTime(timezone=True), onupdate=_now)

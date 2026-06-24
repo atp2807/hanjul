@@ -33,7 +33,8 @@ class CatalogRepository(Protocol):
     async def set_scheduled(self, book_id: UUID, when) -> None:
         ...
 
-    async def publish_due(self, now) -> int:
+    async def publish_due(self, now) -> list[tuple]:
+        """게시된 (book_id, author_id, title) 목록 반환."""
         ...
 
     async def list_published(

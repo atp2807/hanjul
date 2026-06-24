@@ -38,8 +38,8 @@ class FakeCatalogRepository:
         self.scheduled = getattr(self, "scheduled", {})
         self.scheduled[book_id] = when
 
-    async def publish_due(self, now) -> int:
-        return 0  # 예약 게시 로직은 통합테스트(실 DB)에서 검증
+    async def publish_due(self, now) -> list:
+        return []  # 예약 게시 로직은 통합테스트(실 DB)에서 검증
 
     async def list_by_author(self, author_id):
         return [b for b in self.books.values() if b.author_id == author_id]
