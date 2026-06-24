@@ -22,9 +22,9 @@ export function StudioPage() {
   async function saveBio() {
     try {
       await updateProfile(bio);
-      setBioMsg('작가 소개를 저장했어요.');
+      setBioMsg({ ok: true, text: '작가 소개를 저장했어요.' });
     } catch (e) {
-      setBioMsg(`저장 실패: ${e.message}`);
+      setBioMsg({ ok: false, text: `저장 실패: ${e.message}` });
     }
   }
 
@@ -75,7 +75,7 @@ export function StudioPage() {
           style={{ width: '100%', maxWidth: 520, boxSizing: 'border-box', padding: 10, border: '1px solid #ddd', borderRadius: 8, fontFamily: 'inherit', display: 'block' }}
         />
         <button onClick={saveBio} style={{ marginTop: 8, padding: '8px 16px', borderRadius: 8, border: '1px solid #ddd', background: '#fff', fontWeight: 600, cursor: 'pointer' }}>소개 저장</button>
-        {bioMsg && <span style={{ marginLeft: 10, fontSize: 13, color: 'green' }}>{bioMsg}</span>}
+        {bioMsg && <span style={{ marginLeft: 10, fontSize: 13, color: bioMsg.ok ? 'green' : 'crimson' }}>{bioMsg.text}</span>}
       </div>
 
       <form onSubmit={handleCreate} style={{ display: 'flex', gap: 8, marginBottom: 24 }}>

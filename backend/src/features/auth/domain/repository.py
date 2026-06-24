@@ -16,3 +16,7 @@ class AccountRepository(Protocol):
     async def get_account(self, account_id: UUID) -> AuthAccount | None:
         """id 로 계정 조회 (GET /me 등)."""
         ...
+
+    async def update_bio(self, account_id: UUID, bio: str | None) -> None:
+        """작가 소개 수정."""
+        ...

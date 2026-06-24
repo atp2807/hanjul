@@ -1,6 +1,6 @@
 """현재 로그인 계정 — GET /api/me, PUT /api/me/profile."""
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,7 +15,7 @@ router = APIRouter(tags=["account"])
 
 class UpdateProfileRequest(BaseModel):
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
-    bio: str | None = None
+    bio: str | None = Field(default=None, max_length=1000)
 
 
 @router.get("/me", response_model=AccountResponse)

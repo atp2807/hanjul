@@ -17,6 +17,11 @@ class FakeAccountRepository:
                 return acc
         return None
 
+    async def update_bio(self, account_id, bio: str | None) -> None:
+        for acc in self.by_cred.values():
+            if acc.id == account_id:
+                acc.bio = (bio or "").strip() or None
+
     async def create_with_credential(self, profile: SocialProfile) -> AuthAccount:
         acc = AuthAccount(
             id=uuid.uuid4(),
