@@ -31,7 +31,7 @@ export function BookDetailPage() {
       setReviewBody('');
       await loadReviews();
     } catch (e) {
-      setError(`리뷰 실패: ${e.message}`);
+      setError(e.status === 403 ? '구매한 독자만 리뷰할 수 있어요.' : `리뷰 실패: ${e.message}`);
     }
   }
 
