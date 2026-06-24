@@ -85,3 +85,21 @@ async def test_buyer_has_no_author_sales(app_db):
         buyer_token, _ = await login_account(c, "naver", "b")
         sales = (await c.get("/api/me/sales", headers={"Authorization": f"Bearer {buyer_token}"})).json()
         assert sales["totalRevenue"] == 0 and sales["books"] == []
+
+
+async def test_order_visible_only_to_buyer(app_db):
+    """주문 조회는 본인만 — 타인/무인증은 404 (정보 노출 차단)."""
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
+        author_token, _ = await login_account(c, "google", "a")
+        a_auth = {"Authorization": f"Bearer {author_token}"}
+        book = (await c.post("/api/books", json={"title": "책"}, headers=a_auth)).json()["bookId"]
+        await c.put(f"/api/books/{book}/price", json={"amount": 5000}, headers=a_auth)
+        await c.post(f"/api/books/{book}/publish-now", headers=a_auth)
+
+        buyer_token, _ = await login_account(c, "naver", "b")
+        b_auth = {"Authorization": f"Bearer {buyer_token}"}
+        oid = (await c.post("/api/orders", json={"bookId": book}, headers=b_auth)).json()["id"]
+
+        assert (await c.get(f"/api/orders/{oid}", headers=b_auth)).status_code == 200  # 본인
+        assert (await c.get(f"/api/orders/{oid}", headers=a_auth)).status_code == 404  # 타인
+        assert (await c.get(f"/api/orders/{oid}")).status_code == 401  # 무인증

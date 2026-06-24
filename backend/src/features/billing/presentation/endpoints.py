@@ -1,8 +1,9 @@
-"""billing API — 주문 생성/결제확인/조회."""
+"""billing API — 주문 생성/결제확인/조회 + 결제 설정."""
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 
+from src.config.settings import settings
 from src.features.auth.domain.models import AccountPrincipal
 from src.features.auth.presentation.dependencies import get_current_account
 from src.features.billing.application.order_service import OrderService
@@ -22,6 +23,13 @@ from src.features.billing.presentation.schemas import (
 )
 
 router = APIRouter(prefix="/orders", tags=["billing"])
+payments_router = APIRouter(prefix="/payments", tags=["billing"])
+
+
+@payments_router.get("/config")
+async def payment_config() -> dict:
+    """프론트 결제 위젯 초기화용 공개 설정. clientKey는 공개키(test_ck_)라 노출 OK."""
+    return {"demo": settings.PAYMENT_DEMO, "tossClientKey": settings.TOSS_TEST_CLIENT_KEY}
 
 
 @router.post("", response_model=OrderResponse, status_code=201)
@@ -60,9 +68,16 @@ async def confirm_payment(
 
 
 @router.get("/{order_id}", response_model=OrderResponse)
-async def get_order(order_id: UUID, svc: OrderService = Depends(get_order_service)) -> OrderResponse:
+async def get_order(
+    order_id: UUID,
+    principal: AccountPrincipal = Depends(get_current_account),
+    svc: OrderService = Depends(get_order_service),
+) -> OrderResponse:
     try:
         order = await svc.get_order(order_id)
     except OrderNotFound:
+        raise HTTPException(404, "order not found")
+    # 본인 주문만 — 타인 주문은 존재 노출 없이 404
+    if order.buyer_account_id != principal.id:
         raise HTTPException(404, "order not found")
     return OrderResponse.model_validate(order)

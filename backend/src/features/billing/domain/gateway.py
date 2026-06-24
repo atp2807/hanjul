@@ -5,6 +5,6 @@ from typing import Protocol
 class PaymentGateway(Protocol):
     provider_cd: str
 
-    async def verify(self, pg_tx_id: str, expected_amount: int) -> bool:
-        """PG 서버에 실제 결제를 조회해 금액 일치를 검증."""
+    async def verify(self, pg_tx_id: str, expected_amount: int, order_ref: str | None = None) -> bool:
+        """PG 서버에 실제 결제를 검증/승인. order_ref = 주문 식별자(토스 orderId 등)."""
         ...

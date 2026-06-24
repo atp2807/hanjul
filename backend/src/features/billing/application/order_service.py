@@ -73,7 +73,8 @@ class OrderService:
         if order.status_cd == PAID:
             raise AlreadyPaid()
 
-        ok = await self.gateway.verify(pg_tx_id, order.amount_amt)
+        # order_ref = 토스 orderId 등 PG가 결제 시 식별자로 쓴 값(우리 주문 UUID)
+        ok = await self.gateway.verify(pg_tx_id, order.amount_amt, order_ref=str(order_id))
         if not ok:
             raise PaymentFailed()
 

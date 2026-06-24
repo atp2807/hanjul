@@ -13,7 +13,7 @@ class PortonePaymentGateway:
     def __init__(self, api_secret: str):
         self._api_secret = api_secret
 
-    async def verify(self, pg_tx_id: str, expected_amount: int) -> bool:
+    async def verify(self, pg_tx_id: str, expected_amount: int, order_ref: str | None = None) -> bool:
         async with httpx.AsyncClient(timeout=10) as client:
             res = await client.get(
                 _PAYMENT_URL.format(payment_id=pg_tx_id),

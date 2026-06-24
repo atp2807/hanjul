@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { useAuth } from '../auth/AuthContext';
+import { PaymentModal } from '../components/PaymentModal';
 import { getLoginUrl } from '../services/api/auth';
 import { getStoreDetail } from '../services/api/books';
-import { confirmPayment, createOrder } from '../services/api/orders';
+import { confirmPayment, createOrder, getPaymentConfig } from '../services/api/orders';
 import { addReview, getReviews } from '../services/api/reviews';
 
 export function BookDetailPage() {
@@ -14,6 +15,7 @@ export function BookDetailPage() {
   const [book, setBook] = useState(null);
   const [error, setError] = useState(null);
   const [buying, setBuying] = useState(false);
+  const [pay, setPay] = useState(null); // 토스 위젯 모달 상태 {clientKey, order}
   const [reviews, setReviews] = useState(null);
   const [rating, setRating] = useState(5);
   const [reviewBody, setReviewBody] = useState('');
@@ -45,9 +47,15 @@ export function BookDetailPage() {
     setBuying(true);
     setError(null);
     try {
+      const cfg = await getPaymentConfig();
       const order = await createOrder(book.id); // 금액은 서버가 책 가격에서 도출
-      await confirmPayment(order.id, 'demo'); // 데모 스텁 결제
-      navigate(`/read/${book.id}`); // 구매 완료 → 전체 읽기
+      if (cfg.demo || !cfg.tossClientKey) {
+        await confirmPayment(order.id, 'demo'); // 데모 모드 — PG 우회
+        navigate(`/read/${book.id}`);
+        return;
+      }
+      // 실 결제 — 토스 위젯 모달 열기. 성공 시 paymentKey로 confirm.
+      setPay({ clientKey: cfg.tossClientKey, order });
     } catch (e) {
       if (e.status === 409) {
         navigate(`/read/${book.id}`); // 이미 소유 → 바로 읽기
@@ -59,11 +67,35 @@ export function BookDetailPage() {
     }
   }
 
+  async function onPaid(paymentKey) {
+    const order = pay.order;
+    setPay(null);
+    setBuying(true);
+    try {
+      await confirmPayment(order.id, paymentKey); // 토스 승인 → 정산
+      navigate(`/read/${book.id}`);
+    } catch (e) {
+      setError(e.status === 402 ? '결제 승인에 실패했어요.' : `구매 처리 실패: ${e.message}`);
+    } finally {
+      setBuying(false);
+    }
+  }
+
   if (error && !book) return <Center>불러오기 실패: {error}</Center>;
   if (!book) return <Center>불러오는 중…</Center>;
 
   return (
     <div style={{ maxWidth: 760, margin: '0 auto', padding: '32px 24px', display: 'flex', gap: 28 }}>
+      {pay && (
+        <PaymentModal
+          clientKey={pay.clientKey}
+          orderId={pay.order.id}
+          orderName={book.title}
+          amount={pay.order.amountAmt}
+          onSuccess={onPaid}
+          onCancel={(msg) => { setPay(null); if (msg) setError(msg); }}
+        />
+      )}
       <div style={{ width: 220, flexShrink: 0 }}>
         {book.coverUrl ? (
           <img src={book.coverUrl} alt={book.title} style={{ width: '100%', borderRadius: 10 }} />

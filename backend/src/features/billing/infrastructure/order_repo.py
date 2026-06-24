@@ -44,7 +44,19 @@ class SqlOrderRepository:
     async def mark_paid_with_settlement(
         self, order_id: UUID, pg_provider_cd: str, pg_tx_id: str, breakdown: SettlementBreakdown
     ) -> None:
-        o = await self.session.get(Order, order_id)
+        # 행 잠금 + 상태 재확인 — 동시 confirm 2건이 둘 다 PAID/정산 2중 기록되는 레이스 차단.
+        # (이미 PAID면 멱등 no-op: 토스 idempotency 로 실제 청구는 1회.)
+        o = (
+            await self.session.execute(
+                select(Order)
+                .where(Order.id == order_id)
+                .with_for_update()
+                .execution_options(populate_existing=True)  # 잠금 후 DB 최신값으로 갱신
+            )
+        ).scalar_one_or_none()
+        if o is None or o.status_cd == "PAID":
+            await self.session.rollback()
+            return
         o.status_cd = "PAID"
         o.pg_provider_cd = pg_provider_cd
         o.pg_tx_id = pg_tx_id

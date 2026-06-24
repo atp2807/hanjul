@@ -37,6 +37,12 @@ class Settings(BaseSettings):
     PORTONE_API_SECRET: str = ""
     # 데모 모드: 결제 검증을 건너뛰고 성공 처리 (개발/데모 전용). 운영은 반드시 False.
     PAYMENT_DEMO: bool = False
+    # Toss Payments — PAYMENT_DEMO=False면 실연동. 테스트키는 샌드박스(test_ck_/test_sk_).
+    TOSS_TEST_CLIENT_KEY: str = ""   # 공개키(프론트 위젯) — clientKey
+    TOSS_TEST_SECRET_KEY: str = ""   # 시크릿(백엔드 confirm Basic auth)
+    TOSS_TEST_SECURITY_KEY: str = ""  # 빌링/지급대행 보안키(현재 미사용, 백업)
+    # Mock 모드: 외부 호출 없이 confirm 성공 응답 (단위테스트/오프라인). 운영은 False.
+    TOSS_PAYMENT_MOCK_MODE: bool = False
 
     # ── AI 표지(novelpotato) ────────────────────────────
     # 데모: 외부 호출 없이 placeholder 반환 (dev/E2E). 운영은 False + 아래 설정.

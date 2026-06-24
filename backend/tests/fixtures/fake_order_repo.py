@@ -12,7 +12,7 @@ class FakeGateway:
     def __init__(self, ok: bool = True):
         self.ok = ok
 
-    async def verify(self, pg_tx_id: str, expected_amount: int) -> bool:
+    async def verify(self, pg_tx_id: str, expected_amount: int, order_ref: str | None = None) -> bool:
         return self.ok
 
 
