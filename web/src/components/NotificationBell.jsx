@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 
 import { getNotifications, markAllRead, markRead } from '../services/api/notifications';
 
-const KIND_LABEL = { NEW_BOOK: '신간' };
+const KIND_LABEL = { NEW_BOOK: '신간', REVISION: '개정판' };
+const KIND_SUFFIX = { NEW_BOOK: '이(가) 출간됐어요.', REVISION: '의 개정판이 나왔어요.' };
 
 // 헤더 알림함 — 안읽음 배지 + 드롭다운. 로그인 상태에서만 렌더.
 export function NotificationBell() {
@@ -96,7 +97,7 @@ export function NotificationBell() {
               >
                 <div style={{ fontSize: 12, color: '#2563eb', fontWeight: 600 }}>{KIND_LABEL[n.kindCd] || '알림'}</div>
                 <div style={{ fontSize: 14, color: '#222', marginTop: 2 }}>
-                  <strong>{n.title || '새 책'}</strong> 이(가) 출간됐어요.
+                  <strong>{n.title || '새 책'}</strong> {KIND_SUFFIX[n.kindCd] || '소식이 있어요.'}
                 </div>
               </button>
             ))

@@ -50,6 +50,11 @@ class FakeOrderRepository:
             for o in self.orders.values()
         )
 
+    async def buyer_ids(self, book_id) -> list:
+        return list(
+            {o.buyer_account_id for o in self.orders.values() if o.book_id == book_id and o.status_cd == PAID}
+        )
+
     async def author_sales(self, author_id):
         from src.features.billing.domain.models import SalesSummary
 

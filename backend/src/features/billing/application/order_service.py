@@ -53,6 +53,10 @@ class OrderService:
     async def owns(self, account_id: UUID, book_id: UUID) -> bool:
         return await self.repo.owns(account_id, book_id)
 
+    async def buyer_ids(self, book_id: UUID) -> list[UUID]:
+        """이 책 구매자 계정 id — 개정판 알림 대상."""
+        return await self.repo.buyer_ids(book_id)
+
     async def list_library(self, account_id: UUID):
         return await self.repo.list_purchased_books(account_id)
 

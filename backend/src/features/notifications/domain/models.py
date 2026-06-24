@@ -5,6 +5,7 @@ from typing import Protocol
 from uuid import UUID
 
 NEW_BOOK = "NEW_BOOK"
+REVISION = "REVISION"
 
 
 @dataclass
@@ -36,7 +37,13 @@ class NotificationRepository(Protocol):
     async def create_for_recipients(
         self, recipient_ids: list[UUID], kind_cd: str, book_id: UUID | None, title: str | None
     ) -> None:
-        """수신자별 알림 생성. (수신자,책,종류) 중복은 건너뜀(멱등)."""
+        """수신자별 알림 생성. (수신자,책,종류) 중복은 건너뜀(멱등 — 신간용)."""
+        ...
+
+    async def relight_for_recipients(
+        self, recipient_ids: list[UUID], kind_cd: str, book_id: UUID | None, title: str | None
+    ) -> None:
+        """수신자별 알림 재점등 — 기존 (수신자,책,종류)면 안읽음으로 되살림, 없으면 생성(개정판용)."""
         ...
 
     async def list_for(self, recipient_id: UUID) -> list[NotificationView]:

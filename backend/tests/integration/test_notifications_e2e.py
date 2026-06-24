@@ -16,7 +16,12 @@ from src.features.auth.application.auth_service import AuthService  # noqa: E402
 from src.features.auth.domain.models import SocialProfile  # noqa: E402
 from src.features.auth.infrastructure.account_repo import SqlAccountRepository  # noqa: E402
 from src.features.auth.presentation.dependencies import get_auth_service, token_issuer  # noqa: E402
+from src.features.billing.application.order_service import OrderService  # noqa: E402
+from src.features.billing.infrastructure.book_pricing import SqlBookPricing  # noqa: E402
+from src.features.billing.infrastructure.order_repo import SqlOrderRepository  # noqa: E402
+from src.features.billing.presentation.dependencies import get_order_service  # noqa: E402
 from tests.fixtures.fake_account_repo import FakeProvider  # noqa: E402
+from tests.fixtures.fake_order_repo import FakeGateway  # noqa: E402
 from tests.integration.auth_helpers import login_account  # noqa: E402
 
 AUTHOR = SocialProfile("GOOGLE", "n-author", "author@x.com", "작가한")
@@ -41,15 +46,19 @@ def app_db(sessionmaker):
             token_issuer(),
         )
 
+    def _order(session: AsyncSession = Depends(get_session)):
+        return OrderService(SqlOrderRepository(session), FakeGateway(ok=True), SqlBookPricing(session))
+
     app.dependency_overrides[get_session] = _session
     app.dependency_overrides[get_auth_service] = _auth
+    app.dependency_overrides[get_order_service] = _order
     yield
     app.dependency_overrides.clear()
 
 
 async def _publish_book(c, author_auth, title="신간"):
     book = (await c.post("/api/books", json={"title": title}, headers=author_auth)).json()["bookId"]
-    await c.post(f"/api/books/{book}/import", json={"rawText": "1\n\n2"})
+    await c.post(f"/api/books/{book}/import", json={"rawText": "1\n\n2"}, headers=author_auth)
     await c.put(f"/api/books/{book}/price", json={"amount": 5000}, headers=author_auth)
     assert (await c.post(f"/api/books/{book}/publish-now", headers=author_auth)).status_code == 204
     return book
@@ -126,6 +135,41 @@ async def test_full_publish_path_also_notifies(app_db):
         assert (await c.post(f"/api/books/{book}/publish", headers=author_auth)).status_code == 204
 
         assert (await c.get("/api/me/notifications", headers=follower_auth)).json()["unreadCount"] == 1
+
+
+async def test_revision_notifies_buyers_and_relights(app_db):
+    """이미 출판된 책을 재발행(개정판) → 구매자에게 REVISION 알림. 재개정 시 재점등."""
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
+        author_token, _ = await login_account(c, "google", "a")
+        buyer_token, _ = await login_account(c, "naver", "b")
+        author_auth = {"Authorization": f"Bearer {author_token}"}
+        buyer_auth = {"Authorization": f"Bearer {buyer_token}"}
+
+        book = await _publish_book(c, author_auth, title="개정대상")  # 첫 출판(PUBLISHED)
+
+        # 구매자 구매 + 확정
+        oid = (await c.post("/api/orders", json={"bookId": book}, headers=buyer_auth)).json()["id"]
+        await c.post(f"/api/orders/{oid}/confirm", json={"pgTxId": "tx"}, headers=buyer_auth)
+        # 구매 자체로는 알림 없음
+        assert (await c.get("/api/me/notifications", headers=buyer_auth)).json()["unreadCount"] == 0
+
+        # 작가가 재발행(개정판) → 구매자 REVISION 알림
+        await c.post(f"/api/books/{book}/publish-now", headers=author_auth)
+        inbox = (await c.get("/api/me/notifications", headers=buyer_auth)).json()
+        assert inbox["unreadCount"] == 1
+        assert inbox["items"][0]["kindCd"] == "REVISION"
+        assert inbox["items"][0]["bookId"] == book
+
+        # 읽음 → 0
+        nid = inbox["items"][0]["id"]
+        await c.post(f"/api/me/notifications/{nid}/read", headers=buyer_auth)
+        assert (await c.get("/api/me/notifications", headers=buyer_auth)).json()["unreadCount"] == 0
+
+        # 다시 개정 → 같은 알림이 재점등(행 1개 유지, 다시 안읽음)
+        await c.post(f"/api/books/{book}/publish-now", headers=author_auth)
+        again = (await c.get("/api/me/notifications", headers=buyer_auth)).json()
+        revisions = [n for n in again["items"] if n["kindCd"] == "REVISION"]
+        assert len(revisions) == 1 and again["unreadCount"] == 1
 
 
 async def test_follow_gates(app_db):

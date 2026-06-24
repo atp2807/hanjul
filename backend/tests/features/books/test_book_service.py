@@ -58,6 +58,22 @@ async def test_import_into_unknown_book_raises(service):
         await service.import_text(uuid.uuid4(), "내용")
 
 
+async def test_import_owner_gate(service):
+    """소유자 있는 책: 본인만 import. 익명/타인 → NotOwner. 소유자 없는 책: 개방."""
+    author = uuid.uuid4()
+    owned = await service.create_book(title="내책", author_id=author)
+    # 본인 OK
+    assert (await service.import_text(owned, "본문", requester_id=author)).block_count == 1
+    # 타인/익명 차단
+    with pytest.raises(NotOwner):
+        await service.import_text(owned, "탈취", requester_id=uuid.uuid4())
+    with pytest.raises(NotOwner):
+        await service.import_text(owned, "탈취")  # 익명
+    # 소유자 없는 책은 익명 import 허용
+    orphan = await service.create_book(title="익명책")
+    assert (await service.import_text(orphan, "본문")).block_count == 1
+
+
 async def test_get_content_unknown_raises(service):
     with pytest.raises(BookNotFound):
         await service.get_content(uuid.uuid4())
@@ -88,7 +104,7 @@ async def test_multiple_imports_append_chapters_in_order(service):
 async def test_set_content_replaces_and_owner_only(service):
     author = uuid.uuid4()
     book_id = await service.create_book(title="집필책", author_id=author)
-    await service.import_text(book_id, "옛 내용")  # 교체될 기존 장
+    await service.import_text(book_id, "옛 내용", requester_id=author)  # 교체될 기존 장
 
     chapters = [
         {"title": "1장", "blocks": [{"type": "P", "html": "<p>새 본문</p>"}]},

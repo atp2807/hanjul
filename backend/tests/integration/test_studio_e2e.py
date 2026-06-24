@@ -71,6 +71,19 @@ async def test_isbn_set_and_onix_feed(app_db):
         assert "작가" in onix  # PROFILE display_name
 
 
+async def test_import_blocked_for_non_owner(app_db):
+    """소유자 있는 책에는 작가 본인만 import — 익명/타인은 403 (남의 책에 장 추가 차단)."""
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
+        token, _ = await login_account(c, "google", "x")
+        auth = {"Authorization": f"Bearer {token}"}
+        book = (await c.post("/api/books", json={"title": "내 원고"}, headers=auth)).json()["bookId"]
+
+        # 무인증 import → 403
+        assert (await c.post(f"/api/books/{book}/import", json={"rawText": "탈취"})).status_code == 403
+        # 작가 본인 → 200
+        assert (await c.post(f"/api/books/{book}/import", json={"rawText": "본문"}, headers=auth)).status_code == 200
+
+
 async def test_update_meta_reflected_in_store(app_db):
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
         token, _ = await login_account(c, "google", "x")

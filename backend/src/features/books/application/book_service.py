@@ -21,11 +21,22 @@ class BookService:
         )
 
     async def import_text(
-        self, book_id: UUID, raw_text: str, chapter_title: str | None = None
+        self,
+        book_id: UUID,
+        raw_text: str,
+        chapter_title: str | None = None,
+        requester_id: UUID | None = None,
     ) -> ImportResult:
-        """원고 텍스트를 정본 HTML 블록으로 변환해 새 장으로 저장."""
+        """원고 텍스트를 정본 HTML 블록으로 변환해 새 장으로 저장.
+
+        소유자 있는 책은 작가 본인만 import 가능(남의 책에 장 추가 차단).
+        소유자 없는(익명) 책은 개방 — 로그인 전 작성/데모 흐름용.
+        """
         if not await self.repo.book_exists(book_id):
             raise BookNotFound(book_id)
+        author_id = await self.repo.get_author_id(book_id)
+        if author_id is not None and author_id != requester_id:
+            raise NotOwner(book_id)
         blocks = text_to_blocks(raw_text)
         chapter_id = await self.repo.add_chapter_with_blocks(book_id, chapter_title, blocks)
         return ImportResult(chapter_id=chapter_id, block_count=len(blocks))

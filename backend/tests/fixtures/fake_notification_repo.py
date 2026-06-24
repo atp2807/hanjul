@@ -46,6 +46,28 @@ class FakeNotificationRepository:
             # recipient_id 를 뷰에 보관 (테스트 편의)
             self.rows[-1].recipient_id = r
 
+    async def relight_for_recipients(self, recipient_ids, kind_cd, book_id, title) -> None:
+        from datetime import datetime, timezone
+
+        for r in recipient_ids:
+            cur = next(
+                (n for n in self.rows if getattr(n, "recipient_id", None) == r
+                 and n.book_id == book_id and n.kind_cd == kind_cd),
+                None,
+            )
+            if cur is not None:
+                cur.read_yn = False
+                cur.title = title
+                cur.created_at = datetime.now(timezone.utc)
+            else:
+                self.rows.append(
+                    NotificationView(
+                        id=uuid.uuid4(), kind_cd=kind_cd, book_id=book_id, title=title,
+                        read_yn=False, created_at=datetime.now(timezone.utc),
+                    )
+                )
+                self.rows[-1].recipient_id = r
+
     async def list_for(self, recipient_id: UUID):
         return [n for n in self.rows if getattr(n, "recipient_id", None) == recipient_id]
 

@@ -74,7 +74,7 @@ async def test_author_publishes_reader_buys_and_reads(journey):
 
         # 2) 작가: 책 생성(소유) → 원고 import → 가격 → 심사 → 출판
         book_id = (await c.post("/api/books", json={"title": "한 줄"}, headers=author_auth)).json()["bookId"]
-        imp = (await c.post(f"/api/books/{book_id}/import", json={"rawText": "# 1장\n\n본문입니다."})).json()
+        imp = (await c.post(f"/api/books/{book_id}/import", json={"rawText": "# 1장\n\n본문입니다."}, headers=author_auth)).json()
         assert imp["blockCount"] == 2
         assert (await c.put(f"/api/books/{book_id}/price", json={"amount": 10000}, headers=author_auth)).status_code == 204
         assert (await c.post(f"/api/books/{book_id}/submit", headers=author_auth)).status_code == 204

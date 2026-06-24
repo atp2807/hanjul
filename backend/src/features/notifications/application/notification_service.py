@@ -3,6 +3,7 @@ from uuid import UUID
 
 from src.features.notifications.domain.models import (
     NEW_BOOK,
+    REVISION,
     FollowRepository,
     NotificationRepository,
     NotificationView,
@@ -36,6 +37,13 @@ class NotificationService:
             return 0
         await self.notifs.create_for_recipients(recipients, NEW_BOOK, book_id, title)
         return len(recipients)
+
+    async def notify_revision(self, book_id: UUID, title: str | None, buyer_ids: list[UUID]) -> int:
+        """개정판 재발행 — 구매자에게 알림 재점등(매 개정마다 다시 안읽음). 보낸 수 반환."""
+        if not buyer_ids:
+            return 0
+        await self.notifs.relight_for_recipients(buyer_ids, REVISION, book_id, title)
+        return len(buyer_ids)
 
     # ── 알림함 ────────────────────────────────────────
     async def inbox(self, recipient_id: UUID) -> tuple[list[NotificationView], int]:

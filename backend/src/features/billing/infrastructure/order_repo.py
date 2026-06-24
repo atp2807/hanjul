@@ -73,6 +73,17 @@ class SqlOrderRepository:
         )
         return (await self.session.execute(stmt)).scalar_one_or_none() is not None
 
+    async def buyer_ids(self, book_id) -> list:
+        """이 책을 구매(PAID)한 계정 id 목록 — 개정판 알림 대상."""
+        rows = (
+            await self.session.execute(
+                select(Order.buyer_account_id)
+                .where(Order.book_id == book_id, Order.status_cd == "PAID")
+                .distinct()
+            )
+        ).scalars().all()
+        return list(rows)
+
     async def author_sales(self, author_id) -> SalesSummary:
         stmt = (
             select(

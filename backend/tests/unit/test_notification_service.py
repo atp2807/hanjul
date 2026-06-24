@@ -56,6 +56,31 @@ async def test_mark_read_and_all():
     assert (await svc.inbox(follower))[1] == 0
 
 
+async def test_notify_revision_relights_on_each_revision():
+    svc = _svc()
+    book = uuid.uuid4()
+    b1, b2 = uuid.uuid4(), uuid.uuid4()
+
+    # 1차 개정 → 구매자 2명 알림
+    assert await svc.notify_revision(book, "개정판", [b1, b2]) == 2
+    items, unread = await svc.inbox(b1)
+    assert unread == 1 and items[0].kind_cd == "REVISION"
+
+    # 읽음 처리
+    await svc.mark_read(b1, items[0].id)
+    assert (await svc.inbox(b1))[1] == 0
+
+    # 2차 개정 → 같은 행이 다시 안읽음으로 재점등 (행 1개 유지)
+    await svc.notify_revision(book, "2차 개정판", [b1, b2])
+    items, unread = await svc.inbox(b1)
+    assert len(items) == 1 and unread == 1 and items[0].title == "2차 개정판"
+
+
+async def test_notify_revision_no_buyers_is_noop():
+    svc = _svc()
+    assert await svc.notify_revision(uuid.uuid4(), "개정판", []) == 0
+
+
 async def test_unfollow_stops_future_notifications():
     svc = _svc()
     author, follower = uuid.uuid4(), uuid.uuid4()

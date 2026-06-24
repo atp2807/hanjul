@@ -56,7 +56,7 @@ async def test_preview_for_non_owner_full_for_owner(app_db):
         token, _ = await login_account(c, "google", "x")
         auth = {"Authorization": f"Bearer {token}"}
         book_id = (await c.post("/api/books", json={"title": "유료책"}, headers=auth)).json()["bookId"]
-        await c.post(f"/api/books/{book_id}/import", json={"rawText": "1\n\n2\n\n3\n\n4\n\n5"})
+        await c.post(f"/api/books/{book_id}/import", json={"rawText": "1\n\n2\n\n3\n\n4\n\n5"}, headers=auth)
         await c.put(f"/api/books/{book_id}/price", json={"amount": 5000}, headers=auth)
         await c.post(f"/api/books/{book_id}/submit", headers=auth)
         await c.post(f"/api/books/{book_id}/publish", headers=auth)

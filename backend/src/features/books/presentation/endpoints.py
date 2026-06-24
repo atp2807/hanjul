@@ -47,12 +47,18 @@ async def create_book(
 async def import_text(
     book_id: UUID,
     body: ImportTextRequest,
+    principal: AccountPrincipal | None = Depends(get_current_account_optional),
     service: BookService = Depends(get_book_service),
 ) -> ImportTextResponse:
+    """원고 import — 소유자 있는 책은 작가 본인만(남의 책에 장 추가 차단)."""
     try:
-        result = await service.import_text(book_id, body.raw_text, body.chapter_title)
+        result = await service.import_text(
+            book_id, body.raw_text, body.chapter_title, principal.id if principal else None
+        )
     except BookNotFound:
         raise HTTPException(status_code=404, detail="book not found")
+    except NotOwner:
+        raise HTTPException(status_code=403, detail="not the owner")
     return ImportTextResponse(chapter_id=result.chapter_id, block_count=result.block_count)
 
 

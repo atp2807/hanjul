@@ -1,4 +1,5 @@
 """FollowRepository / NotificationRepository 의 SQLAlchemy 구현."""
+from datetime import datetime, timezone
 from uuid import UUID
 
 from sqlalchemy import select, update
@@ -75,6 +76,39 @@ class SqlNotificationRepository:
                 for r in fresh
             ]
         )
+        try:
+            await self.session.commit()
+        except IntegrityError:
+            await self.session.rollback()  # 유니크 경쟁 → 멱등
+
+    async def relight_for_recipients(
+        self, recipient_ids: list[UUID], kind_cd: str, book_id: UUID | None, title: str | None
+    ) -> None:
+        if not recipient_ids:
+            return
+        existing = {
+            n.recipient_id: n
+            for n in (
+                await self.session.execute(
+                    select(Notification).where(
+                        Notification.book_id == book_id,
+                        Notification.kind_cd == kind_cd,
+                        Notification.recipient_id.in_(recipient_ids),
+                    )
+                )
+            ).scalars().all()
+        }
+        now = datetime.now(timezone.utc)
+        for r in recipient_ids:
+            cur = existing.get(r)
+            if cur is not None:
+                cur.read_yn = False  # 다시 안읽음으로 되살림(개정판 재알림)
+                cur.title = title
+                cur.created_at = now
+            else:
+                self.session.add(
+                    Notification(recipient_id=r, kind_cd=kind_cd, book_id=book_id, title=title)
+                )
         try:
             await self.session.commit()
         except IntegrityError:

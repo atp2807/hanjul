@@ -12,8 +12,11 @@ from src.engine.publishing.onix import OnixProduct, build_onix
 from src.features.auth.domain.models import AccountPrincipal
 from src.features.auth.infrastructure.account_repo import SqlAccountRepository
 from src.features.auth.presentation.dependencies import get_current_account
+from src.features.billing.application.order_service import OrderService
+from src.features.billing.presentation.dependencies import get_order_service
 from src.features.catalog.application.catalog_service import CatalogService
 from src.features.catalog.domain.models import (
+    PUBLISHED,
     BookNotFound,
     InvalidTransition,
     PriceRequired,
@@ -53,6 +56,18 @@ async def _notify_followers_new_book(
         await notif.notify_new_book(book_id, meta.author_id, meta.title)
     except Exception:
         logger.exception("신간 알림 발송 실패 (book=%s) — 출판은 정상", book_id)
+
+
+async def _notify_buyers_revision(
+    svc: CatalogService, notif: NotificationService, orders: OrderService, book_id: UUID
+) -> None:
+    """개정판 재발행 후 구매자에게 알림 (best-effort)."""
+    try:
+        meta = await svc.get_meta(book_id)
+        buyers = await orders.buyer_ids(book_id)
+        await notif.notify_revision(book_id, meta.title, buyers)
+    except Exception:
+        logger.exception("개정판 알림 발송 실패 (book=%s) — 출판은 정상", book_id)
 
 
 async def require_book_owner(
@@ -160,16 +175,21 @@ async def publish_now(
     book_id: UUID,
     svc: CatalogService = Depends(get_catalog_service),
     notif: NotificationService = Depends(get_notification_service),
+    orders: OrderService = Depends(get_order_service),
     _owner: None = Depends(require_book_owner),
 ) -> None:
-    """즉시 출간 (심사 생략)."""
+    """즉시 출간 (심사 생략). 이미 출판된 책 재발행 = 개정판 → 구매자 알림."""
+    was_published = (await svc.get_meta(book_id)).status == PUBLISHED
     try:
         await svc.auto_publish(book_id)
     except BookNotFound:
         raise HTTPException(404, "book not found")
     except PriceRequired as e:
         raise HTTPException(422, str(e))
-    await _notify_followers_new_book(svc, notif, book_id)
+    if was_published:
+        await _notify_buyers_revision(svc, notif, orders, book_id)
+    else:
+        await _notify_followers_new_book(svc, notif, book_id)
 
 
 @router.post("/books/{book_id}/schedule", status_code=204)
