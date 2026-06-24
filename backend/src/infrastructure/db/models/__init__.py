@@ -2,9 +2,11 @@
 from src.infrastructure.db.models.account import Account, Credential
 from src.infrastructure.db.models.book import Block, Book, Chapter
 from src.infrastructure.db.models.distribution import Distribution
+from src.infrastructure.db.models.notification import Follow, Notification
 from src.infrastructure.db.models.order import Order, Settlement
 from src.infrastructure.db.models.review import Review
 
 __all__ = [
     "Book", "Chapter", "Block", "Account", "Credential", "Order", "Settlement", "Distribution", "Review",
+    "Follow", "Notification",
 ]

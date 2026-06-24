@@ -6,6 +6,11 @@ import * as authCtx from '../auth/AuthContext';
 import { Header } from './Header';
 
 vi.mock('../auth/AuthContext');
+vi.mock('../services/api/notifications', () => ({
+  getNotifications: vi.fn().mockResolvedValue({ items: [], unreadCount: 0 }),
+  markRead: vi.fn(),
+  markAllRead: vi.fn(),
+}));
 
 function renderHeader() {
   return render(

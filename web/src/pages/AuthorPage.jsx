@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
+import { useAuth } from '../auth/AuthContext';
 import { getAuthor } from '../services/api/authors';
+import { followAuthor, getFollowStatus, unfollowAuthor } from '../services/api/notifications';
 
 export function AuthorPage() {
   const { id } = useParams();
+  const { user } = useAuth();
   const [author, setAuthor] = useState(null);
   const [error, setError] = useState(null);
 
@@ -15,9 +18,15 @@ export function AuthorPage() {
   if (error) return <Center>{error}</Center>;
   if (!author) return <Center>불러오는 중…</Center>;
 
+  // 로그인했고 본인 페이지가 아닐 때만 팔로우 가능
+  const canFollow = user && user.id !== author.id;
+
   return (
     <div style={{ maxWidth: 980, margin: '0 auto', padding: '28px 24px' }}>
-      <h1 data-testid="author-name" style={{ margin: '0 0 6px', fontWeight: 700 }}>{author.displayName || '작가'}</h1>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <h1 data-testid="author-name" style={{ margin: '0 0 6px', fontWeight: 700 }}>{author.displayName || '작가'}</h1>
+        {canFollow && <FollowButton authorId={author.id} />}
+      </div>
       {author.bio && <p data-testid="author-bio" style={{ color: '#555', whiteSpace: 'pre-wrap', lineHeight: 1.6, marginTop: 0 }}>{author.bio}</p>}
 
       <h2 style={{ fontSize: 16, marginTop: 28 }}>출판작 {author.books.length}</h2>
@@ -36,6 +45,51 @@ export function AuthorPage() {
         ))}
       </div>
     </div>
+  );
+}
+
+function FollowButton({ authorId }) {
+  const [following, setFollowing] = useState(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    getFollowStatus(authorId).then((s) => setFollowing(s.following)).catch(() => setFollowing(false));
+  }, [authorId]);
+
+  async function toggle() {
+    if (busy || following === null) return;
+    setBusy(true);
+    const next = !following;
+    try {
+      if (next) await followAuthor(authorId);
+      else await unfollowAuthor(authorId);
+      setFollowing(next);
+    } catch {
+      // 실패 시 상태 유지
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (following === null) return null;
+  return (
+    <button
+      data-testid="follow-btn"
+      onClick={toggle}
+      disabled={busy}
+      style={{
+        padding: '6px 16px',
+        borderRadius: 999,
+        border: following ? '1px solid #ddd' : '1px solid #111',
+        background: following ? '#fff' : '#111',
+        color: following ? '#555' : '#fff',
+        fontWeight: 600,
+        fontSize: 13,
+        cursor: 'pointer',
+      }}
+    >
+      {following ? '팔로잉' : '팔로우'}
+    </button>
   );
 }
 

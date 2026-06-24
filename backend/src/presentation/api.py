@@ -9,6 +9,7 @@ from src.features.billing.presentation.library import router as library_router
 from src.features.catalog.presentation.endpoints import router as catalog_router
 from src.features.cover.presentation.endpoints import router as cover_router
 from src.features.distribution.presentation.endpoints import router as distribution_router
+from src.features.notifications.presentation.endpoints import router as notifications_router
 from src.features.reviews.presentation.endpoints import router as reviews_router
 
 router = APIRouter(prefix="/api")
@@ -28,3 +29,4 @@ router.include_router(library_router)
 router.include_router(cover_router)
 router.include_router(distribution_router)
 router.include_router(reviews_router)
+router.include_router(notifications_router)

@@ -59,5 +59,6 @@ export const apiClient = {
   get: (path) => request(path),
   post: (path, body) => request(path, { method: 'POST', body: body ? JSON.stringify(body) : undefined }),
   put: (path, body) => request(path, { method: 'PUT', body: body ? JSON.stringify(body) : undefined }),
+  del: (path) => request(path, { method: 'DELETE' }),
   download,
 };

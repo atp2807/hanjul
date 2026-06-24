@@ -1,0 +1,59 @@
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+import * as notifApi from '../services/api/notifications';
+import { NotificationBell } from './NotificationBell';
+
+vi.mock('../services/api/notifications');
+
+const navigate = vi.fn();
+vi.mock('react-router-dom', async (orig) => ({
+  ...(await orig()),
+  useNavigate: () => navigate,
+}));
+
+function renderBell() {
+  return render(
+    <MemoryRouter>
+      <NotificationBell />
+    </MemoryRouter>,
+  );
+}
+
+describe('NotificationBell', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('안읽음이 있으면 배지 수를 보여준다', async () => {
+    notifApi.getNotifications.mockResolvedValue({
+      items: [{ id: 'n1', kindCd: 'NEW_BOOK', bookId: 'b1', title: '신간', readYn: false }],
+      unreadCount: 1,
+    });
+    renderBell();
+    expect(await screen.findByTestId('notif-badge')).toHaveTextContent('1');
+  });
+
+  it('항목 클릭 → 읽음 처리 + 책으로 이동', async () => {
+    notifApi.getNotifications.mockResolvedValue({
+      items: [{ id: 'n1', kindCd: 'NEW_BOOK', bookId: 'b1', title: '신간', readYn: false }],
+      unreadCount: 1,
+    });
+    notifApi.markRead.mockResolvedValue(null);
+    renderBell();
+
+    fireEvent.click(await screen.findByTestId('notif-bell'));
+    fireEvent.click(await screen.findByTestId('notif-item'));
+
+    await waitFor(() => expect(notifApi.markRead).toHaveBeenCalledWith('n1'));
+    expect(navigate).toHaveBeenCalledWith('/books/b1');
+  });
+
+  it('알림이 없으면 배지가 없다', async () => {
+    notifApi.getNotifications.mockResolvedValue({ items: [], unreadCount: 0 });
+    renderBell();
+    await screen.findByTestId('notif-bell');
+    expect(screen.queryByTestId('notif-badge')).not.toBeInTheDocument();
+  });
+});

@@ -1,6 +1,5 @@
 """catalog API — 출판 라이프사이클(/books) + 스토어(/store)."""
-from uuid import UUID
-
+import logging
 from datetime import datetime, timezone
 from uuid import UUID
 
@@ -20,6 +19,8 @@ from src.features.catalog.domain.models import (
     PriceRequired,
 )
 from src.features.catalog.presentation.dependencies import get_catalog_service
+from src.features.notifications.application.notification_service import NotificationService
+from src.features.notifications.presentation.dependencies import get_notification_service
 from src.features.catalog.presentation.schemas import (
     AssignAuthorRequest,
     AuthorProfileResponse,
@@ -33,10 +34,25 @@ from src.features.catalog.presentation.schemas import (
 )
 
 router = APIRouter(tags=["catalog"])
+logger = logging.getLogger("app")
 
 
 def _summary_response(s) -> BookSummaryResponse:
     return BookSummaryResponse.model_validate(s)
+
+
+async def _notify_followers_new_book(
+    svc: CatalogService, notif: NotificationService, book_id: UUID
+) -> None:
+    """출판 성공 후 작가 팔로워에게 신간 알림 (멱등 — 재발행해도 1회).
+
+    best-effort — 출판은 이미 커밋됐으므로 알림 실패가 응답을 500으로 만들면 안 됨.
+    """
+    try:
+        meta = await svc.get_meta(book_id)
+        await notif.notify_new_book(book_id, meta.author_id, meta.title)
+    except Exception:
+        logger.exception("신간 알림 발송 실패 (book=%s) — 출판은 정상", book_id)
 
 
 async def require_book_owner(
@@ -113,7 +129,12 @@ async def submit_for_review(
 
 
 @router.post("/books/{book_id}/publish", status_code=204)
-async def publish(book_id: UUID, svc: CatalogService = Depends(get_catalog_service), _owner: None = Depends(require_book_owner)) -> None:
+async def publish(
+    book_id: UUID,
+    svc: CatalogService = Depends(get_catalog_service),
+    notif: NotificationService = Depends(get_notification_service),
+    _owner: None = Depends(require_book_owner),
+) -> None:
     try:
         await svc.publish(book_id)
     except BookNotFound:
@@ -122,6 +143,7 @@ async def publish(book_id: UUID, svc: CatalogService = Depends(get_catalog_servi
         raise HTTPException(409, str(e))
     except PriceRequired as e:
         raise HTTPException(422, str(e))
+    await _notify_followers_new_book(svc, notif, book_id)
 
 
 @router.post("/books/{book_id}/unpublish", status_code=204)
@@ -134,7 +156,12 @@ async def unpublish(book_id: UUID, svc: CatalogService = Depends(get_catalog_ser
 
 
 @router.post("/books/{book_id}/publish-now", status_code=204)
-async def publish_now(book_id: UUID, svc: CatalogService = Depends(get_catalog_service), _owner: None = Depends(require_book_owner)) -> None:
+async def publish_now(
+    book_id: UUID,
+    svc: CatalogService = Depends(get_catalog_service),
+    notif: NotificationService = Depends(get_notification_service),
+    _owner: None = Depends(require_book_owner),
+) -> None:
     """즉시 출간 (심사 생략)."""
     try:
         await svc.auto_publish(book_id)
@@ -142,6 +169,7 @@ async def publish_now(book_id: UUID, svc: CatalogService = Depends(get_catalog_s
         raise HTTPException(404, "book not found")
     except PriceRequired as e:
         raise HTTPException(422, str(e))
+    await _notify_followers_new_book(svc, notif, book_id)
 
 
 @router.post("/books/{book_id}/schedule", status_code=204)

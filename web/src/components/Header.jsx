@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 
 import { useAuth } from '../auth/AuthContext';
 import { getLoginUrl } from '../services/api/auth';
+import { NotificationBell } from './NotificationBell';
 
 export function Header() {
   const { user, logout } = useAuth();
@@ -39,6 +40,7 @@ export function Header() {
             <Link to="/library" style={{ fontSize: 14, color: '#333', textDecoration: 'none' }}>
               내 서재
             </Link>
+            <NotificationBell />
             <span style={{ fontSize: 14, color: '#555' }}>{user.displayName || user.email}</span>
             <button onClick={logout} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #ddd' }}>
               로그아웃
