@@ -13,6 +13,7 @@ import { blocksToCanonical } from '../writer/core/serialize';
 import { charCount } from '../writer/core/wordcount';
 import { neutralToPmDoc, pmToNeutral } from '../writer/editor/pm_doc';
 import { WriterEditor } from '../writer/editor/WriterEditor';
+import { OnboardingTips } from '../writer/OnboardingTips';
 import { listSnapshots, observeSnapshots, takeSnapshot } from '../writer/snapshots';
 
 export function WritePage() {
@@ -291,6 +292,7 @@ export function WritePage() {
           )}
           {!focus && (
           <>
+          <OnboardingTips />
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
             <button
               onClick={publish}
