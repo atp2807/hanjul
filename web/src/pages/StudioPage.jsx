@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../auth/AuthContext';
+import { updateProfile } from '../services/api/authors';
 import { createBook, getMyBooks, getSales } from '../services/api/studio';
 
 export const STATUS_LABEL = { DRAFT: '초안', REVIEW: '심사중', PUBLISHED: '출판됨' };
@@ -13,6 +14,19 @@ export function StudioPage() {
   const [sales, setSales] = useState(null);
   const [title, setTitle] = useState('');
   const [fetching, setFetching] = useState(true);
+  const [bio, setBio] = useState('');
+  const [bioMsg, setBioMsg] = useState(null);
+
+  useEffect(() => { setBio(user?.bio || ''); }, [user]);
+
+  async function saveBio() {
+    try {
+      await updateProfile(bio);
+      setBioMsg('작가 소개를 저장했어요.');
+    } catch (e) {
+      setBioMsg(`저장 실패: ${e.message}`);
+    }
+  }
 
   useEffect(() => {
     if (loading) return;
@@ -49,6 +63,20 @@ export function StudioPage() {
           <Stat label="내 수익(정산)" value={`${sales.totalPayout.toLocaleString()}원`} highlight />
         </div>
       )}
+
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ fontSize: 13, color: '#666', marginBottom: 6 }}>작가 소개 (프로필에 노출)</div>
+        <textarea
+          data-testid="bio-input"
+          value={bio}
+          onChange={(e) => setBio(e.target.value)}
+          rows={3}
+          placeholder="독자에게 보일 작가 소개를 적어주세요"
+          style={{ width: '100%', maxWidth: 520, boxSizing: 'border-box', padding: 10, border: '1px solid #ddd', borderRadius: 8, fontFamily: 'inherit', display: 'block' }}
+        />
+        <button onClick={saveBio} style={{ marginTop: 8, padding: '8px 16px', borderRadius: 8, border: '1px solid #ddd', background: '#fff', fontWeight: 600, cursor: 'pointer' }}>소개 저장</button>
+        {bioMsg && <span style={{ marginLeft: 10, fontSize: 13, color: 'green' }}>{bioMsg}</span>}
+      </div>
 
       <form onSubmit={handleCreate} style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
         <input

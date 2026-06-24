@@ -6,7 +6,7 @@ provider_cd 로 나라별 소셜(GOOGLE/NAVER/KAKAO/LINE/APPLE…)을 스키마 
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, String, DateTime, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, String, Text, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -24,6 +24,7 @@ class Account(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String(320), unique=True)  # 소셜이 이메일 미제공 가능 → nullable
     display_name = Column(String(200))
+    bio = Column(Text)  # 작가 소개(프로필)
     role_cd = Column(String(20), nullable=False, default="READER")   # READER | AUTHOR | ADMIN
     status_cd = Column(String(20), nullable=False, default="ACTIVE")  # ACTIVE | SUSPENDED
     created_at = Column("created_ts", DateTime(timezone=True), default=_now, nullable=False)

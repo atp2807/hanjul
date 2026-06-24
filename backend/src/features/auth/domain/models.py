@@ -18,6 +18,7 @@ class AuthAccount:
     email: str | None
     display_name: str | None
     role_cd: str
+    bio: str | None = None
 
 
 @dataclass(frozen=True)

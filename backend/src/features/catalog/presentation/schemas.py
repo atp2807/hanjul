@@ -51,3 +51,10 @@ class BookSummaryResponse(_Camel):
 class StoreListResponse(_Camel):
     items: list[BookSummaryResponse]
     count: int
+
+
+class AuthorProfileResponse(_Camel):
+    id: UUID
+    display_name: str | None
+    bio: str | None
+    books: list[BookSummaryResponse]

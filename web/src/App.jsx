@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router-dom';
 
 import { Header } from './components/Header';
 import { AuthCallbackPage } from './pages/AuthCallbackPage';
+import { AuthorPage } from './pages/AuthorPage';
 import { BookDetailPage } from './pages/BookDetailPage';
 import { LibraryPage } from './pages/LibraryPage';
 import { ReaderPage } from './pages/ReaderPage';
@@ -20,6 +21,7 @@ export default function App() {
         <Routes>
         <Route path="/" element={<StorePage />} />
         <Route path="/books/:id" element={<BookDetailPage />} />
+        <Route path="/authors/:id" element={<AuthorPage />} />
         <Route path="/read/:id" element={<ReaderPage />} />
         <Route path="/library" element={<LibraryPage />} />
         <Route path="/studio" element={<StudioPage />} />

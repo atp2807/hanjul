@@ -7,7 +7,9 @@ from src.infrastructure.db.models.account import Account, Credential
 
 
 def _to_auth_account(acc: Account) -> AuthAccount:
-    return AuthAccount(id=acc.id, email=acc.email, display_name=acc.display_name, role_cd=acc.role_cd)
+    return AuthAccount(
+        id=acc.id, email=acc.email, display_name=acc.display_name, role_cd=acc.role_cd, bio=acc.bio
+    )
 
 
 class SqlAccountRepository:
@@ -29,6 +31,12 @@ class SqlAccountRepository:
     async def get_account(self, account_id) -> AuthAccount | None:
         acc = await self.session.get(Account, account_id)
         return _to_auth_account(acc) if acc else None
+
+    async def update_bio(self, account_id, bio: str | None) -> None:
+        acc = await self.session.get(Account, account_id)
+        if acc is not None:
+            acc.bio = (bio or "").strip() or None
+            await self.session.commit()
 
     async def create_with_credential(self, profile: SocialProfile) -> AuthAccount:
         account = Account(

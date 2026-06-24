@@ -22,6 +22,7 @@ from src.features.catalog.domain.models import (
 from src.features.catalog.presentation.dependencies import get_catalog_service
 from src.features.catalog.presentation.schemas import (
     AssignAuthorRequest,
+    AuthorProfileResponse,
     BookSummaryResponse,
     SchedulePublishRequest,
     SetIsbnRequest,
@@ -175,6 +176,25 @@ async def my_books(
 ) -> StoreListResponse:
     items = await svc.list_my_books(principal.id)
     return StoreListResponse(items=[_summary_response(s) for s in items], count=len(items))
+
+
+# ── 작가 공개 프로필 ──────────────────────────────────
+@router.get("/authors/{author_id}", response_model=AuthorProfileResponse)
+async def author_profile(
+    author_id: UUID,
+    svc: CatalogService = Depends(get_catalog_service),
+    session: AsyncSession = Depends(get_session),
+) -> AuthorProfileResponse:
+    acc = await SqlAccountRepository(session).get_account(author_id)
+    if acc is None:
+        raise HTTPException(404, "author not found")
+    books = await svc.list_published_by_author(author_id)
+    return AuthorProfileResponse(
+        id=acc.id,
+        display_name=acc.display_name,
+        bio=acc.bio,
+        books=[_summary_response(b) for b in books],
+    )
 
 
 # ── 스토어 (공개) ─────────────────────────────────────

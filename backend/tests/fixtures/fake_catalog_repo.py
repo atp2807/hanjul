@@ -40,6 +40,9 @@ class FakeCatalogRepository:
     async def list_by_author(self, author_id):
         return [b for b in self.books.values() if b.author_id == author_id]
 
+    async def list_published_by_author(self, author_id) -> list[BookSummary]:
+        return [b for b in self.books.values() if b.author_id == author_id and b.status == PUBLISHED]
+
     async def list_published(self, q, limit, offset, kind=None) -> list[BookSummary]:
         rows = [b for b in self.books.values() if b.status == PUBLISHED]
         if q:

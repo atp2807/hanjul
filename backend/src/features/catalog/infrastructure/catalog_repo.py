@@ -111,3 +111,13 @@ class SqlCatalogRepository:
         )
         rows = (await self.session.execute(stmt)).scalars().all()
         return [_to_summary(b) for b in rows]
+
+    async def list_published_by_author(self, author_id) -> list[BookSummary]:
+        """작가의 출판본만 (공개 프로필용, 최신순)."""
+        stmt = (
+            select(Book)
+            .where(Book.author_id == author_id, Book.status == PUBLISHED)
+            .order_by(Book.published_at.desc())
+        )
+        rows = (await self.session.execute(stmt)).scalars().all()
+        return [_to_summary(b) for b in rows]

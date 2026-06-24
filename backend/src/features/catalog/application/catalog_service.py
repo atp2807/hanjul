@@ -102,6 +102,9 @@ class CatalogService:
     async def get_meta(self, book_id: UUID) -> BookSummary:
         return await self._require(book_id)
 
+    async def list_published_by_author(self, author_id: UUID) -> list[BookSummary]:
+        return await self.repo.list_published_by_author(author_id)
+
     async def list_my_books(self, author_id: UUID) -> list[BookSummary]:
         return await self.repo.list_by_author(author_id)
 
