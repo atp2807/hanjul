@@ -46,6 +46,13 @@ class BookSummaryResponse(_Camel):
     isbn: str | None = None
     description: str | None = None
     category: str | None = None
+    discount_amt: int | None = None
+    discount_until: datetime | None = None
+
+
+class SetDiscountRequest(_Camel):
+    amount: int          # 할인가(원)
+    until: datetime      # 할인 종료시각
 
 
 class StoreListResponse(_Camel):

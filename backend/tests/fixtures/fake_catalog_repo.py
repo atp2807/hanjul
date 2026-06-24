@@ -30,6 +30,10 @@ class FakeCatalogRepository:
     async def set_isbn(self, book_id: UUID, isbn: str) -> None:
         self.books[book_id].isbn = isbn
 
+    async def set_discount(self, book_id: UUID, amount, until) -> None:
+        self.books[book_id].discount_amt = amount
+        self.books[book_id].discount_until = until
+
     async def set_scheduled(self, book_id, when) -> None:
         self.scheduled = getattr(self, "scheduled", {})
         self.scheduled[book_id] = when

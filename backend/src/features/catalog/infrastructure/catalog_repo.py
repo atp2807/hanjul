@@ -24,6 +24,8 @@ def _to_summary(b: Book) -> BookSummary:
         isbn=b.isbn,
         description=b.description,
         category=b.category,
+        discount_amt=int(b.discount_amt) if b.discount_amt is not None else None,
+        discount_until=b.discount_until,
     )
 
 
@@ -55,6 +57,12 @@ class SqlCatalogRepository:
     async def set_isbn(self, book_id: UUID, isbn: str) -> None:
         b = await self.session.get(Book, book_id)
         b.isbn = isbn
+        await self.session.commit()
+
+    async def set_discount(self, book_id: UUID, amount, until) -> None:
+        b = await self.session.get(Book, book_id)
+        b.discount_amt = amount
+        b.discount_until = until
         await self.session.commit()
 
     async def update_meta(

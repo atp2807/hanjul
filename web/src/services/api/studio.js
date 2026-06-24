@@ -16,6 +16,10 @@ export function importText(bookId, rawText, chapterTitle) {
 export function setBookPrice(bookId, amount) {
   return apiClient.put(`/books/${bookId}/price`, { amount });
 }
+// 기간 할인 — until: ISO 시각
+export function setDiscount(bookId, amount, until) {
+  return apiClient.put(`/books/${bookId}/discount`, { amount, until });
+}
 export function submitBook(bookId) {
   return apiClient.post(`/books/${bookId}/submit`);
 }

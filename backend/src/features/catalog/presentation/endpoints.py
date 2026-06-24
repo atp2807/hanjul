@@ -25,6 +25,7 @@ from src.features.catalog.presentation.schemas import (
     AuthorProfileResponse,
     BookSummaryResponse,
     SchedulePublishRequest,
+    SetDiscountRequest,
     SetIsbnRequest,
     SetPriceRequest,
     StoreListResponse,
@@ -70,6 +71,19 @@ async def update_meta(
         await svc.update_meta(book_id, body.subtitle, body.description, body.category)
     except BookNotFound:
         raise HTTPException(404, "book not found")
+
+
+@router.put("/books/{book_id}/discount", status_code=204)
+async def set_discount(
+    book_id: UUID, body: SetDiscountRequest, svc: CatalogService = Depends(get_catalog_service)
+) -> None:
+    """기간 할인 설정 (종료시각까지 할인가 적용)."""
+    try:
+        await svc.set_discount(book_id, body.amount, body.until)
+    except BookNotFound:
+        raise HTTPException(404, "book not found")
+    except ValueError as e:
+        raise HTTPException(422, str(e))
 
 
 @router.post("/books/{book_id}/submit", status_code=204)

@@ -43,6 +43,9 @@ class Book(Base):
     preview_limit = Column("preview_block_cnt", Integer, nullable=False, default=3)
     # 판매가 (원 단위 정수). 출판 전엔 NULL 가능.
     price_amt = Column(Numeric(15, 0))
+    # 기간 할인가 + 종료시각. discount_until 이 미래면 할인가가 유효가.
+    discount_amt = Column(Numeric(15, 0))
+    discount_until = Column("discount_until_ts", DateTime(timezone=True))
     # 출판(게시) 시각. NULL = 미출판.
     published_at = Column("published_ts", DateTime(timezone=True))
     # 예약발행 시각. 스케줄러가 이 시각 지나면 자동 게시. NULL = 예약 없음.

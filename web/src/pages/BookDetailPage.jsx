@@ -85,9 +85,21 @@ export function BookDetailPage() {
         {book.description && (
           <p style={{ color: '#444', marginTop: 14, whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>{book.description}</p>
         )}
-        <p style={{ fontSize: 20, fontWeight: 700, margin: '16px 0' }}>
-          {book.priceAmt != null ? `${book.priceAmt.toLocaleString()}원` : '무료'}
-        </p>
+        {(() => {
+          const onSale = book.discountAmt != null && book.discountUntil && new Date(book.discountUntil).getTime() > Date.now();
+          const eff = onSale ? book.discountAmt : book.priceAmt;
+          return (
+            <p data-testid="price" style={{ fontSize: 20, fontWeight: 700, margin: '16px 0' }}>
+              {eff != null ? `${eff.toLocaleString()}원` : '무료'}
+              {onSale && (
+                <span style={{ textDecoration: 'line-through', color: '#aaa', fontSize: 14, marginLeft: 8, fontWeight: 400 }}>
+                  {book.priceAmt.toLocaleString()}원
+                </span>
+              )}
+              {onSale && <span style={{ color: '#dc2626', fontSize: 13, marginLeft: 8 }}>기간 할인</span>}
+            </p>
+          );
+        })()}
         <div style={{ display: 'flex', gap: 10 }}>
           <Link
             to={`/read/${book.id}`}

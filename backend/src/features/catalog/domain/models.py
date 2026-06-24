@@ -24,6 +24,8 @@ class BookSummary:
     isbn: str | None = None
     description: str | None = None
     category: str | None = None
+    discount_amt: int | None = None
+    discount_until: datetime | None = None
 
 
 class CatalogError(Exception):

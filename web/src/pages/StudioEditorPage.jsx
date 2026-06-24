@@ -14,6 +14,7 @@ import {
   publishNow,
   schedulePublish,
   setBookPrice,
+  setDiscount,
   setIsbn,
   submitBook,
   updateMeta,
@@ -34,6 +35,8 @@ export function StudioEditorPage() {
   const [book, setBook] = useState(null);
   const [text, setText] = useState('');
   const [price, setPrice] = useState('');
+  const [discAmt, setDiscAmt] = useState('');
+  const [discUntil, setDiscUntil] = useState('');
   const [isbn, setIsbnValue] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [description, setDescription] = useState('');
@@ -221,6 +224,18 @@ export function StudioEditorPage() {
         <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} style={inp} /> 원
         <button onClick={run(() => setBookPrice(id, parseInt(price || '0', 10)), '가격이 저장됐어요.')} style={btn}>가격 저장</button>
         <span style={{ color: '#aaa', fontSize: 13, marginLeft: 8 }}>0이면 무료</span>
+      </Section>
+
+      <Section title="기간 할인">
+        <input type="number" value={discAmt} onChange={(e) => setDiscAmt(e.target.value)} placeholder="할인가" style={inp} /> 원
+        <input type="datetime-local" value={discUntil} onChange={(e) => setDiscUntil(e.target.value)} style={{ ...inp, marginLeft: 8 }} /> 까지
+        <button
+          onClick={run(() => setDiscount(id, parseInt(discAmt || '0', 10), new Date(discUntil).toISOString()), '할인이 설정됐어요.')}
+          style={btn}
+        >
+          할인 저장
+        </button>
+        <span style={{ color: '#aaa', fontSize: 13, marginLeft: 8 }}>종료시각까지 할인가로 판매</span>
       </Section>
 
       <Section title="ISBN">

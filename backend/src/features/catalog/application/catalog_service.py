@@ -99,6 +99,13 @@ class CatalogService:
             raise ValueError("ISBN은 10 또는 13자리 숫자여야 합니다")
         await self.repo.set_isbn(book_id, isbn)
 
+    async def set_discount(self, book_id: UUID, amount: int, until) -> None:
+        """기간 할인가 설정. 음수 금지. (할인 적용은 주문 시 서버가 도출)"""
+        await self._require(book_id)
+        if amount < 0:
+            raise ValueError("할인가는 0 이상")
+        await self.repo.set_discount(book_id, amount, until)
+
     async def get_meta(self, book_id: UUID) -> BookSummary:
         return await self._require(book_id)
 
