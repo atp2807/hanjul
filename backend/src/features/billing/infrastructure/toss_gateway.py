@@ -33,3 +33,15 @@ class TossPaymentGateway:
             return False
         # 토스는 confirm 200이면 승인 완료. 금액·상태 한 번 더 방어적 확인.
         return result.get("status") == "DONE" and int(result.get("totalAmount", 0)) == expected_amount
+
+    async def refund(self, pg_tx_id: str, reason: str, order_ref: str | None = None) -> bool:
+        try:
+            result = await self._client.cancel_payment(
+                payment_key=pg_tx_id,
+                cancel_reason=reason or "구매자 환불",
+                idempotency_key=f"refund-{order_ref}" if order_ref else None,
+            )
+        except PaymentError as e:
+            logger.warning("토스 취소 거절 order=%s code=%s msg=%s", order_ref, e.code, e.message)
+            return False
+        return result.get("status") in ("CANCELED", "CANCELLED", "PARTIAL_CANCELED")

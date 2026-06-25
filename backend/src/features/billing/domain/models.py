@@ -5,6 +5,7 @@ from uuid import UUID
 PENDING = "PENDING"
 PAID = "PAID"
 CANCELLED = "CANCELLED"
+REFUNDED = "REFUNDED"
 
 
 @dataclass
@@ -15,6 +16,7 @@ class OrderView:
     amount_amt: int
     channel_cd: str
     status_cd: str
+    pg_tx_id: str | None = None
 
 
 @dataclass
@@ -28,12 +30,13 @@ class SettlementView:
 
 @dataclass
 class PurchasedBook:
-    """내 서재 항목 — 구매한 책의 요약."""
+    """내 서재 항목 — 구매한 책의 요약 + 그 구매의 주문 id(환불용)."""
     book_id: UUID
     title: str
     kind: str
     price_amt: int | None
     cover_url: str | None
+    order_id: UUID
 
 
 @dataclass
@@ -82,3 +85,15 @@ class AlreadyOwned(BillingError):
     """이미 구매한 책 (중복 구매 방지)."""
     def __init__(self):
         super().__init__("already owned")
+
+
+class NotRefundable(BillingError):
+    """환불 불가 (미결제이거나 이미 환불됨)."""
+    def __init__(self):
+        super().__init__("order not refundable")
+
+
+class RefundFailed(BillingError):
+    """PG 환불 거절."""
+    def __init__(self):
+        super().__init__("refund failed at gateway")

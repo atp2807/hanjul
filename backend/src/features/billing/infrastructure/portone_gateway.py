@@ -22,3 +22,7 @@ class PortonePaymentGateway:
             res.raise_for_status()
             data = res.json()
         return data.get("status") == "PAID" and int(data["amount"]["total"]) == expected_amount
+
+    async def refund(self, pg_tx_id: str, reason: str, order_ref: str | None = None) -> bool:
+        # 포트원 취소 미구현 — 현재 운영 PG는 토스. 필요 시 /payments/{id}/cancel 연동.
+        raise NotImplementedError("PortOne refund 미구현")

@@ -11,8 +11,10 @@ from src.features.billing.domain.models import (
     AlreadyOwned,
     AlreadyPaid,
     NotPurchasable,
+    NotRefundable,
     OrderNotFound,
     PaymentFailed,
+    RefundFailed,
 )
 from src.features.billing.presentation.dependencies import get_order_service
 from src.features.billing.presentation.schemas import (
@@ -65,6 +67,23 @@ async def confirm_payment(
     except PaymentFailed:
         raise HTTPException(402, "payment verification failed")
     return SettlementResponse.model_validate(settlement)
+
+
+@router.post("/{order_id}/refund", status_code=204)
+async def refund_order(
+    order_id: UUID,
+    principal: AccountPrincipal = Depends(get_current_account),
+    svc: OrderService = Depends(get_order_service),
+) -> None:
+    """구매자 본인 환불 — PG 취소 + 서재 권한 회수. 미결제/이미환불 409, PG 거절 402."""
+    try:
+        await svc.refund(order_id, buyer_id=principal.id)
+    except OrderNotFound:
+        raise HTTPException(404, "order not found")
+    except NotRefundable:
+        raise HTTPException(409, "order not refundable")
+    except RefundFailed:
+        raise HTTPException(402, "refund failed")
 
 
 @router.get("/{order_id}", response_model=OrderResponse)

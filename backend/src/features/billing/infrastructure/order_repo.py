@@ -39,6 +39,7 @@ class SqlOrderRepository:
             amount_amt=int(o.amount_amt),
             channel_cd=o.channel_cd,
             status_cd=o.status_cd,
+            pg_tx_id=o.pg_tx_id,
         )
 
     async def mark_paid_with_settlement(
@@ -72,6 +73,24 @@ class SqlOrderRepository:
             )
         )
         await self.session.commit()
+
+    async def mark_refunded(self, order_id: UUID) -> bool:
+        """PAID → REFUNDED (행 잠금 + 상태 재확인, 멱등). 성공 시 True."""
+        o = (
+            await self.session.execute(
+                select(Order)
+                .where(Order.id == order_id)
+                .with_for_update()
+                .execution_options(populate_existing=True)
+            )
+        ).scalar_one_or_none()
+        if o is None or o.status_cd != "PAID":
+            await self.session.rollback()
+            return False
+        o.status_cd = "REFUNDED"
+        o.refunded_at = datetime.now(timezone.utc)
+        await self.session.commit()
+        return True
 
     async def owns(self, account_id, book_id) -> bool:
         stmt = (
@@ -108,7 +127,7 @@ class SqlOrderRepository:
             .select_from(Settlement)
             .join(Order, Order.id == Settlement.order_id)
             .join(Book, Book.id == Order.book_id)
-            .where(Book.author_id == author_id)
+            .where(Book.author_id == author_id, Order.status_cd == "PAID")  # 환불·취소 제외
             .group_by(Book.id, Book.title)
         )
         rows = (await self.session.execute(stmt)).all()
@@ -124,13 +143,13 @@ class SqlOrderRepository:
         )
 
     async def list_purchased_books(self, account_id) -> list[PurchasedBook]:
+        # 구매당 PAID 주문 1건(AlreadyOwned로 중복 차단) → 책 + 그 주문 id(환불용)
         stmt = (
-            select(Book)
+            select(Book, Order.id)
             .join(Order, Order.book_id == Book.id)
             .where(Order.buyer_account_id == account_id, Order.status_cd == "PAID")
-            .distinct()
         )
-        rows = (await self.session.execute(stmt)).scalars().all()
+        rows = (await self.session.execute(stmt)).all()
         return [
             PurchasedBook(
                 book_id=b.id,
@@ -138,6 +157,7 @@ class SqlOrderRepository:
                 kind=b.kind,
                 price_amt=int(b.price_amt) if b.price_amt is not None else None,
                 cover_url=b.cover_url,
+                order_id=order_id,
             )
-            for b in rows
+            for b, order_id in rows
         ]

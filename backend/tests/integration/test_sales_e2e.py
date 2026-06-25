@@ -87,6 +87,36 @@ async def test_buyer_has_no_author_sales(app_db):
         assert sales["totalRevenue"] == 0 and sales["books"] == []
 
 
+async def test_refund_revokes_access_and_sales(app_db):
+    """환불 → 서재 권한 회수 + 작가 매출에서 제외 + 재환불 409."""
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
+        author_token, _ = await login_account(c, "google", "a")
+        a_auth = {"Authorization": f"Bearer {author_token}"}
+        book = (await c.post("/api/books", json={"title": "환불책"}, headers=a_auth)).json()["bookId"]
+        await c.post(f"/api/books/{book}/import", json={"rawText": "1\n\n2\n\n3"}, headers=a_auth)
+        await c.put(f"/api/books/{book}/price", json={"amount": 8000}, headers=a_auth)
+        await c.post(f"/api/books/{book}/publish-now", headers=a_auth)
+
+        buyer_token, _ = await login_account(c, "naver", "b")
+        b_auth = {"Authorization": f"Bearer {buyer_token}"}
+        oid = (await c.post("/api/orders", json={"bookId": book}, headers=b_auth)).json()["id"]
+        await c.post(f"/api/orders/{oid}/confirm", json={"pgTxId": "tx"}, headers=b_auth)
+
+        # 구매 직후: 전체 열람 + 작가 매출 1건
+        assert (await c.get(f"/api/books/{book}/content", headers=b_auth)).json()["isPreview"] is False
+        assert (await c.get("/api/me/sales", headers=a_auth)).json()["totalOrders"] == 1
+
+        # 타인 환불 시도 → 404 (소유 아님)
+        assert (await c.post(f"/api/orders/{oid}/refund", headers=a_auth)).status_code == 404
+        # 본인 환불 → 204
+        assert (await c.post(f"/api/orders/{oid}/refund", headers=b_auth)).status_code == 204
+
+        # 환불 후: 미리보기로 회귀 + 매출 0 + 재환불 409
+        assert (await c.get(f"/api/books/{book}/content", headers=b_auth)).json()["isPreview"] is True
+        assert (await c.get("/api/me/sales", headers=a_auth)).json()["totalOrders"] == 0
+        assert (await c.post(f"/api/orders/{oid}/refund", headers=b_auth)).status_code == 409
+
+
 async def test_order_visible_only_to_buyer(app_db):
     """주문 조회는 본인만 — 타인/무인증은 404 (정보 노출 차단)."""
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:

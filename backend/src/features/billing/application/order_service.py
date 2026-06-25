@@ -11,9 +11,11 @@ from src.features.billing.domain.models import (
     AlreadyOwned,
     AlreadyPaid,
     NotPurchasable,
+    NotRefundable,
     OrderNotFound,
     OrderView,
     PaymentFailed,
+    RefundFailed,
     SettlementView,
 )
 from src.features.billing.domain.pricing import BookPricing
@@ -49,6 +51,19 @@ class OrderService:
         if order is None:
             raise OrderNotFound(order_id)
         return order
+
+    async def refund(self, order_id: UUID, buyer_id: UUID, reason: str = "") -> None:
+        """구매자 본인 환불 — PG 취소 후 PAID→REFUNDED (서재·매출·알림서 자동 제외)."""
+        order = await self.get_order(order_id)
+        if order.buyer_account_id != buyer_id:
+            raise OrderNotFound(order_id)  # 타인 주문은 존재 노출 없이 404
+        if order.status_cd != PAID:
+            raise NotRefundable()
+        ok = await self.gateway.refund(order.pg_tx_id, reason or "구매자 환불", order_ref=str(order_id))
+        if not ok:
+            raise RefundFailed()
+        if not await self.repo.mark_refunded(order_id):
+            raise NotRefundable()  # 동시 환불 경쟁 → 이미 처리됨
 
     async def owns(self, account_id: UUID, book_id: UUID) -> bool:
         return await self.repo.owns(account_id, book_id)

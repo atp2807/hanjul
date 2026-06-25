@@ -15,6 +15,11 @@ export function getPaymentConfig() {
   return apiClient.get('/payments/config');
 }
 
+// 환불 — 구매자 본인. 성공 시 서재 권한 회수
+export function refundOrder(orderId) {
+  return apiClient.post(`/orders/${orderId}/refund`);
+}
+
 // 내 서재 (구매한 책)
 export function getLibrary() {
   return apiClient.get('/me/library');

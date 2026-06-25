@@ -31,6 +31,7 @@ class Order(Base):
     pg_tx_id = Column(String(255))
     created_at = Column("created_ts", DateTime(timezone=True), default=_now, nullable=False)
     paid_at = Column("paid_ts", DateTime(timezone=True))
+    refunded_at = Column("refunded_ts", DateTime(timezone=True))         # 환불 시각
 
     settlement = relationship("Settlement", back_populates="order", uselist=False, cascade="all, delete-orphan")
 

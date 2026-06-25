@@ -9,3 +9,6 @@ class DemoPaymentGateway:
 
     async def verify(self, pg_tx_id: str, expected_amount: int, order_ref: str | None = None) -> bool:
         return True
+
+    async def refund(self, pg_tx_id: str, reason: str, order_ref: str | None = None) -> bool:
+        return True

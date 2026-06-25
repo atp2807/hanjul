@@ -15,6 +15,9 @@ class FakeGateway:
     async def verify(self, pg_tx_id: str, expected_amount: int, order_ref: str | None = None) -> bool:
         return self.ok
 
+    async def refund(self, pg_tx_id: str, reason: str, order_ref: str | None = None) -> bool:
+        return self.ok
+
 
 class FakePricing:
     def __init__(self, price: int | None = 10000):
@@ -67,6 +70,6 @@ class FakeOrderRepository:
         for o in self.orders.values():
             if o.buyer_account_id == account_id and o.status_cd == PAID:
                 seen[o.book_id] = PurchasedBook(
-                    book_id=o.book_id, title="", kind="", price_amt=o.amount_amt, cover_url=None
+                    book_id=o.book_id, title="", kind="", price_amt=o.amount_amt, cover_url=None, order_id=o.id
                 )
         return list(seen.values())

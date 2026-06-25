@@ -18,7 +18,8 @@ async def my_library(
     books = await svc.list_library(principal.id)
     return [
         LibraryItemResponse(
-            book_id=b.book_id, title=b.title, kind=b.kind, price_amt=b.price_amt, cover_url=b.cover_url
+            book_id=b.book_id, title=b.title, kind=b.kind, price_amt=b.price_amt,
+            cover_url=b.cover_url, order_id=b.order_id,
         )
         for b in books
     ]

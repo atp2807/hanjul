@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -37,5 +37,17 @@ describe('LibraryPage', () => {
     orders.getLibrary.mockResolvedValue([]);
     renderLib();
     expect(await screen.findByText(/아직 구매한 책이 없어요/)).toBeInTheDocument();
+  });
+
+  it('환불 → confirm 후 refundOrder 호출 + 목록에서 제거', async () => {
+    authCtx.useAuth.mockReturnValue({ user: { id: '1' }, loading: false });
+    orders.getLibrary.mockResolvedValue([{ bookId: 'b1', title: '환불할 책', coverUrl: null, orderId: 'o1' }]);
+    orders.refundOrder.mockResolvedValue(null);
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    renderLib();
+
+    fireEvent.click(await screen.findByText('환불'));
+    await waitFor(() => expect(orders.refundOrder).toHaveBeenCalledWith('o1'));
+    await waitFor(() => expect(screen.getByText(/아직 구매한 책이 없어요/)).toBeInTheDocument());
   });
 });
