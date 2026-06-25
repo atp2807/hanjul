@@ -30,8 +30,17 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
     GOOGLE_REDIRECT_URI: str = "http://localhost:28000/api/auth/google/callback"
-    # 소셜 콜백 후 토큰을 들고 돌아갈 프론트 주소 (프로덕션은 https://hanjul.io)
+    # 소셜 콜백 후 토큰을 들고 돌아갈 프론트 주소 (프로덕션은 https://www.hanjul.io)
     FRONTEND_URL: str = "http://localhost:35173"
+    # CORS 허용 출처 — 콤마구분. 운영은 https://www.hanjul.io 등 추가. FRONTEND_URL은 자동 포함.
+    CORS_ORIGINS: str = "http://localhost:35173,http://localhost:35200"
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        origins = [o.strip() for o in self.CORS_ORIGINS.split(",") if o.strip()]
+        if self.FRONTEND_URL and self.FRONTEND_URL not in origins:
+            origins.append(self.FRONTEND_URL)
+        return origins
 
     # ── 결제(PG) ────────────────────────────────────────
     PORTONE_API_SECRET: str = ""

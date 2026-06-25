@@ -74,7 +74,7 @@ app = FastAPI(title="한줄 ebook API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:35173"],  # Vite dev server (웰노운 포트 회피)
+    allow_origins=settings.cors_origin_list,  # dev=localhost, 운영=CORS_ORIGINS/FRONTEND_URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
