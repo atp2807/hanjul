@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
+import { loadTossPayments } from '@tosspayments/payment-sdk';
+
 import { useAuth } from '../auth/AuthContext';
-import { PaymentModal } from '../components/PaymentModal';
 import { getLoginUrl } from '../services/api/auth';
 import { getStoreDetail } from '../services/api/books';
 import { confirmPayment, createOrder, getPaymentConfig } from '../services/api/orders';
@@ -15,7 +16,6 @@ export function BookDetailPage() {
   const [book, setBook] = useState(null);
   const [error, setError] = useState(null);
   const [buying, setBuying] = useState(false);
-  const [pay, setPay] = useState(null); // 토스 위젯 모달 상태 {clientKey, order}
   const [reviews, setReviews] = useState(null);
   const [rating, setRating] = useState(5);
   const [reviewBody, setReviewBody] = useState('');
@@ -54,29 +54,28 @@ export function BookDetailPage() {
         navigate(`/read/${book.id}`);
         return;
       }
-      // 실 결제 — 토스 위젯 모달 열기. 성공 시 paymentKey로 confirm.
-      setPay({ clientKey: cfg.tossClientKey, order });
+      // 실 결제 — 토스 결제창(v1) 호출. 성공 시 successUrl(=결과페이지)로 리다이렉트,
+      // 거기서 paymentKey로 confirm. (택스랩 API 키는 위젯 v2 미지원 → 결제창 v1)
+      const toss = await loadTossPayments(cfg.tossClientKey);
+      const result = `${window.location.origin}/payment/result?bookId=${book.id}`;
+      await toss.requestPayment('카드', {
+        amount: order.amountAmt,
+        orderId: order.id,
+        orderName: book.title,
+        successUrl: result,
+        failUrl: result,
+        windowTarget: 'self',
+      });
     } catch (e) {
       if (e.status === 409) {
         navigate(`/read/${book.id}`); // 이미 소유 → 바로 읽기
         return;
       }
-      setError(`구매 실패: ${e.message}`);
-    } finally {
-      setBuying(false);
-    }
-  }
-
-  async function onPaid(paymentKey) {
-    const order = pay.order;
-    setPay(null);
-    setBuying(true);
-    try {
-      await confirmPayment(order.id, paymentKey); // 토스 승인 → 정산
-      navigate(`/read/${book.id}`);
-    } catch (e) {
-      setError(e.status === 402 ? '결제 승인에 실패했어요.' : `구매 처리 실패: ${e.message}`);
-    } finally {
+      if (e.code === 'USER_CANCEL' || e.code === 'PAY_PROCESS_CANCELED') {
+        setBuying(false);
+        return; // 사용자가 취소 — 조용히
+      }
+      setError(`구매 실패: ${e.message || e.code}`);
       setBuying(false);
     }
   }
@@ -86,16 +85,6 @@ export function BookDetailPage() {
 
   return (
     <div style={{ maxWidth: 760, margin: '0 auto', padding: '32px 24px', display: 'flex', gap: 28 }}>
-      {pay && (
-        <PaymentModal
-          clientKey={pay.clientKey}
-          orderId={pay.order.id}
-          orderName={book.title}
-          amount={pay.order.amountAmt}
-          onSuccess={onPaid}
-          onCancel={(msg) => { setPay(null); if (msg) setError(msg); }}
-        />
-      )}
       <div style={{ width: 220, flexShrink: 0 }}>
         {book.coverUrl ? (
           <img src={book.coverUrl} alt={book.title} style={{ width: '100%', borderRadius: 10 }} />

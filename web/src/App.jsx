@@ -5,6 +5,7 @@ import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { AuthorPage } from './pages/AuthorPage';
 import { BookDetailPage } from './pages/BookDetailPage';
 import { LibraryPage } from './pages/LibraryPage';
+import { PaymentResultPage } from './pages/PaymentResultPage';
 import { ReaderPage } from './pages/ReaderPage';
 import { StorePage } from './pages/StorePage';
 import { StudioEditorPage } from './pages/StudioEditorPage';
@@ -27,6 +28,7 @@ export default function App() {
         <Route path="/studio" element={<StudioPage />} />
         <Route path="/studio/:id" element={<StudioEditorPage />} />
         <Route path="/write/:id" element={<WritePage />} />
+        <Route path="/payment/result" element={<PaymentResultPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
         </Routes>
       </div>
