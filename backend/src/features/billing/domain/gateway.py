@@ -12,3 +12,7 @@ class PaymentGateway(Protocol):
     async def refund(self, pg_tx_id: str, reason: str, order_ref: str | None = None) -> bool:
         """결제 전체 취소(환불). 성공 시 True."""
         ...
+
+    async def lookup_status(self, pg_tx_id: str) -> str | None:
+        """PG에서 결제 상태 재조회(웹훅 reconcile용). 예: DONE/CANCELED. 불가 시 None."""
+        ...

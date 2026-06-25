@@ -12,3 +12,6 @@ class DemoPaymentGateway:
 
     async def refund(self, pg_tx_id: str, reason: str, order_ref: str | None = None) -> bool:
         return True
+
+    async def lookup_status(self, pg_tx_id: str) -> str | None:
+        return None  # 데모는 실 PG 없음 → reconcile 불가

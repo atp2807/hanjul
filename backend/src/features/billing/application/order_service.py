@@ -65,6 +65,19 @@ class OrderService:
         if not await self.repo.mark_refunded(order_id):
             raise NotRefundable()  # 동시 환불 경쟁 → 이미 처리됨
 
+    async def reconcile_canceled(self, order_id: UUID) -> bool:
+        """웹훅 reconcile — 바디 불신. PG에서 실제 상태 재조회해 취소면 PAID→REFUNDED.
+
+        주문의 '우리 DB에 저장된' pg_tx_id로만 조회 → 위조 바디로 남의 주문 못 건드림.
+        """
+        order = await self.repo.get_order(order_id)
+        if order is None or order.status_cd != PAID or not order.pg_tx_id:
+            return False
+        status = await self.gateway.lookup_status(order.pg_tx_id)
+        if status in ("CANCELED", "CANCELLED", "PARTIAL_CANCELED"):
+            return await self.repo.mark_refunded(order_id)
+        return False
+
     async def owns(self, account_id: UUID, book_id: UUID) -> bool:
         return await self.repo.owns(account_id, book_id)
 

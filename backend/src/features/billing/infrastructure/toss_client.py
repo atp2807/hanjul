@@ -107,6 +107,29 @@ class TossPaymentsClient:
             "mock": True,
         }
 
+    async def get_payment(self, payment_key: str) -> dict[str, Any]:
+        """결제 단건 조회 — 웹훅 바디 불신, 실제 상태를 토스에서 재확인(reconcile)."""
+        if self._is_mock(payment_key):
+            return {"paymentKey": payment_key, "status": "DONE", "mock": True}
+        if not self._secret_key:
+            raise PaymentError(code="CONFIG_ERROR", message="토스 시크릿키 미설정")
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    f"{TOSS_BASE_URL}/payments/{payment_key}",
+                    headers={"Authorization": self._auth_header()},
+                    timeout=TOSS_API_TIMEOUT,
+                )
+                if response.status_code != 200:
+                    self._handle_error(response)
+                return response.json()
+        except PaymentError:
+            raise
+        except httpx.TimeoutException:
+            raise PaymentError(code="TIMEOUT", message="토스 응답 시간 초과")
+        except httpx.RequestError as e:
+            raise PaymentError(code="NETWORK_ERROR", message="네트워크 오류", details={"error": str(e)})
+
     async def cancel_payment(
         self, payment_key: str, cancel_reason: str, idempotency_key: str | None = None
     ) -> dict[str, Any]:

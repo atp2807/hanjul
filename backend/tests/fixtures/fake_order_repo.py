@@ -18,6 +18,9 @@ class FakeGateway:
     async def refund(self, pg_tx_id: str, reason: str, order_ref: str | None = None) -> bool:
         return self.ok
 
+    async def lookup_status(self, pg_tx_id: str) -> str | None:
+        return getattr(self, "status", None)  # 테스트에서 .status 세팅
+
 
 class FakePricing:
     def __init__(self, price: int | None = 10000):

@@ -34,6 +34,27 @@ async def payment_config() -> dict:
     return {"demo": settings.PAYMENT_DEMO, "tossClientKey": settings.TOSS_TEST_CLIENT_KEY}
 
 
+@payments_router.post("/webhook")
+async def toss_webhook(
+    body: dict, svc: OrderService = Depends(get_order_service)
+) -> dict:
+    """토스 웹훅 — 대시보드 취소 등으로 결제 상태 바뀌면 우리 주문과 동기화.
+
+    바디는 신뢰하지 않음(인증 없음). orderId만 꺼내 PG에서 실제 상태를 재조회해
+    취소면 환불 처리. 토스 재시도 방지 위해 항상 200.
+    """
+    data = body.get("data") if isinstance(body.get("data"), dict) else {}
+    order_id = data.get("orderId") or body.get("orderId")
+    if order_id:
+        try:
+            await svc.reconcile_canceled(UUID(str(order_id)))
+        except (ValueError, OrderNotFound):
+            pass
+        except Exception:  # noqa: BLE001 — 어떤 경우든 토스엔 200
+            pass
+    return {"ok": True}
+
+
 @router.post("", response_model=OrderResponse, status_code=201)
 async def create_order(
     body: CreateOrderRequest,

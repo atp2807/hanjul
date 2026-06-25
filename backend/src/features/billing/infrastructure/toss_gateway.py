@@ -45,3 +45,10 @@ class TossPaymentGateway:
             logger.warning("토스 취소 거절 order=%s code=%s msg=%s", order_ref, e.code, e.message)
             return False
         return result.get("status") in ("CANCELED", "CANCELLED", "PARTIAL_CANCELED")
+
+    async def lookup_status(self, pg_tx_id: str) -> str | None:
+        try:
+            return (await self._client.get_payment(pg_tx_id)).get("status")
+        except PaymentError as e:
+            logger.warning("토스 결제조회 실패 key=%s code=%s", pg_tx_id, e.code)
+            return None

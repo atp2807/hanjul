@@ -56,6 +56,22 @@ async def test_refund_status_canceled_returns_true(monkeypatch):
     assert await gw.refund("pk", "x", order_ref="o1") is True
 
 
+async def test_lookup_status_returns_toss_status(monkeypatch):
+    gw = TossPaymentGateway(secret_key="test_sk_x")
+    async def _get(pk):
+        return {"status": "CANCELED"}
+    monkeypatch.setattr(gw._client, "get_payment", _get)
+    assert await gw.lookup_status("pk") == "CANCELED"
+
+
+async def test_lookup_status_none_on_error(monkeypatch):
+    gw = TossPaymentGateway(secret_key="test_sk_x")
+    async def _get(pk):
+        raise PaymentError(code="NOT_FOUND", message="없음")
+    monkeypatch.setattr(gw._client, "get_payment", _get)
+    assert await gw.lookup_status("pk") is None
+
+
 def test_mock_prefix_does_not_bypass_real_confirm():
     """클라가 'mock_*' paymentKey 보내도 실 승인 우회 금지 (무료결제 공격 차단)."""
     from src.features.billing.infrastructure.toss_client import TossPaymentsClient
