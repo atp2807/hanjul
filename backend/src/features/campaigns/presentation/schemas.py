@@ -51,3 +51,35 @@ class ApplicationItem(_Camel):
 
 class ApplicationListResponse(_Camel):
     items: list[ApplicationItem]
+
+
+class AuthorCampaignItem(_Camel):
+    id: UUID
+    book_id: UUID
+    book_title: str | None
+    slots: int
+    filled: int
+    remaining: int
+    review_days: int
+    min_chars: int
+    status_cd: str
+    applicants: int
+    reviewed: int
+    created_at: datetime
+
+
+class AuthorCampaignListResponse(_Camel):
+    items: list[AuthorCampaignItem]
+
+
+class ApplicantItem(_Camel):
+    id: UUID
+    applicant_id: UUID
+    applicant_name: str | None
+    status_cd: str
+    deadline_at: datetime | None
+    created_at: datetime
+
+
+class ApplicantListResponse(_Camel):
+    items: list[ApplicantItem]

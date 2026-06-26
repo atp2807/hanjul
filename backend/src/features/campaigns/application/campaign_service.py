@@ -3,7 +3,9 @@ from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
 from src.features.campaigns.domain.models import (
+    ApplicantView,
     ApplicationView,
+    AuthorCampaignView,
     CampaignNotFound,
     CampaignRepository,
     CampaignView,
@@ -47,3 +49,17 @@ class CampaignService:
 
     async def list_my_applications(self, applicant_id: UUID) -> list[ApplicationView]:
         return await self.repo.list_my_applications(applicant_id)
+
+    async def cancel(self, campaign_id: UUID, applicant_id: UUID) -> bool:
+        """신청 취소 — PENDING 만. 이미 배정됐으면 False."""
+        return await self.repo.cancel(campaign_id, applicant_id)
+
+    async def list_for_author(self, author_id: UUID) -> list[AuthorCampaignView]:
+        return await self.repo.list_for_author(author_id)
+
+    async def list_applicants(self, campaign_id: UUID) -> list[ApplicantView]:
+        return await self.repo.list_applicants(campaign_id)
+
+    async def mark_review_done(self, book_id: UUID, applicant_id: UUID) -> None:
+        """증정본 리뷰 작성 시 호출 — 배정 신청을 COMPLETED 로(완료율 집계)."""
+        await self.repo.mark_completed(book_id, applicant_id)

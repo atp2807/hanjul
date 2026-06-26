@@ -45,6 +45,11 @@ async def add_review(
         await ReviewService(repo).add(book_id, principal.id, body.rating, body.body, source)
     except ValueError as e:
         raise HTTPException(422, str(e))
+    if source == "REVIEW_COPY":
+        # 서평단 배정 신청을 완료 처리(완료율·자격 집계용)
+        from src.features.campaigns.infrastructure.campaign_repo import SqlCampaignRepository
+
+        await SqlCampaignRepository(session).mark_completed(book_id, principal.id)
     return {"ok": True}
 
 

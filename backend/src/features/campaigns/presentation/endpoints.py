@@ -14,9 +14,13 @@ from src.features.campaigns.domain.models import CampaignNotFound, NoSlotsLeft
 from src.features.campaigns.infrastructure.campaign_repo import SqlCampaignRepository
 from src.features.campaigns.presentation.dependencies import get_campaign_service
 from src.features.campaigns.presentation.schemas import (
+    ApplicantItem,
+    ApplicantListResponse,
     ApplicationItem,
     ApplicationListResponse,
     AssignRequest,
+    AuthorCampaignItem,
+    AuthorCampaignListResponse,
     CampaignItem,
     CampaignListResponse,
     CreateCampaignRequest,
@@ -49,6 +53,58 @@ async def create_campaign(
 async def list_open(svc: CampaignService = Depends(get_campaign_service)) -> CampaignListResponse:
     items = await svc.list_open()
     return CampaignListResponse(items=[CampaignItem.model_validate(c) for c in items])
+
+
+@router.get("/me/campaigns", response_model=AuthorCampaignListResponse)
+async def my_campaigns(
+    principal: AccountPrincipal = Depends(get_current_account),
+    svc: CampaignService = Depends(get_campaign_service),
+) -> AuthorCampaignListResponse:
+    """작가 본인의 캠페인 목록 + 신청/완료 집계 (관리 대시보드)."""
+    items = await svc.list_for_author(principal.id)
+    return AuthorCampaignListResponse(items=[AuthorCampaignItem.model_validate(c) for c in items])
+
+
+@router.get("/campaigns/{campaign_id}", response_model=CampaignItem)
+async def campaign_detail(
+    campaign_id: UUID,
+    svc: CampaignService = Depends(get_campaign_service),
+) -> CampaignItem:
+    """캠페인 상세 (공개)."""
+    try:
+        camp = await svc.get(campaign_id)
+    except CampaignNotFound:
+        raise HTTPException(404, "campaign not found")
+    return CampaignItem.model_validate(camp)
+
+
+@router.get("/campaigns/{campaign_id}/applications", response_model=ApplicantListResponse)
+async def campaign_applicants(
+    campaign_id: UUID,
+    principal: AccountPrincipal = Depends(get_current_account),
+    svc: CampaignService = Depends(get_campaign_service),
+) -> ApplicantListResponse:
+    """캠페인 신청자 목록 — 캠페인 작가만 (배정 UI)."""
+    try:
+        camp = await svc.get(campaign_id)
+    except CampaignNotFound:
+        raise HTTPException(404, "campaign not found")
+    if camp.author_id != principal.id:
+        raise HTTPException(403, "이 캠페인의 작가만 볼 수 있어요")
+    items = await svc.list_applicants(campaign_id)
+    return ApplicantListResponse(items=[ApplicantItem.model_validate(a) for a in items])
+
+
+@router.delete("/campaigns/{campaign_id}/apply", status_code=204)
+async def cancel_application(
+    campaign_id: UUID,
+    principal: AccountPrincipal = Depends(get_current_account),
+    svc: CampaignService = Depends(get_campaign_service),
+) -> None:
+    """리뷰어 신청 취소 — 아직 배정 전(PENDING)만."""
+    ok = await svc.cancel(campaign_id, principal.id)
+    if not ok:
+        raise HTTPException(409, "이미 배정됐거나 신청 내역이 없어요")
 
 
 @router.post("/campaigns/{campaign_id}/apply", status_code=204)

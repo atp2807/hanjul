@@ -69,12 +69,19 @@ async def test_campaign_full_flow(app_db):
         open_list = (await c.get("/api/campaigns/open")).json()["items"]
         camp = next(x for x in open_list if x["id"] == cid)
         assert camp["remaining"] == 1
+        # 상세 조회(공개)
+        detail = (await c.get(f"/api/campaigns/{cid}")).json()
+        assert detail["bookTitle"] == "서평캠페인책" and detail["remaining"] == 1
 
         # 리뷰어 신청
         assert (await c.post(f"/api/campaigns/{cid}/apply", headers=r_auth)).status_code == 204
         # 내 신청함 — PENDING
         apps = (await c.get("/api/me/applications", headers=r_auth)).json()["items"]
         assert apps[0]["statusCd"] == "PENDING"
+        # 신청자 목록 — 작가만(타인 403)
+        assert (await c.get(f"/api/campaigns/{cid}/applications", headers=r_auth)).status_code == 403
+        applicants = (await c.get(f"/api/campaigns/{cid}/applications", headers=a_auth)).json()["items"]
+        assert len(applicants) == 1 and applicants[0]["applicantName"] == "리뷰어"
 
         # 배정 전엔 리뷰 불가(미구매)
         assert (await c.post(f"/api/books/{book}/reviews", json={"rating": 5}, headers=r_auth)).status_code == 403
@@ -91,6 +98,33 @@ async def test_campaign_full_flow(app_db):
         assert (await c.post(f"/api/books/{book}/reviews", json={"rating": 5, "body": "사전 리뷰"}, headers=r_auth)).status_code == 201
         item = (await c.get(f"/api/books/{book}/reviews")).json()["items"][0]
         assert item["sourceCd"] == "REVIEW_COPY"
+        # 리뷰 작성 → 신청 COMPLETED + 내 캠페인 집계
+        apps = (await c.get("/api/me/applications", headers=r_auth)).json()["items"]
+        assert apps[0]["statusCd"] == "COMPLETED"
+        mine = (await c.get("/api/me/campaigns", headers=a_auth)).json()["items"]
+        row = next(x for x in mine if x["id"] == cid)
+        assert row["applicants"] == 1 and row["reviewed"] == 1 and row["filled"] == 1
+
+
+async def test_cancel_application(app_db):
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
+        author_token, _ = await login_account(c, "google", "a")
+        reader_token, reader = await login_account(c, "naver", "r")
+        a_auth = {"Authorization": f"Bearer {author_token}"}
+        r_auth = {"Authorization": f"Bearer {reader_token}"}
+
+        book = (await c.post("/api/books", json={"title": "취소책"}, headers=a_auth)).json()["bookId"]
+        await c.put(f"/api/books/{book}/price", json={"amount": 1000}, headers=a_auth)
+        await c.post(f"/api/books/{book}/publish-now", headers=a_auth)
+        cid = (await c.post("/api/campaigns", json={"bookId": book, "slots": 1}, headers=a_auth)).json()["campaignId"]
+
+        await c.post(f"/api/campaigns/{cid}/apply", headers=r_auth)
+        assert len((await c.get("/api/me/applications", headers=r_auth)).json()["items"]) == 1
+        # 신청 취소(PENDING)
+        assert (await c.delete(f"/api/campaigns/{cid}/apply", headers=r_auth)).status_code == 204
+        assert (await c.get("/api/me/applications", headers=r_auth)).json()["items"] == []
+        # 취소 후 배정 시도 → 신청자 아님(409)
+        assert (await c.post(f"/api/campaigns/{cid}/assign", json={"applicantId": reader["id"]}, headers=a_auth)).status_code == 409
 
 
 async def test_assign_only_by_campaign_author(app_db):

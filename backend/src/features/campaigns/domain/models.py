@@ -27,7 +27,35 @@ class ApplicationView:
     book_id: UUID
     book_title: str | None
     applicant_id: UUID
-    status_cd: str       # PENDING | ASSIGNED
+    status_cd: str       # PENDING | ASSIGNED | COMPLETED
+    deadline_at: datetime | None
+    created_at: datetime
+
+
+@dataclass
+class AuthorCampaignView:
+    """캠페인 관리(작가 대시보드)용 — 캠페인 + 신청/리뷰 집계."""
+    id: UUID
+    book_id: UUID
+    book_title: str | None
+    slots: int
+    filled: int
+    remaining: int
+    review_days: int
+    min_chars: int
+    status_cd: str
+    applicants: int      # 총 신청자 수
+    reviewed: int        # 리뷰 완료(COMPLETED) 수
+    created_at: datetime
+
+
+@dataclass
+class ApplicantView:
+    """캠페인 신청자 한 명 — 배정 UI용."""
+    id: UUID
+    applicant_id: UUID
+    applicant_name: str | None
+    status_cd: str
     deadline_at: datetime | None
     created_at: datetime
 
@@ -62,4 +90,20 @@ class CampaignRepository(Protocol):
         ...
 
     async def list_my_applications(self, applicant_id: UUID) -> list[ApplicationView]:
+        ...
+
+    async def cancel(self, campaign_id: UUID, applicant_id: UUID) -> bool:
+        """신청 취소 — PENDING 신청만 삭제. 성공 True."""
+        ...
+
+    async def list_for_author(self, author_id: UUID) -> list["AuthorCampaignView"]:
+        """작가 본인 캠페인 + 집계."""
+        ...
+
+    async def list_applicants(self, campaign_id: UUID) -> list["ApplicantView"]:
+        """캠페인 신청자 목록(배정용)."""
+        ...
+
+    async def mark_completed(self, book_id: UUID, applicant_id: UUID) -> None:
+        """그 책 캠페인의 ASSIGNED 신청을 COMPLETED 로(리뷰 작성 시). 멱등."""
         ...

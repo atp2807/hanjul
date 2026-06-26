@@ -1,11 +1,19 @@
 """CampaignRepository 의 SQLAlchemy 구현."""
 from uuid import UUID
 
-from sqlalchemy import select
+from datetime import datetime, timezone
+
+from sqlalchemy import case, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.features.campaigns.domain.models import ApplicationView, CampaignView
+from src.features.campaigns.domain.models import (
+    ApplicantView,
+    ApplicationView,
+    AuthorCampaignView,
+    CampaignView,
+)
+from src.infrastructure.db.models.account import Account
 from src.infrastructure.db.models.book import Book
 from src.infrastructure.db.models.campaign import ReviewApplication, ReviewCampaign
 
@@ -93,7 +101,6 @@ class SqlCampaignRepository:
             return False
         app.status_cd = "ASSIGNED"
         app.deadline_at = deadline
-        from datetime import datetime, timezone
         app.assigned_at = datetime.now(timezone.utc)
         camp.filled += 1
         if camp.filled >= camp.slots:
@@ -118,3 +125,82 @@ class SqlCampaignRepository:
             )
             for a, book_id, title in rows
         ]
+
+    async def cancel(self, campaign_id, applicant_id) -> bool:
+        app = (
+            await self.session.execute(
+                select(ReviewApplication).where(
+                    ReviewApplication.campaign_id == campaign_id,
+                    ReviewApplication.applicant_id == applicant_id,
+                    ReviewApplication.status_cd == "PENDING",
+                )
+            )
+        ).scalar_one_or_none()
+        if app is None:
+            return False
+        await self.session.delete(app)
+        await self.session.commit()
+        return True
+
+    async def list_for_author(self, author_id) -> list[AuthorCampaignView]:
+        # 캠페인별 신청자 수 / 완료 수 서브쿼리 집계
+        app_count = (
+            select(
+                ReviewApplication.campaign_id.label("cid"),
+                func.count().label("applicants"),
+                func.sum(case((ReviewApplication.status_cd == "COMPLETED", 1), else_=0)).label("reviewed"),
+            )
+            .group_by(ReviewApplication.campaign_id)
+            .subquery()
+        )
+        rows = (
+            await self.session.execute(
+                select(ReviewCampaign, Book.title, app_count.c.applicants, app_count.c.reviewed)
+                .outerjoin(Book, Book.id == ReviewCampaign.book_id)
+                .outerjoin(app_count, app_count.c.cid == ReviewCampaign.id)
+                .where(ReviewCampaign.author_id == author_id)
+                .order_by(ReviewCampaign.created_at.desc())
+            )
+        ).all()
+        return [
+            AuthorCampaignView(
+                id=c.id, book_id=c.book_id, book_title=title, slots=c.slots, filled=c.filled,
+                remaining=max(0, c.slots - c.filled), review_days=c.review_days, min_chars=c.min_chars,
+                status_cd=c.status_cd, applicants=applicants or 0, reviewed=reviewed or 0, created_at=c.created_at,
+            )
+            for c, title, applicants, reviewed in rows
+        ]
+
+    async def list_applicants(self, campaign_id) -> list[ApplicantView]:
+        rows = (
+            await self.session.execute(
+                select(ReviewApplication, Account.display_name)
+                .outerjoin(Account, Account.id == ReviewApplication.applicant_id)
+                .where(ReviewApplication.campaign_id == campaign_id)
+                .order_by(ReviewApplication.created_at.asc())
+            )
+        ).all()
+        return [
+            ApplicantView(
+                id=a.id, applicant_id=a.applicant_id, applicant_name=name,
+                status_cd=a.status_cd, deadline_at=a.deadline_at, created_at=a.created_at,
+            )
+            for a, name in rows
+        ]
+
+    async def mark_completed(self, book_id, applicant_id) -> None:
+        app = (
+            await self.session.execute(
+                select(ReviewApplication)
+                .join(ReviewCampaign, ReviewCampaign.id == ReviewApplication.campaign_id)
+                .where(
+                    ReviewCampaign.book_id == book_id,
+                    ReviewApplication.applicant_id == applicant_id,
+                    ReviewApplication.status_cd == "ASSIGNED",
+                )
+            )
+        ).scalars().first()
+        if app is None:
+            return
+        app.status_cd = "COMPLETED"
+        await self.session.commit()
