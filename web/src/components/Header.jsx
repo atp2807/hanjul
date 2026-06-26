@@ -8,6 +8,7 @@ const NAV = [
   ['/', '서점'],
   ['/studio', '에디터'],
   ['/studio', '출판'],
+  ['/reviewers', '서평단'],
   ['/pricing', '수수료·정산'],
 ];
 

@@ -4,11 +4,15 @@ import { Header } from './components/Header';
 import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { AuthorPage } from './pages/AuthorPage';
 import { BookDetailPage } from './pages/BookDetailPage';
+import { CampaignDetailPage } from './pages/CampaignDetailPage';
+import { CampaignStudioPage } from './pages/CampaignStudioPage';
 import { LibraryPage } from './pages/LibraryPage';
 import { LoginPage } from './pages/LoginPage';
 import { PaymentResultPage } from './pages/PaymentResultPage';
 import { PricingPage } from './pages/PricingPage';
 import { ReaderPage } from './pages/ReaderPage';
+import { ReviewerActivityPage } from './pages/ReviewerActivityPage';
+import { ReviewersPage } from './pages/ReviewersPage';
 import { StorePage } from './pages/StorePage';
 import { StudioEditorPage } from './pages/StudioEditorPage';
 import { StudioPage } from './pages/StudioPage';
@@ -32,7 +36,11 @@ export default function App() {
         <Route path="/read/:id" element={<ReaderPage />} />
         <Route path="/library" element={<LibraryPage />} />
         <Route path="/studio" element={<StudioPage />} />
+        <Route path="/studio/campaigns" element={<CampaignStudioPage />} />
         <Route path="/studio/:id" element={<StudioEditorPage />} />
+        <Route path="/reviewers" element={<ReviewersPage />} />
+        <Route path="/campaigns/:id" element={<CampaignDetailPage />} />
+        <Route path="/reviewer/activity" element={<ReviewerActivityPage />} />
         <Route path="/write/:id" element={<WritePage />} />
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/login" element={<LoginPage />} />
