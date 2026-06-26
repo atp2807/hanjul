@@ -45,6 +45,36 @@ async def test_two_misses_revoke_eligibility(sessionmaker):
             await svc.apply(open_cid, reader.id, now=future)
 
 
+async def test_block_resets_after_recovery(sessionmaker):
+    """차단 해제 후 미작성 1건만으론 재차단 안 됨(사이클별 카운트)."""
+    async with sessionmaker() as s:
+        reader = Account(display_name="회복")
+        s.add(reader)
+        await s.commit()
+        repo = SqlCampaignRepository(s)
+        svc = CampaignService(repo)
+        base = datetime(2026, 1, 1, tzinfo=UTC)
+        t1 = base + timedelta(days=10)
+
+        # 2회 미작성 → 차단 (해제 = t1 + 14일)
+        await _expire_one(repo, reader.id, base)
+        await _expire_one(repo, reader.id, base)
+        st = await svc.reviewer_status(reader.id, t1)
+        assert st.blocked_until is not None
+        unblock = st.blocked_until
+
+        after = unblock + timedelta(days=1)  # 차단 해제 이후
+        # 해제 후 미작성 1건 → 재차단 안 됨
+        await _expire_one(repo, reader.id, unblock + timedelta(hours=1))
+        st2 = await svc.reviewer_status(reader.id, after)
+        assert st2.blocked_until is None, "회복 후 1회 미작성은 재차단 아님"
+
+        # 해제 후 2건째 → 재차단
+        await _expire_one(repo, reader.id, unblock + timedelta(hours=2))
+        st3 = await svc.reviewer_status(reader.id, after)
+        assert st3.blocked_until is not None
+
+
 async def test_completion_counts_toward_rate(sessionmaker):
     async with sessionmaker() as s:
         reader = Account(display_name="성실")

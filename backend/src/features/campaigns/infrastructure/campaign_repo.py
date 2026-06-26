@@ -232,19 +232,22 @@ class SqlCampaignRepository:
             return
         for a in overdue:
             a.status_cd = "EXPIRED"
-        await self.session.flush()  # EXPIRED 반영 후 누적 미작성 집계
-        # 누적 미작성 한계 도달 + 현재 비차단이면 자격회수(BLOCK_DAYS)
-        missed = (
-            await self.session.execute(
-                select(func.count()).select_from(ReviewApplication).where(
-                    ReviewApplication.applicant_id == applicant_id,
-                    ReviewApplication.status_cd == "EXPIRED",
-                )
-            )
-        ).scalar_one()
-        if missed >= MISS_LIMIT:
-            acc = (await self.session.execute(select(Account).where(Account.id == applicant_id))).scalar_one_or_none()
-            if acc is not None and (acc.review_blocked_at is None or _aware(acc.review_blocked_at) <= now):
+        await self.session.flush()  # EXPIRED 반영 후 집계
+        acc = (await self.session.execute(select(Account).where(Account.id == applicant_id))).scalar_one_or_none()
+        blocked_at = _aware(acc.review_blocked_at) if (acc is not None and acc.review_blocked_at is not None) else None
+        # 차단 중이면 그대로 두고, 비차단일 때만 '이번 사이클' 미작성으로 재판정.
+        if acc is not None and (blocked_at is None or blocked_at <= now):
+            # 직전 차단 이후(=차단설정시각 = blocked_at - BLOCK_DAYS) 발생한 미작성만 카운트 → 회복 후 리셋
+            cond = [
+                ReviewApplication.applicant_id == applicant_id,
+                ReviewApplication.status_cd == "EXPIRED",
+            ]
+            if blocked_at is not None:
+                cond.append(ReviewApplication.deadline_at > blocked_at - timedelta(days=BLOCK_DAYS))
+            cycle_missed = (
+                await self.session.execute(select(func.count()).select_from(ReviewApplication).where(*cond))
+            ).scalar_one()
+            if cycle_missed >= MISS_LIMIT:
                 acc.review_blocked_at = now + timedelta(days=BLOCK_DAYS)
         await self.session.commit()
 
