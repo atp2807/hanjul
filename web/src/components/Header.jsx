@@ -1,8 +1,27 @@
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 
 import { useAuth } from '../auth/AuthContext';
 import { getLoginUrl } from '../services/api/auth';
+import { T } from '../theme';
 import { NotificationBell } from './NotificationBell';
+
+const NAV = [
+  ['/', '서점'],
+  ['/studio', '에디터'],
+  ['/studio', '출판'],
+];
+
+function navStyle({ isActive }) {
+  return {
+    padding: '9px 16px',
+    borderRadius: T.radius.md,
+    fontSize: 15,
+    fontWeight: 600,
+    color: T.text,
+    textDecoration: 'none',
+    background: isActive ? T.tint : 'transparent',
+  };
+}
 
 export function Header() {
   const { user, logout } = useAuth();
@@ -15,44 +34,59 @@ export function Header() {
   return (
     <header
       style={{
-        borderBottom: '1px solid #eee',
-        padding: '14px 24px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 16,
         position: 'sticky',
         top: 0,
-        background: '#fff',
-        zIndex: 10,
+        zIndex: 50,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '16px 32px',
+        background: 'rgba(243,250,248,0.86)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        borderBottom: `1px solid ${T.border}`,
       }}
     >
-      <Link to="/" style={{ textDecoration: 'none', color: '#111' }}>
-        <strong style={{ fontSize: 22, letterSpacing: '-0.02em' }}>한줄</strong>
+      <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none' }}>
+        <span style={{ width: 26, height: 26, borderRadius: 8, background: T.accent, display: 'inline-block' }} />
+        <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.03em', color: T.ink }}>한줄</span>
       </Link>
-      <span style={{ color: '#999', fontSize: 13 }}>글로벌 ebook 출판</span>
 
-      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12 }}>
+      <nav style={{ display: 'flex', gap: 6 }}>
+        {NAV.map(([to, label], i) => (
+          <NavLink key={`${to}-${i}`} to={to} end={to === '/'} style={navStyle}>
+            {label}
+          </NavLink>
+        ))}
+      </nav>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         {user ? (
           <>
-            <Link to="/studio" style={{ fontSize: 14, color: '#333', textDecoration: 'none' }}>
-              스튜디오
-            </Link>
-            <Link to="/library" style={{ fontSize: 14, color: '#333', textDecoration: 'none' }}>
+            <Link to="/library" style={{ fontSize: 14, color: T.textMid, textDecoration: 'none', fontWeight: 600 }}>
               내 서재
             </Link>
             <NotificationBell />
-            <span style={{ fontSize: 14, color: '#555' }}>{user.displayName || user.email}</span>
-            <button onClick={logout} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #ddd' }}>
+            <span style={{ fontSize: 14, color: T.textMid }}>{user.displayName || user.email}</span>
+            <button
+              onClick={logout}
+              style={{ padding: '7px 14px', borderRadius: T.radius.pill, border: `1px solid ${T.border}`, background: T.surface, color: T.textMid, fontWeight: 600, cursor: 'pointer' }}
+            >
               로그아웃
             </button>
           </>
         ) : (
-          <button
-            onClick={startLogin}
-            style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #ddd', fontWeight: 600 }}
-          >
-            Google 로그인
-          </button>
+          <>
+            <span onClick={startLogin} style={{ fontSize: 14, color: T.textMid, fontWeight: 600, cursor: 'pointer' }}>
+              로그인
+            </span>
+            <button
+              onClick={startLogin}
+              style={{ padding: '10px 20px', background: T.ink, color: T.inkText, border: 'none', borderRadius: T.radius.pill, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+            >
+              무료로 시작
+            </button>
+          </>
         )}
       </div>
     </header>

@@ -21,17 +21,17 @@ function renderHeader() {
 }
 
 describe('Header', () => {
-  it('미로그인: Google 로그인 버튼', () => {
+  it('미로그인: 로그인 + 무료로 시작', () => {
     authCtx.useAuth.mockReturnValue({ user: null, logout: vi.fn() });
     renderHeader();
-    expect(screen.getByText('Google 로그인')).toBeInTheDocument();
+    expect(screen.getByText('무료로 시작')).toBeInTheDocument();
+    expect(screen.getByText('로그인')).toBeInTheDocument();
   });
 
-  it('로그인: 이름 + 스튜디오/내서재/로그아웃', () => {
+  it('로그인: 이름 + 내서재/로그아웃', () => {
     authCtx.useAuth.mockReturnValue({ user: { displayName: '박작가', email: 'a@x.com' }, logout: vi.fn() });
     renderHeader();
     expect(screen.getByText('박작가')).toBeInTheDocument();
-    expect(screen.getByText('스튜디오')).toBeInTheDocument();
     expect(screen.getByText('내 서재')).toBeInTheDocument();
     expect(screen.getByText('로그아웃')).toBeInTheDocument();
   });
