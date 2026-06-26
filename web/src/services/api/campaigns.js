@@ -20,6 +20,10 @@ export function cancelApplication(id) {
 export function getMyApplications() {
   return apiClient.get('/me/applications');
 }
+// 내 신뢰도·자격 (완료/미작성/완료율/자격회수)
+export function getReviewerStatus() {
+  return apiClient.get('/me/reviewer-status');
+}
 // 작가 — 캠페인 생성
 export function createCampaign({ bookId, slots, reviewDays = 14, minChars = 0 }) {
   return apiClient.post('/campaigns', { bookId, slots, reviewDays, minChars });

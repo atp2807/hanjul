@@ -60,12 +60,35 @@ class ApplicantView:
     created_at: datetime
 
 
+@dataclass
+class ReviewerStatus:
+    """리뷰어 신뢰도·자격 — 내 활동 상단/요소 카드용."""
+    completed: int       # 기한 내 완료
+    missed: int          # 기한 초과 미작성(EXPIRED)
+    active: int          # 진행 중(ASSIGNED)
+    pending: int         # 신청 대기
+    received: int        # 받은 증정본(배정된 적 있는 총합)
+    completion_rate: int | None  # 완료/(완료+미작성) %, 이력 없으면 None
+    blocked_until: datetime | None  # 자격회수 해제 시각(없으면 정상)
+
+
+# 자격회수 룰: 미작성(EXPIRED) 2회 누적 시 14일 신청 제한.
+MISS_LIMIT = 2
+BLOCK_DAYS = 14
+
+
 class CampaignNotFound(Exception):
     ...
 
 
 class NoSlotsLeft(Exception):
     ...
+
+
+class ReviewerBlocked(Exception):
+    """자격회수 기간 중 신청 시도."""
+    def __init__(self, until):
+        self.until = until
 
 
 class CampaignRepository(Protocol):
@@ -106,4 +129,12 @@ class CampaignRepository(Protocol):
 
     async def mark_completed(self, book_id: UUID, applicant_id: UUID) -> None:
         """그 책 캠페인의 ASSIGNED 신청을 COMPLETED 로(리뷰 작성 시). 멱등."""
+        ...
+
+    async def sweep_overdue(self, applicant_id: UUID, now: datetime) -> None:
+        """기한 초과 ASSIGNED → EXPIRED. 누적 미작성이 한계 도달 시 자격회수 설정."""
+        ...
+
+    async def reviewer_status(self, applicant_id: UUID, now: datetime) -> "ReviewerStatus":
+        """리뷰어 신뢰도·자격 집계(sweep 후)."""
         ...

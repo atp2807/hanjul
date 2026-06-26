@@ -27,6 +27,7 @@ class Account(Base):
     bio = Column(Text)  # 작가 소개(프로필)
     role_cd = Column(String(20), nullable=False, default="READER")   # READER | AUTHOR | ADMIN
     status_cd = Column(String(20), nullable=False, default="ACTIVE")  # ACTIVE | SUSPENDED
+    review_blocked_at = Column("review_blocked_ts", DateTime(timezone=True))  # 서평단 자격회수: 이 시각까지 신청 제한(NULL=정상)
     created_at = Column("created_ts", DateTime(timezone=True), default=_now, nullable=False)
     updated_at = Column("updated_ts", DateTime(timezone=True), default=_now, onupdate=_now, nullable=False)
 

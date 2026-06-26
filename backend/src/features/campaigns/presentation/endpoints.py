@@ -10,7 +10,7 @@ from src.features.auth.presentation.dependencies import get_current_account
 from src.features.billing.application.order_service import OrderService
 from src.features.billing.presentation.dependencies import get_order_service
 from src.features.campaigns.application.campaign_service import CampaignService
-from src.features.campaigns.domain.models import CampaignNotFound, NoSlotsLeft
+from src.features.campaigns.domain.models import CampaignNotFound, NoSlotsLeft, ReviewerBlocked
 from src.features.campaigns.infrastructure.campaign_repo import SqlCampaignRepository
 from src.features.campaigns.presentation.dependencies import get_campaign_service
 from src.features.campaigns.presentation.schemas import (
@@ -24,6 +24,7 @@ from src.features.campaigns.presentation.schemas import (
     CampaignItem,
     CampaignListResponse,
     CreateCampaignRequest,
+    ReviewerStatusResponse,
 )
 
 router = APIRouter(tags=["campaigns"])
@@ -116,6 +117,8 @@ async def apply(
     """리뷰어 신청 (모집중인 캠페인)."""
     try:
         await svc.apply(campaign_id, principal.id)
+    except ReviewerBlocked as e:
+        raise HTTPException(403, f"자격회수 기간이에요(해제 {e.until:%Y-%m-%d}).")
     except CampaignNotFound:
         raise HTTPException(404, "campaign not found")
     except NoSlotsLeft:
@@ -142,6 +145,16 @@ async def assign(
     except NoSlotsLeft:
         raise HTTPException(409, "슬롯이 없거나 신청자가 아니에요")
     await orders.grant_review_copy(camp.book_id, body.applicant_id)  # 증정본 지급
+
+
+@router.get("/me/reviewer-status", response_model=ReviewerStatusResponse)
+async def reviewer_status(
+    principal: AccountPrincipal = Depends(get_current_account),
+    svc: CampaignService = Depends(get_campaign_service),
+) -> ReviewerStatusResponse:
+    """리뷰어 신뢰도·자격 — 완료/미작성/완료율/자격회수."""
+    s = await svc.reviewer_status(principal.id)
+    return ReviewerStatusResponse.model_validate(s)
 
 
 @router.get("/me/applications", response_model=ApplicationListResponse)

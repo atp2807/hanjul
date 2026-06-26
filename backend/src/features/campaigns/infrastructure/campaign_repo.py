@@ -7,11 +7,21 @@ from sqlalchemy import case, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from datetime import timedelta, timezone
+
+
+def _aware(dt):
+    """sqlite는 tz-naive로 돌려줌 → UTC로 간주해 aware 비교 가능하게."""
+    return dt.replace(tzinfo=timezone.utc) if dt is not None and dt.tzinfo is None else dt
+
 from src.features.campaigns.domain.models import (
+    BLOCK_DAYS,
+    MISS_LIMIT,
     ApplicantView,
     ApplicationView,
     AuthorCampaignView,
     CampaignView,
+    ReviewerStatus,
 )
 from src.infrastructure.db.models.account import Account
 from src.infrastructure.db.models.book import Book
@@ -205,3 +215,57 @@ class SqlCampaignRepository:
             return
         app.status_cd = "COMPLETED"
         await self.session.commit()
+
+    async def sweep_overdue(self, applicant_id, now) -> None:
+        # 기한 초과 ASSIGNED → EXPIRED
+        overdue = (
+            await self.session.execute(
+                select(ReviewApplication).where(
+                    ReviewApplication.applicant_id == applicant_id,
+                    ReviewApplication.status_cd == "ASSIGNED",
+                    ReviewApplication.deadline_at.is_not(None),
+                    ReviewApplication.deadline_at < now,
+                )
+            )
+        ).scalars().all()
+        if not overdue:
+            return
+        for a in overdue:
+            a.status_cd = "EXPIRED"
+        await self.session.flush()  # EXPIRED 반영 후 누적 미작성 집계
+        # 누적 미작성 한계 도달 + 현재 비차단이면 자격회수(BLOCK_DAYS)
+        missed = (
+            await self.session.execute(
+                select(func.count()).select_from(ReviewApplication).where(
+                    ReviewApplication.applicant_id == applicant_id,
+                    ReviewApplication.status_cd == "EXPIRED",
+                )
+            )
+        ).scalar_one()
+        if missed >= MISS_LIMIT:
+            acc = (await self.session.execute(select(Account).where(Account.id == applicant_id))).scalar_one_or_none()
+            if acc is not None and (acc.review_blocked_at is None or _aware(acc.review_blocked_at) <= now):
+                acc.review_blocked_at = now + timedelta(days=BLOCK_DAYS)
+        await self.session.commit()
+
+    async def reviewer_status(self, applicant_id, now) -> ReviewerStatus:
+        await self.sweep_overdue(applicant_id, now)
+        rows = (
+            await self.session.execute(
+                select(ReviewApplication.status_cd, func.count())
+                .where(ReviewApplication.applicant_id == applicant_id)
+                .group_by(ReviewApplication.status_cd)
+            )
+        ).all()
+        by = {s: n for s, n in rows}
+        completed, missed = by.get("COMPLETED", 0), by.get("EXPIRED", 0)
+        active, pending = by.get("ASSIGNED", 0), by.get("PENDING", 0)
+        done = completed + missed
+        rate = round(completed / done * 100) if done else None
+        acc = (await self.session.execute(select(Account.review_blocked_at).where(Account.id == applicant_id))).scalar_one_or_none()
+        acc = _aware(acc)
+        blocked = acc if (acc is not None and acc > now) else None
+        return ReviewerStatus(
+            completed=completed, missed=missed, active=active, pending=pending,
+            received=completed + missed + active, completion_rate=rate, blocked_until=blocked,
+        )

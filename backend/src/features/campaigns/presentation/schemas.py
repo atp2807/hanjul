@@ -83,3 +83,13 @@ class ApplicantItem(_Camel):
 
 class ApplicantListResponse(_Camel):
     items: list[ApplicantItem]
+
+
+class ReviewerStatusResponse(_Camel):
+    completed: int
+    missed: int
+    active: int
+    pending: int
+    received: int
+    completion_rate: int | None
+    blocked_until: datetime | None

@@ -2,14 +2,21 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../auth/AuthContext';
-import { cancelApplication, dday, getMyApplications } from '../services/api/campaigns';
+import { cancelApplication, dday, getMyApplications, getReviewerStatus } from '../services/api/campaigns';
 import { coverGradient, T } from '../theme';
 
 const STATUS = {
   PENDING: { label: '신청 대기', fg: '#c79318', bg: '#fff3da' },
   ASSIGNED: { label: '배정됨', fg: '#2f8a6f', bg: '#e3f3ec' },
   COMPLETED: { label: '리뷰 완료', fg: T.text, bg: '#eef4f1' },
+  EXPIRED: { label: '기한 초과', fg: '#c25540', bg: '#fdeeea' },
 };
+
+function fmtDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+}
 
 function StatCard({ label, value, sub, dark }) {
   return (
@@ -25,10 +32,12 @@ export function ReviewerActivityPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [items, setItems] = useState(null);
+  const [status, setStatus] = useState(null);
   const [filter, setFilter] = useState('ALL');
 
   function load() {
     getMyApplications().then((r) => setItems(r.items)).catch(() => setItems([]));
+    getReviewerStatus().then(setStatus).catch(() => setStatus(null));
   }
   useEffect(() => { if (user) load(); }, [user]);
 
@@ -38,8 +47,11 @@ export function ReviewerActivityPage() {
   const assigned = items.filter((a) => a.statusCd === 'ASSIGNED');
   const completed = items.filter((a) => a.statusCd === 'COMPLETED');
   const pending = items.filter((a) => a.statusCd === 'PENDING');
-  const received = assigned.length + completed.length;
-  const rate = received ? Math.round((completed.length / received) * 100) : null;
+  const expired = items.filter((a) => a.statusCd === 'EXPIRED');
+  // 서버 집계 우선, 없으면 목록에서 도출
+  const rate = status ? status.completionRate : (completed.length + expired.length ? Math.round((completed.length / (completed.length + expired.length)) * 100) : null);
+  const received = status ? status.received : assigned.length + completed.length;
+  const blockedUntil = status?.blockedUntil || null;
 
   const counts = { ALL: items.length, PENDING: pending.length, ASSIGNED: assigned.length, COMPLETED: completed.length };
   const shown = filter === 'ALL' ? items : items.filter((a) => a.statusCd === filter);
@@ -53,11 +65,20 @@ export function ReviewerActivityPage() {
       <div style={{ maxWidth: 1180, margin: '0 auto', padding: '34px 40px 56px' }}>
         <h1 style={{ margin: '0 0 22px', fontSize: 28, fontWeight: 800, color: T.ink, letterSpacing: '-0.025em' }}>내 서평단 활동</h1>
 
+        {blockedUntil && (
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '16px 20px', background: '#fdeeea', border: '1px solid #f3cfc6', borderRadius: 14, marginBottom: 20 }}>
+            <span style={{ fontSize: 20 }}>🚫</span>
+            <div style={{ fontSize: 13.5, color: '#c25540', lineHeight: 1.6 }}>
+              기한 내 미작성이 누적되어 <b>서평단 자격이 회수</b>되었어요. <b>{fmtDate(blockedUntil)}</b>부터 다시 신청할 수 있어요.
+            </div>
+          </div>
+        )}
+
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 16, marginBottom: 28 }}>
-          <StatCard dark label="완료율" value={rate === null ? '—' : `${rate}%`} sub={received ? `${received}건 중 ${completed.length}건 완료` : '아직 없음'} />
+          <StatCard dark label="서평단 자격" value={blockedUntil ? '회수' : '정상'} sub={blockedUntil ? `${fmtDate(blockedUntil)} 해제` : (status && status.missed ? `미작성 ${status.missed}회` : '성실 리뷰어')} />
+          <StatCard label="리뷰 완료율" value={rate === null ? '—' : `${rate}%`} sub={received ? `${received}건 중 ${completed.length}건 완료` : '아직 없음'} />
           <StatCard label="받은 증정본" value={`${received}권`} />
           <StatCard label="진행 중" value={`${assigned.length}건`} sub={assigned.length ? '리뷰 작성 대기' : null} />
-          <StatCard label="신청 대기" value={`${pending.length}건`} />
         </div>
 
         <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
@@ -90,18 +111,21 @@ export function ReviewerActivityPage() {
                       {a.statusCd === 'ASSIGNED' && `리뷰 기한 ${d} · 증정본 수령 완료`}
                       {a.statusCd === 'PENDING' && '배정 결과를 기다리는 중'}
                       {a.statusCd === 'COMPLETED' && '리뷰 게시됨'}
+                      {a.statusCd === 'EXPIRED' && '리뷰 기한이 지났어요 · 미작성'}
                     </div>
                   </div>
                   <span style={{ padding: '5px 12px', borderRadius: T.radius.pill, fontSize: 12, fontWeight: 700, color: urgent ? '#e0654f' : st.fg, background: urgent ? '#fdeeea' : st.bg }}>
                     {st.label}{urgent && a.statusCd === 'ASSIGNED' ? ' · 마감임박' : ''}
                   </span>
-                  {a.statusCd === 'PENDING' ? (
+                  {a.statusCd === 'PENDING' && (
                     <button onClick={() => onCancel(a)} style={{ padding: '9px 16px', background: T.tint, color: T.ink, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, minWidth: 88, cursor: 'pointer' }}>신청 취소</button>
-                  ) : (
+                  )}
+                  {(a.statusCd === 'ASSIGNED' || a.statusCd === 'COMPLETED') && (
                     <button onClick={() => navigate(a.statusCd === 'ASSIGNED' ? `/campaigns/${a.campaignId}/review` : `/books/${a.bookId}`)} style={{ padding: '9px 16px', background: a.statusCd === 'ASSIGNED' ? T.ink : T.tint, color: a.statusCd === 'ASSIGNED' ? T.inkText : T.ink, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, minWidth: 88, cursor: 'pointer' }}>
                       {a.statusCd === 'ASSIGNED' ? '리뷰 쓰기' : '리뷰 보기'}
                     </button>
                   )}
+                  {a.statusCd === 'EXPIRED' && <span style={{ minWidth: 88, textAlign: 'center', fontSize: 12.5, color: T.muted }}>기한 종료</span>}
                 </div>
               );
             })}

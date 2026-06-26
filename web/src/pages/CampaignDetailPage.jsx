@@ -42,7 +42,9 @@ export function CampaignDetailPage() {
       await applyCampaign(id);
       setApplied(true);
     } catch (e) {
-      setErr(e.status === 409 ? '마감된 모집이에요.' : '신청에 실패했어요.');
+      if (e.status === 409) setErr('마감된 모집이에요.');
+      else if (e.status === 403) setErr('서평단 자격회수 기간이에요. 내 활동에서 해제일을 확인하세요.');
+      else setErr('신청에 실패했어요.');
     } finally {
       setBusy(false);
     }

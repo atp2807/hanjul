@@ -10,6 +10,8 @@ from src.features.campaigns.domain.models import (
     CampaignRepository,
     CampaignView,
     NoSlotsLeft,
+    ReviewerBlocked,
+    ReviewerStatus,
 )
 
 
@@ -31,7 +33,12 @@ class CampaignService:
             raise CampaignNotFound(campaign_id)
         return c
 
-    async def apply(self, campaign_id: UUID, applicant_id: UUID) -> None:
+    async def apply(self, campaign_id: UUID, applicant_id: UUID, now: datetime | None = None) -> None:
+        now = now or datetime.now(timezone.utc)
+        # 기한 초과분 정리 후 자격회수 상태면 신청 차단
+        status = await self.repo.reviewer_status(applicant_id, now)
+        if status.blocked_until is not None:
+            raise ReviewerBlocked(status.blocked_until)
         c = await self.get(campaign_id)
         if c.status_cd != "OPEN":
             raise NoSlotsLeft()
@@ -47,8 +54,12 @@ class CampaignService:
             raise NoSlotsLeft()
         return True
 
-    async def list_my_applications(self, applicant_id: UUID) -> list[ApplicationView]:
+    async def list_my_applications(self, applicant_id: UUID, now: datetime | None = None) -> list[ApplicationView]:
+        await self.repo.sweep_overdue(applicant_id, now or datetime.now(timezone.utc))
         return await self.repo.list_my_applications(applicant_id)
+
+    async def reviewer_status(self, applicant_id: UUID, now: datetime | None = None) -> ReviewerStatus:
+        return await self.repo.reviewer_status(applicant_id, now or datetime.now(timezone.utc))
 
     async def cancel(self, campaign_id: UUID, applicant_id: UUID) -> bool:
         """신청 취소 — PENDING 만. 이미 배정됐으면 False."""
