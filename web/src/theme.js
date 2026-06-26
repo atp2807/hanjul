@@ -3,13 +3,14 @@
 export const T = {
   bg: '#f3faf8', // 페이지 배경 (연민트)
   surface: '#ffffff',
-  ink: '#0c3a32', // 브랜드 딥틸 — 로고·제목·주 버튼
+  ink: '#0e4a5c', // 브랜드 딥틸(블루-틸) — 로고·제목·주 버튼
   inkText: '#eafaf5', // ink 위 텍스트
-  textStrong: '#16302a',
-  text: '#2f5249',
-  textMid: '#3f6258',
-  textSoft: '#56716a',
-  muted: '#7d908a',
+  inkSoft: '#9bc6cf', // ink 카드 위 보조 텍스트
+  textStrong: '#143e4a',
+  text: '#3f6b78',
+  textMid: '#3f6b78',
+  textSoft: '#52615b',
+  muted: '#7d949c',
   faint: '#9bb0a8',
   border: '#e3efea',
   borderSoft: '#eef2f0',

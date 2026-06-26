@@ -1,73 +1,82 @@
-import { useNavigate } from 'react-router-dom';
-
 import { T } from '../theme';
 
-const TIERS = [
-  {
-    name: '무료',
-    price: '0원',
-    note: '누구나 바로 시작',
-    feats: ['✓ 글쓰기 에디터 무제한', '✓ 전자책 출판', '✓ 기본 서점 이용', '· 수익 배분 70%'],
-    cta: '시작하기',
-    dark: false,
-    to: '/studio',
-  },
-  {
-    name: '독자 멤버십',
-    price: '9,900원',
-    per: '/월',
-    note: '무제한으로 읽고 싶다면',
-    feats: ['✓ 멤버십 도서 무제한 읽기', '✓ 오프라인 다운로드', '✓ 광고 없는 리더', '✓ 신간 우선 열람'],
-    cta: '멤버십 시작',
-    dark: false,
-  },
-  {
-    name: '작가 Pro',
-    price: '19,900원',
-    per: '/월',
-    note: '본격적으로 펴내는 작가에게',
-    feats: ['✓ 수익 배분 85%', '✓ 무제한 출판', '✓ 판매·유입 분석', '✓ 서점 우선 노출'],
-    cta: 'Pro 시작',
-    dark: true,
-  },
-];
+// 수수료·정산 안내 (구 요금제 — 우리는 구독 티어가 아니라 판매 수수료(분배) 모델).
+function Stat({ value, label, color }) {
+  return (
+    <div style={{ background: T.surface, borderRadius: 18, padding: 26, textAlign: 'center' }}>
+      <div style={{ fontSize: 34, fontWeight: 800, color: color || T.ink, letterSpacing: '-0.02em' }}>{value}</div>
+      <div style={{ fontSize: 13.5, color: T.muted, marginTop: 6 }}>{label}</div>
+    </div>
+  );
+}
+
+function ChannelCard({ title, desc, authorPct, authorLabel, platLabel, recommend }) {
+  return (
+    <div style={{ background: T.surface, borderRadius: 20, padding: '28px 30px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+        <div style={{ fontSize: 17, fontWeight: 800, color: T.ink }}>{title}</div>
+        {recommend && <span style={{ padding: '4px 11px', background: '#e3f3ec', borderRadius: 999, fontSize: 12, fontWeight: 700, color: '#2f8a6f' }}>추천</span>}
+      </div>
+      <p style={{ margin: '0 0 20px', fontSize: 13.5, color: T.muted, lineHeight: 1.6 }}>{desc}</p>
+      <div style={{ display: 'flex', height: 42, borderRadius: 11, overflow: 'hidden' }}>
+        <div style={{ width: `${authorPct}%`, background: 'oklch(0.7 0.11 188)', display: 'flex', alignItems: 'center', paddingLeft: 16, color: '#06342c', fontSize: 14, fontWeight: 800 }}>{authorLabel}</div>
+        <div style={{ width: `${100 - authorPct}%`, background: '#dceee9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.textMid, fontSize: 13, fontWeight: 700 }}>{platLabel}</div>
+      </div>
+    </div>
+  );
+}
+
+function Step({ label, value, highlight }) {
+  return (
+    <div style={{ flex: highlight ? 1.1 : 1, background: highlight ? 'oklch(0.7 0.11 188)' : 'rgba(255,255,255,0.08)', borderRadius: 14, padding: 20 }}>
+      <div style={{ fontSize: 12.5, color: highlight ? '#06342c' : T.inkSoft, fontWeight: highlight ? 600 : 400 }}>{label}</div>
+      <div style={{ fontSize: highlight ? 26 : 24, fontWeight: 800, color: highlight ? '#06342c' : '#fff', marginTop: 6 }}>{value}</div>
+    </div>
+  );
+}
+const Op = ({ ch }) => <div style={{ display: 'flex', alignItems: 'center', color: '#6f9aa4', fontSize: 20 }}>{ch}</div>;
 
 export function PricingPage() {
-  const navigate = useNavigate();
-
   return (
-    <div style={{ padding: '54px 40px 64px', textAlign: 'center' }}>
-      <h1 style={{ margin: '0 0 10px', fontSize: 34, fontWeight: 800, color: T.ink, letterSpacing: '-0.03em' }}>읽는 사람도, 쓰는 사람도</h1>
-      <p style={{ margin: '0 auto 40px', maxWidth: 480, fontSize: 16, lineHeight: 1.7, color: T.muted }}>
-        필요한 만큼만 쓰세요. 글을 펴내는 일은 언제나 무료로 시작할 수 있어요.
-      </p>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 20, maxWidth: 1040, margin: '0 auto', textAlign: 'left' }}>
-        {TIERS.map((t) => (
-          <div key={t.name} style={{ background: t.dark ? T.ink : T.surface, borderRadius: 22, padding: '34px 30px', position: 'relative', overflow: 'hidden' }}>
-            {t.dark && <div style={{ position: 'absolute', right: -40, top: -40, width: 160, height: 160, borderRadius: 999, background: 'rgba(255,255,255,0.06)' }} />}
-            <div style={{ fontSize: 16, fontWeight: 800, color: t.dark ? '#dff5ef' : T.ink }}>{t.name}</div>
-            <div style={{ margin: '14px 0 6px', fontSize: 36, fontWeight: 800, color: t.dark ? '#eafaf5' : T.ink, letterSpacing: '-0.02em' }}>
-              {t.price}
-              {t.per && <span style={{ fontSize: 15, fontWeight: 600, color: t.dark ? '#9fc7bb' : '#a8b5af' }}>{t.per}</span>}
-            </div>
-            <div style={{ fontSize: 13, color: t.dark ? '#9fc7bb' : T.muted, marginBottom: 24 }}>{t.note}</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 14, color: t.dark ? '#cfe9e1' : '#52615b' }}>
-              {t.feats.map((f) => (
-                <div key={f} style={f.startsWith('·') ? { color: t.dark ? '#7fae9f' : '#b6c4be' } : undefined}>{f}</div>
-              ))}
-            </div>
-            <button
-              onClick={() => (t.to ? navigate(t.to) : window.alert('곧 제공될 예정이에요.'))}
-              style={{
-                display: 'block', width: '100%', textAlign: 'center', padding: 13, marginTop: 28,
-                background: t.dark ? '#eafaf5' : '#eef6f3', color: T.ink, border: 'none',
-                borderRadius: 12, fontSize: 14, fontWeight: 700, cursor: 'pointer',
-              }}
-            >
-              {t.cta}
-            </button>
+    <div style={{ padding: '54px 56px 64px' }}>
+      <div style={{ textAlign: 'center', maxWidth: 680, margin: '0 auto 44px' }}>
+        <div style={{ display: 'inline-block', padding: '6px 14px', background: '#e3f3ec', borderRadius: 999, fontSize: 12.5, fontWeight: 700, color: '#2f8a6f', marginBottom: 18 }}>작가에게 가장 많이 남기는 구조</div>
+        <h1 style={{ margin: '0 0 14px', fontSize: 36, fontWeight: 800, color: T.ink, letterSpacing: '-0.03em', lineHeight: 1.25 }}>월 요금 없이, 팔린 만큼<br />투명하게 나눕니다</h1>
+        <p style={{ margin: 0, fontSize: 16, lineHeight: 1.75, color: T.muted }}>
+          가입도, 글쓰기 에디터도, 출판도 무료예요. 작가에게 월 구독료를 받지 않습니다. 책이 팔릴 때만, 처음부터 공개된 비율로 정산합니다.
+        </p>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, maxWidth: 920, margin: '0 auto 44px' }}>
+        <Stat value="0원" label="가입·에디터·출판 비용" />
+        <Stat value="70%" label="한줄 직판 시 작가 몫" color="oklch(0.6 0.1 195)" />
+        <Stat value="M+2" label="판매월 + 2개월 정산" />
+      </div>
+
+      <div style={{ maxWidth: 920, margin: '0 auto' }}>
+        <h2 style={{ margin: '0 0 18px', fontSize: 20, fontWeight: 800, color: T.textStrong, letterSpacing: '-0.02em' }}>판매 채널별 분배율</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 18, marginBottom: 44 }}>
+          <ChannelCard title="SELF · 한줄 직판" desc="한줄 서점에서 직접 팔릴 때. 가장 높은 작가 몫." authorPct={70} authorLabel="작가 70%" platLabel="한줄 30%" recommend />
+          <ChannelCard title="EXTERNAL · 외부 서점" desc="교보·예스24 등 외부 채널 판매 (서점 몫 포함)." authorPct={60} authorLabel="작가 60%" platLabel="서점·플랫폼 40%" />
+        </div>
+
+        <h2 style={{ margin: '0 0 18px', fontSize: 20, fontWeight: 800, color: T.textStrong, letterSpacing: '-0.02em' }}>정산은 이렇게 계산돼요</h2>
+        <div style={{ background: T.ink, borderRadius: 22, padding: '34px 36px', marginBottom: 20 }}>
+          <div style={{ fontSize: 13, color: T.inkSoft, marginBottom: 22 }}>예시 · 10,000원 책이 <b style={{ color: '#fff' }}>한줄 직판(SELF)</b>으로 1권 팔렸을 때</div>
+          <div style={{ display: 'flex', alignItems: 'stretch', gap: 14, flexWrap: 'wrap' }}>
+            <Step label="판매가" value="10,000원" />
+            <Op ch="→" />
+            <Step label="작가 몫 (70%)" value="7,000원" />
+            <Op ch="−" />
+            <Step label="원천징수 (3.3%)" value="231원" />
+            <Op ch="=" />
+            <Step label="실지급액" value="6,769원" highlight />
           </div>
-        ))}
+        </div>
+        <div style={{ display: 'flex', gap: 24, fontSize: 13, color: T.muted, lineHeight: 1.7, flexWrap: 'wrap' }}>
+          <div style={{ flex: 1, minWidth: 260 }}><b style={{ color: T.textMid }}>원천징수란?</b> 개인 작가는 작가 몫에서 소득세 3% + 주민세 0.3% = 3.3%를 떼고 지급해요. (사업자 작가는 세금계산서 발행, 원천징수 없음)</div>
+          <div style={{ flex: 1, minWidth: 260 }}><b style={{ color: T.textMid }}>정산 주기</b> 판매가 일어난 달 기준 2개월 뒤(M+2)에 등록한 계좌로 지급됩니다. 스튜디오에서 실시간 적립·예정 정산액을 확인할 수 있어요.</div>
+        </div>
       </div>
     </div>
   );

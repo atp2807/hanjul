@@ -8,7 +8,7 @@ const NAV = [
   ['/', '서점'],
   ['/studio', '에디터'],
   ['/studio', '출판'],
-  ['/pricing', '요금제'],
+  ['/pricing', '수수료·정산'],
 ];
 
 function navStyle({ isActive }) {
