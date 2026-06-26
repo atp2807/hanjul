@@ -18,3 +18,10 @@ export const READER_STYLE = {
 export function blockStyle(type) {
   return READER_STYLE.blocks[type] || READER_STYLE.blocks.P;
 }
+
+// 리더 테마 — 배경/글자색. 측정엔 영향 없음(색만 바뀜).
+export const READER_THEMES = {
+  light: { bg: '#ffffff', fg: '#1a1a1a', label: '라이트' },
+  sepia: { bg: '#f4ecd8', fg: '#5b4636', label: '세피아' },
+  dark: { bg: '#1c1c1e', fg: '#d6d6d6', label: '다크' },
+};

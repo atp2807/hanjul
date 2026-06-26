@@ -61,7 +61,7 @@ export function ReaderPage() {
     <div style={{ maxWidth: 680, margin: '24px auto', padding: '0 16px' }}>
       {error && <p style={{ color: 'crimson' }}>{error}</p>}
       {!blocks && !error && <p style={{ color: '#999' }}>불러오는 중…</p>}
-      {blocks && <Reader blocks={blocks} />}
+      {blocks && <Reader blocks={blocks} bookId={id} />}
 
       {blocks && (
         <section style={{ marginTop: 22 }}>
