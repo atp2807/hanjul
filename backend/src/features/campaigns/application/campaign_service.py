@@ -1,0 +1,49 @@
+"""campaigns 서비스 — 서평단 캠페인 생성·신청·배정(증정본 지급)."""
+from datetime import datetime, timedelta, timezone
+from uuid import UUID
+
+from src.features.campaigns.domain.models import (
+    ApplicationView,
+    CampaignNotFound,
+    CampaignRepository,
+    CampaignView,
+    NoSlotsLeft,
+)
+
+
+class CampaignService:
+    def __init__(self, repo: CampaignRepository):
+        self.repo = repo
+
+    async def create(self, book_id: UUID, author_id: UUID, slots: int, review_days: int = 7, min_chars: int = 0) -> UUID:
+        if slots < 1:
+            raise ValueError("증정본은 1부 이상")
+        return await self.repo.create(book_id, author_id, slots, review_days, min_chars)
+
+    async def list_open(self) -> list[CampaignView]:
+        return await self.repo.list_open()
+
+    async def get(self, campaign_id: UUID) -> CampaignView:
+        c = await self.repo.get(campaign_id)
+        if c is None:
+            raise CampaignNotFound(campaign_id)
+        return c
+
+    async def apply(self, campaign_id: UUID, applicant_id: UUID) -> None:
+        c = await self.get(campaign_id)
+        if c.status_cd != "OPEN":
+            raise NoSlotsLeft()
+        await self.repo.apply(campaign_id, applicant_id)
+
+    async def assign(self, campaign_id: UUID, applicant_id: UUID, now: datetime | None = None) -> bool:
+        """배정 — 슬롯 차감 + 마감 설정. 증정본 지급은 호출 측(엔드포인트)이 OrderService로."""
+        c = await self.get(campaign_id)
+        now = now or datetime.now(timezone.utc)
+        deadline = now + timedelta(days=c.review_days)
+        ok = await self.repo.assign(campaign_id, applicant_id, deadline)
+        if not ok:
+            raise NoSlotsLeft()
+        return True
+
+    async def list_my_applications(self, applicant_id: UUID) -> list[ApplicationView]:
+        return await self.repo.list_my_applications(applicant_id)

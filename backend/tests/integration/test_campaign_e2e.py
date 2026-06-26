@@ -1,0 +1,112 @@
+"""서평단 캠페인 E2E — 생성→모집→신청→배정(증정본)→서평단 리뷰."""
+import httpx
+import pytest
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.config.settings import settings
+
+settings.DEBUG = False
+
+from main import app  # noqa: E402
+from src.config.database import get_session  # noqa: E402
+from src.features.auth.application.auth_service import AuthService  # noqa: E402
+from src.features.auth.domain.models import SocialProfile  # noqa: E402
+from src.features.auth.infrastructure.account_repo import SqlAccountRepository  # noqa: E402
+from src.features.auth.presentation.dependencies import get_auth_service, token_issuer  # noqa: E402
+from src.features.billing.application.order_service import OrderService  # noqa: E402
+from src.features.billing.infrastructure.book_pricing import SqlBookPricing  # noqa: E402
+from src.features.billing.infrastructure.order_repo import SqlOrderRepository  # noqa: E402
+from src.features.billing.presentation.dependencies import get_order_service  # noqa: E402
+from tests.fixtures.fake_account_repo import FakeProvider  # noqa: E402
+from tests.fixtures.fake_order_repo import FakeGateway  # noqa: E402
+from tests.integration.auth_helpers import login_account  # noqa: E402
+
+AUTHOR = SocialProfile("GOOGLE", "cp-author", "a@x.com", "작가")
+READER = SocialProfile("NAVER", "cp-reader", "r@x.com", "리뷰어")
+OTHER = SocialProfile("KAKAO", "cp-other", "o@x.com", "남")
+
+
+@pytest.fixture
+def app_db(sessionmaker):
+    async def _session():
+        async with sessionmaker() as s:
+            yield s
+
+    def _auth(session: AsyncSession = Depends(get_session)):
+        return AuthService(
+            SqlAccountRepository(session),
+            {"GOOGLE": FakeProvider("GOOGLE", AUTHOR), "NAVER": FakeProvider("NAVER", READER), "KAKAO": FakeProvider("KAKAO", OTHER)},
+            token_issuer(),
+        )
+
+    def _order(session: AsyncSession = Depends(get_session)):
+        return OrderService(SqlOrderRepository(session), FakeGateway(ok=True), SqlBookPricing(session))
+
+    app.dependency_overrides[get_session] = _session
+    app.dependency_overrides[get_auth_service] = _auth
+    app.dependency_overrides[get_order_service] = _order
+    yield
+    app.dependency_overrides.clear()
+
+
+async def test_campaign_full_flow(app_db):
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
+        author_token, _ = await login_account(c, "google", "a")
+        reader_token, reader = await login_account(c, "naver", "r")
+        a_auth = {"Authorization": f"Bearer {author_token}"}
+        r_auth = {"Authorization": f"Bearer {reader_token}"}
+
+        book = (await c.post("/api/books", json={"title": "서평캠페인책"}, headers=a_auth)).json()["bookId"]
+        await c.put(f"/api/books/{book}/price", json={"amount": 9000}, headers=a_auth)
+        await c.post(f"/api/books/{book}/publish-now", headers=a_auth)
+
+        # 작가만 캠페인 생성 — 타인 403
+        assert (await c.post("/api/campaigns", json={"bookId": book, "slots": 1}, headers=r_auth)).status_code == 403
+        cid = (await c.post("/api/campaigns", json={"bookId": book, "slots": 1}, headers=a_auth)).json()["campaignId"]
+
+        # 모집 목록에 노출 + remaining 1
+        open_list = (await c.get("/api/campaigns/open")).json()["items"]
+        camp = next(x for x in open_list if x["id"] == cid)
+        assert camp["remaining"] == 1
+
+        # 리뷰어 신청
+        assert (await c.post(f"/api/campaigns/{cid}/apply", headers=r_auth)).status_code == 204
+        # 내 신청함 — PENDING
+        apps = (await c.get("/api/me/applications", headers=r_auth)).json()["items"]
+        assert apps[0]["statusCd"] == "PENDING"
+
+        # 배정 전엔 리뷰 불가(미구매)
+        assert (await c.post(f"/api/books/{book}/reviews", json={"rating": 5}, headers=r_auth)).status_code == 403
+
+        # 작가가 배정 → 증정본 지급
+        assert (await c.post(f"/api/campaigns/{cid}/assign", json={"applicantId": reader["id"]}, headers=a_auth)).status_code == 204
+        # 신청 ASSIGNED + 마감 설정
+        apps = (await c.get("/api/me/applications", headers=r_auth)).json()["items"]
+        assert apps[0]["statusCd"] == "ASSIGNED" and apps[0]["deadlineAt"] is not None
+        # 슬롯 다 차서 모집 마감
+        assert (await c.get("/api/campaigns/open")).json()["items"] == [] or all(x["id"] != cid for x in (await c.get("/api/campaigns/open")).json()["items"])
+
+        # 증정본으로 리뷰 → 서평단(REVIEW_COPY)
+        assert (await c.post(f"/api/books/{book}/reviews", json={"rating": 5, "body": "사전 리뷰"}, headers=r_auth)).status_code == 201
+        item = (await c.get(f"/api/books/{book}/reviews")).json()["items"][0]
+        assert item["sourceCd"] == "REVIEW_COPY"
+
+
+async def test_assign_only_by_campaign_author(app_db):
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
+        author_token, _ = await login_account(c, "google", "a")
+        reader_token, reader = await login_account(c, "naver", "r")
+        other_token, _ = await login_account(c, "kakao", "o")
+        a_auth = {"Authorization": f"Bearer {author_token}"}
+        r_auth = {"Authorization": f"Bearer {reader_token}"}
+        o_auth = {"Authorization": f"Bearer {other_token}"}
+
+        book = (await c.post("/api/books", json={"title": "캠책2"}, headers=a_auth)).json()["bookId"]
+        await c.put(f"/api/books/{book}/price", json={"amount": 1000}, headers=a_auth)
+        await c.post(f"/api/books/{book}/publish-now", headers=a_auth)
+        cid = (await c.post("/api/campaigns", json={"bookId": book, "slots": 1}, headers=a_auth)).json()["campaignId"]
+        await c.post(f"/api/campaigns/{cid}/apply", headers=r_auth)
+
+        # 남이 배정 시도 → 403
+        assert (await c.post(f"/api/campaigns/{cid}/assign", json={"applicantId": reader["id"]}, headers=o_auth)).status_code == 403
