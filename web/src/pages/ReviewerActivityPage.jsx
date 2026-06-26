@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../auth/AuthContext';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { cancelApplication, dday, getMyApplications, getReviewerStatus } from '../services/api/campaigns';
 import { coverGradient, T } from '../theme';
 
@@ -31,6 +32,7 @@ function StatCard({ label, value, sub, dark }) {
 export function ReviewerActivityPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [items, setItems] = useState(null);
   const [status, setStatus] = useState(null);
   const [filter, setFilter] = useState('ALL');
@@ -62,8 +64,8 @@ export function ReviewerActivityPage() {
 
   return (
     <div style={{ fontFamily: T.font, color: T.text, background: T.bg, minHeight: '100%' }}>
-      <div style={{ maxWidth: 1180, margin: '0 auto', padding: '34px 40px 56px' }}>
-        <h1 style={{ margin: '0 0 22px', fontSize: 28, fontWeight: 800, color: T.ink, letterSpacing: '-0.025em' }}>내 서평단 활동</h1>
+      <div style={{ maxWidth: 1180, margin: '0 auto', padding: isMobile ? '22px 16px 48px' : '34px 40px 56px' }}>
+        <h1 style={{ margin: '0 0 22px', fontSize: isMobile ? 23 : 28, fontWeight: 800, color: T.ink, letterSpacing: '-0.025em' }}>내 서평단 활동</h1>
 
         {blockedUntil && (
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '16px 20px', background: '#fdeeea', border: '1px solid #f3cfc6', borderRadius: 14, marginBottom: 20 }}>
@@ -74,7 +76,7 @@ export function ReviewerActivityPage() {
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 16, marginBottom: 28 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '1fr 1fr 1fr 1fr', gap: isMobile ? 12 : 16, marginBottom: 28 }}>
           <StatCard dark label="서평단 자격" value={blockedUntil ? '회수' : '정상'} sub={blockedUntil ? `${fmtDate(blockedUntil)} 해제` : (status && status.missed ? `미작성 ${status.missed}회` : '성실 리뷰어')} />
           <StatCard label="리뷰 완료율" value={rate === null ? '—' : `${rate}%`} sub={received ? `${received}건 중 ${completed.length}건 완료` : '아직 없음'} />
           <StatCard label="받은 증정본" value={`${received}권`} />

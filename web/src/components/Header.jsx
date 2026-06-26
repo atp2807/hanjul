@@ -1,6 +1,7 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../auth/AuthContext';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { T } from '../theme';
 import { NotificationBell } from './NotificationBell';
 
@@ -27,6 +28,7 @@ function navStyle({ isActive }) {
 export function Header() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const goLogin = () => navigate('/login');
 
   return (
@@ -38,7 +40,7 @@ export function Header() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '16px 32px',
+        padding: isMobile ? '12px 18px' : '16px 32px',
         background: 'rgba(243,250,248,0.86)',
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
@@ -50,22 +52,27 @@ export function Header() {
         <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.03em', color: T.ink }}>한줄</span>
       </Link>
 
-      <nav style={{ display: 'flex', gap: 6 }}>
-        {NAV.map(([to, label], i) => (
-          <NavLink key={`${to}-${i}`} to={to} end={to === '/'} style={navStyle}>
-            {label}
-          </NavLink>
-        ))}
-      </nav>
+      {/* 데스크톱 상단 네비 — 모바일은 하단 탭바(MobileTabBar)가 대신함 */}
+      {!isMobile && (
+        <nav style={{ display: 'flex', gap: 6 }}>
+          {NAV.map(([to, label], i) => (
+            <NavLink key={`${to}-${i}`} to={to} end={to === '/'} style={navStyle}>
+              {label}
+            </NavLink>
+          ))}
+        </nav>
+      )}
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         {user ? (
           <>
-            <Link to="/library" style={{ fontSize: 14, color: T.textMid, textDecoration: 'none', fontWeight: 600 }}>
-              내 서재
-            </Link>
+            {!isMobile && (
+              <Link to="/library" style={{ fontSize: 14, color: T.textMid, textDecoration: 'none', fontWeight: 600 }}>
+                내 서재
+              </Link>
+            )}
             <NotificationBell />
-            <span style={{ fontSize: 14, color: T.textMid }}>{user.displayName || user.email}</span>
+            {!isMobile && <span style={{ fontSize: 14, color: T.textMid }}>{user.displayName || user.email}</span>}
             <button
               onClick={logout}
               style={{ padding: '7px 14px', borderRadius: T.radius.pill, border: `1px solid ${T.border}`, background: T.surface, color: T.textMid, fontWeight: 600, cursor: 'pointer' }}

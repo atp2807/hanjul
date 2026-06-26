@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../auth/AuthContext';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { assignReviewer, createCampaign, getApplicants, getMyCampaigns } from '../services/api/campaigns';
 import { getMyBooks } from '../services/api/studio';
 import { coverGradient, T } from '../theme';
@@ -48,6 +49,7 @@ function Applicants({ campaignId, onAssigned }) {
 }
 
 function CreatePanel({ books, onClose, onCreated }) {
+  const isMobile = useIsMobile();
   const [bookId, setBookId] = useState(books[0]?.id || '');
   const [slots, setSlots] = useState(10);
   const [reviewDays, setReviewDays] = useState(14);
@@ -69,7 +71,7 @@ function CreatePanel({ books, onClose, onCreated }) {
         <div style={{ color: T.muted, fontSize: 14 }}>먼저 책을 출판해야 캠페인을 열 수 있어요.</div>
       ) : (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
             <label style={{ fontSize: 13, fontWeight: 600, color: T.text }}>책 선택
               <select value={bookId} onChange={(e) => setBookId(e.target.value)} style={{ ...inp, marginTop: 7 }}>
                 {books.map((b) => <option key={b.id} value={b.id}>{b.title}</option>)}
@@ -99,6 +101,7 @@ function CreatePanel({ books, onClose, onCreated }) {
 export function CampaignStudioPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [camps, setCamps] = useState(null);
   const [books, setBooks] = useState([]);
   const [creating, setCreating] = useState(false);
@@ -123,7 +126,7 @@ export function CampaignStudioPage() {
 
   return (
     <div style={{ fontFamily: T.font, color: T.text, background: T.bg, minHeight: '100%' }}>
-      <div style={{ maxWidth: 1180, margin: '0 auto', padding: '34px 40px 56px' }}>
+      <div style={{ maxWidth: 1180, margin: '0 auto', padding: isMobile ? '22px 16px 48px' : '34px 40px 56px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 26 }}>
           <div>
             <h1 style={{ margin: 0, fontSize: 26, fontWeight: 800, color: T.ink, letterSpacing: '-0.025em' }}>서평단 관리</h1>
@@ -134,7 +137,7 @@ export function CampaignStudioPage() {
 
         {creating && <CreatePanel books={books} onClose={() => setCreating(false)} onCreated={() => { setCreating(false); load(); }} />}
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 16, marginBottom: 24 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: isMobile ? 12 : 16, marginBottom: 24 }}>
           <Stat label="진행 중 캠페인" value={ongoing} />
           <Stat label="총 신청자" value={`${applicants}명`} />
           <Stat label="배정 완료" value={`${assigned}명`} />
@@ -147,9 +150,9 @@ export function CampaignStudioPage() {
             <div style={{ fontSize: 13, color: T.muted, marginTop: 6 }}>출판한 책으로 서평단을 열어 출간 첫 주에 리뷰를 쌓아보세요.</div>
           </div>
         ) : (
-          <div style={{ background: T.surface, borderRadius: 18, padding: '8px 26px 16px' }}>
+          <div style={{ background: T.surface, borderRadius: 18, padding: isMobile ? '4px 14px 12px' : '8px 26px 16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', padding: '16px 0', borderBottom: `1px solid ${T.borderSoft}`, fontSize: 12, color: '#9bb4bc', fontWeight: 700 }}>
-              <span style={{ flex: 1 }}>캠페인</span><span style={{ width: 80 }}>상태</span><span style={{ width: 110, textAlign: 'center' }}>신청 / 배정</span><span style={{ width: 140 }}>리뷰 완료율</span><span style={{ width: 70, textAlign: 'right' }}> </span>
+              <span style={{ flex: 1 }}>캠페인</span><span style={{ width: 80 }}>상태</span><span style={{ width: isMobile ? 64 : 110, textAlign: 'center' }}>신청/배정</span>{!isMobile && <span style={{ width: 140 }}>리뷰 완료율</span>}<span style={{ width: 64, textAlign: 'right' }}> </span>
             </div>
             {camps.map((c) => {
               const st = STATUS[c.statusCd] || STATUS.OPEN;
@@ -163,14 +166,16 @@ export function CampaignStudioPage() {
                       <span style={{ fontSize: 14, fontWeight: 700, color: T.textStrong }}>{c.bookTitle || '제목 없음'}</span>
                     </div>
                     <span style={{ width: 80 }}><span style={{ padding: '4px 10px', background: st.bg, color: st.fg, borderRadius: T.radius.pill, fontSize: 12, fontWeight: 700 }}>{st.label}</span></span>
-                    <span style={{ width: 110, textAlign: 'center', fontSize: 14, color: T.text }}>{c.applicants} / {c.filled}</span>
-                    <span style={{ width: 140, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ flex: 1, height: 6, background: T.borderSoft, borderRadius: T.radius.pill, overflow: 'hidden' }}>
-                        <span style={{ display: 'block', width: `${rate}%`, height: '100%', background: 'oklch(0.7 0.11 188)' }} />
+                    <span style={{ width: isMobile ? 64 : 110, textAlign: 'center', fontSize: 14, color: T.text }}>{c.applicants}/{c.filled}</span>
+                    {!isMobile && (
+                      <span style={{ width: 140, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span style={{ flex: 1, height: 6, background: T.borderSoft, borderRadius: T.radius.pill, overflow: 'hidden' }}>
+                          <span style={{ display: 'block', width: `${rate}%`, height: '100%', background: 'oklch(0.7 0.11 188)' }} />
+                        </span>
+                        <span style={{ fontSize: 12, color: T.text, fontWeight: 600 }}>{rate}%</span>
                       </span>
-                      <span style={{ fontSize: 12, color: T.text, fontWeight: 600 }}>{rate}%</span>
-                    </span>
-                    <span style={{ width: 70, textAlign: 'right' }}>
+                    )}
+                    <span style={{ width: 64, textAlign: 'right' }}>
                       <button onClick={() => setOpenRow(open ? null : c.id)} style={{ background: 'none', border: 'none', color: T.ink, fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>{open ? '닫기' : '신청자'}</button>
                     </span>
                   </div>

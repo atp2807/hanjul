@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { useAuth } from '../auth/AuthContext';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { applyCampaign, getCampaign, getMyApplications } from '../services/api/campaigns';
 import { getStoreDetail } from '../services/api/books';
 import { coverGradient, T } from '../theme';
@@ -19,6 +20,7 @@ export function CampaignDetailPage() {
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [c, setC] = useState(null);
   const [book, setBook] = useState(null);
   const [applied, setApplied] = useState(false);
@@ -58,11 +60,11 @@ export function CampaignDetailPage() {
 
   return (
     <div style={{ fontFamily: T.font, color: T.text, background: T.bg, minHeight: '100%' }}>
-      <div style={{ maxWidth: 1080, margin: '0 auto', padding: '30px 40px 56px' }}>
+      <div style={{ maxWidth: 1080, margin: '0 auto', padding: isMobile ? '20px 18px 48px' : '30px 40px 56px' }}>
         <div style={{ fontSize: 13, color: T.muted, marginBottom: 22 }}>
           <span onClick={() => navigate('/reviewers')} style={{ cursor: 'pointer' }}>서평단</span> &nbsp;›&nbsp; <span style={{ color: T.text }}>{c.bookTitle}</span>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 36, alignItems: 'start' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 360px', gap: isMobile ? 24 : 36, alignItems: 'start' }}>
           {/* 좌: 책 + 조건 */}
           <div>
             <div style={{ aspectRatio: '16 / 8', borderRadius: 18, background: coverGradient(c.bookTitle || c.id), display: 'flex', alignItems: 'flex-end', padding: 28, position: 'relative', overflow: 'hidden' }}>

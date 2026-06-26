@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../auth/AuthContext';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { dday, listOpenCampaigns } from '../services/api/campaigns';
 import { coverGradient, T } from '../theme';
 
@@ -52,6 +53,7 @@ function CampaignCard({ c, onClick }) {
 export function ReviewersPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [items, setItems] = useState(null);
 
   useEffect(() => {
@@ -63,12 +65,12 @@ export function ReviewersPage() {
   return (
     <div style={{ fontFamily: T.font, color: T.text, background: T.bg, minHeight: '100%' }}>
       {/* 히어로 */}
-      <section style={{ padding: '64px 48px 52px', background: 'linear-gradient(180deg,#eaf7f3 0%,#f3faf8 78%)' }}>
+      <section style={{ padding: isMobile ? '32px 20px 36px' : '64px 48px 52px', background: 'linear-gradient(180deg,#eaf7f3 0%,#f3faf8 78%)' }}>
         <div style={{ maxWidth: 1180, margin: '0 auto' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 15px', background: T.surface, border: `1px solid #cfe7df`, borderRadius: T.radius.pill, fontSize: 13, fontWeight: 700, color: '#2f8a6f', marginBottom: 24 }}>
             출간 전, 먼저 읽는 사람들
           </div>
-          <h1 style={{ margin: 0, fontSize: 48, lineHeight: 1.15, fontWeight: 800, letterSpacing: '-0.035em', color: T.ink }}>
+          <h1 style={{ margin: 0, fontSize: isMobile ? 32 : 48, lineHeight: 1.15, fontWeight: 800, letterSpacing: '-0.035em', color: T.ink }}>
             공짜로 신간 받고,<br />먼저 읽고, 리뷰하세요
           </h1>
           <p style={{ margin: '22px 0 0', maxWidth: 480, fontSize: 17, lineHeight: 1.65, color: T.text }}>
@@ -88,7 +90,7 @@ export function ReviewersPage() {
       </section>
 
       {/* 모집 피드 */}
-      <section id="feed" style={{ maxWidth: 1180, margin: '0 auto', padding: '34px 40px 64px' }}>
+      <section id="feed" style={{ maxWidth: 1180, margin: '0 auto', padding: isMobile ? '24px 18px 48px' : '34px 40px 64px' }}>
         <h2 style={{ margin: '0 0 6px', fontSize: 26, fontWeight: 800, color: T.ink, letterSpacing: '-0.025em' }}>서평단 모집</h2>
         <div style={{ fontSize: 14, color: T.muted, marginBottom: 24 }}>출간 전 증정본을 받고 먼저 리뷰할 책을 골라보세요.</div>
         {items === null ? (
@@ -100,7 +102,7 @@ export function ReviewersPage() {
             <div style={{ fontSize: 13, color: T.muted, marginTop: 6 }}>새 서평단이 열리면 곧 여기에 표시돼요.</div>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: isMobile ? 12 : 20 }}>
             {items.map((c) => (
               <CampaignCard key={c.id} c={c} onClick={() => navigate(`/campaigns/${c.id}`)} />
             ))}

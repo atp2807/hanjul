@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 
+import { useIsMobile } from '../hooks/useIsMobile';
 import { T } from '../theme';
 
 const PLANS = [
@@ -41,15 +42,16 @@ function PlanCard({ p }) {
 
 export function B2BPlanPage() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   return (
     <div style={{ fontFamily: T.font, color: T.text, background: T.bg, minHeight: '100%' }}>
-      <div style={{ padding: '50px 48px 60px', textAlign: 'center' }}>
+      <div style={{ padding: isMobile ? '32px 18px 48px' : '50px 48px 60px', textAlign: 'center' }}>
         <div style={{ display: 'inline-block', padding: '6px 14px', background: '#e3f3ec', borderRadius: T.radius.pill, fontSize: 12.5, fontWeight: 700, color: '#2f8a6f', marginBottom: 18 }}>출판사 · 에이전시 전용</div>
         <h1 style={{ margin: '0 0 12px', fontSize: 34, fontWeight: 800, color: T.ink, letterSpacing: '-0.03em' }}>출간 첫 주에, 진짜 리뷰를 쌓으세요</h1>
         <p style={{ margin: '0 auto 14px', maxWidth: 560, fontSize: 16, lineHeight: 1.7, color: T.muted }}>
           개인 작가의 셀프 캠페인은 <b style={{ color: T.text }}>무료</b>예요. 출판사·에이전시를 위한 대량·관리형 서평단은 유료 플랜으로 제공합니다.
         </p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 20, maxWidth: 1040, margin: '34px auto 0' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3,1fr)', gap: isMobile ? 14 : 20, maxWidth: 1040, margin: '34px auto 0' }}>
           {PLANS.map((p) => <PlanCard key={p.name} p={p} />)}
         </div>
         <div style={{ marginTop: 36, fontSize: 14, color: T.muted }}>

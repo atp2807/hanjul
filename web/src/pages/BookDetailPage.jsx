@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { loadTossPayments } from '@tosspayments/payment-sdk';
 
 import { useAuth } from '../auth/AuthContext';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { getLoginUrl } from '../services/api/auth';
 import { getStoreDetail } from '../services/api/books';
 import { confirmPayment, createOrder, getPaymentConfig } from '../services/api/orders';
@@ -16,6 +17,7 @@ export function BookDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isMobile = useIsMobile();
   const [book, setBook] = useState(null);
   const [error, setError] = useState(null);
   const [buying, setBuying] = useState(false);
@@ -88,14 +90,14 @@ export function BookDetailPage() {
   const isPaid = book.priceAmt > 0;
 
   return (
-    <div style={{ maxWidth: 1080, margin: '0 auto', padding: '30px 40px 60px' }}>
+    <div style={{ maxWidth: 1080, margin: '0 auto', padding: isMobile ? '20px 16px 48px' : '30px 40px 60px' }}>
       <div style={{ fontSize: 13, color: T.muted, marginBottom: 24 }}>
         <Link to="/" style={{ color: T.muted, textDecoration: 'none' }}>서점</Link>
         {book.category && <> &nbsp;›&nbsp; {book.category}</>} &nbsp;›&nbsp;{' '}
         <span style={{ color: T.textMid }}>{book.title}</span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: 48 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '340px 1fr', gap: isMobile ? 28 : 48 }}>
         {/* 표지 + 구매 박스 */}
         <div>
           {book.coverUrl ? (
