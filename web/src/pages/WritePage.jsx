@@ -15,6 +15,7 @@ import { neutralToPmDoc, pmToNeutral } from '../writer/editor/pm_doc';
 import { WriterEditor } from '../writer/editor/WriterEditor';
 import { OnboardingTips } from '../writer/OnboardingTips';
 import { listSnapshots, observeSnapshots, takeSnapshot } from '../writer/snapshots';
+import { T } from '../theme';
 
 export function WritePage() {
   const { id } = useParams();
@@ -297,7 +298,7 @@ export function WritePage() {
             <button
               onClick={publish}
               disabled={publishing}
-              style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#111', color: '#fff', fontWeight: 600, cursor: 'pointer' }}
+              style={{ padding: '9px 18px', borderRadius: 10, border: 'none', background: T.ink, color: T.inkText, fontWeight: 700, cursor: 'pointer' }}
             >
               {publishing ? '출판 중…' : '출판'}
             </button>
@@ -352,7 +353,7 @@ export function WritePage() {
             </span>
             {goal > 0 && (
               <span style={{ flex: 1, height: 6, background: '#f0f0f0', borderRadius: 3, overflow: 'hidden', maxWidth: 180 }}>
-                <span style={{ display: 'block', height: '100%', width: `${Math.min(100, (totalChars / goal) * 100)}%`, background: totalChars >= goal ? '#16a34a' : '#111' }} />
+                <span style={{ display: 'block', height: '100%', width: `${Math.min(100, (totalChars / goal) * 100)}%`, background: totalChars >= goal ? '#16a34a' : T.accent }} />
               </span>
             )}
           </div>
@@ -372,7 +373,7 @@ export function WritePage() {
                   {c.optional && !c.ok ? '(선택)' : ''}
                 </span>
               ))}
-              <Link to={`/studio/${id}`} style={{ color: '#111', marginLeft: 4 }}>책 정보 설정 →</Link>
+              <Link to={`/studio/${id}`} style={{ color: T.ink, marginLeft: 4 }}>책 정보 설정 →</Link>
             </div>
           )}
 
