@@ -7,6 +7,11 @@ PAID = "PAID"
 CANCELLED = "CANCELLED"
 REFUNDED = "REFUNDED"
 
+# 판매 채널 (정산 분배). REVIEW=서평단 증정본(0원, 분배·매출 제외, 리뷰 권한만).
+SELF = "SELF"
+EXTERNAL = "EXTERNAL"
+REVIEW = "REVIEW"
+
 
 @dataclass
 class OrderView:

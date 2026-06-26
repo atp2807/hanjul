@@ -81,6 +81,13 @@ class OrderService:
     async def owns(self, account_id: UUID, book_id: UUID) -> bool:
         return await self.repo.owns(account_id, book_id)
 
+    async def grant_review_copy(self, book_id: UUID, account_id: UUID) -> None:
+        """서평단 증정본 지급 — 0원 권한(분배·매출 없음). 리뷰 작성 가능해짐."""
+        await self.repo.grant_review_copy(book_id, account_id)
+
+    async def is_review_copy(self, account_id: UUID, book_id: UUID) -> bool:
+        return await self.repo.is_review_copy(account_id, book_id)
+
     async def buyer_ids(self, book_id: UUID) -> list[UUID]:
         """이 책 구매자 계정 id — 개정판 알림 대상."""
         return await self.repo.buyer_ids(book_id)

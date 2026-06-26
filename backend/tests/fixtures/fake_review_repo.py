@@ -16,16 +16,16 @@ class FakeReviewRepository:
     async def book_exists(self, book_id) -> bool:
         return book_id in self.books
 
-    async def upsert(self, book_id, account_id, rating, body) -> None:
-        self.reviews[(book_id, account_id)] = (rating, body)
+    async def upsert(self, book_id, account_id, rating, body, source_cd="PURCHASE") -> None:
+        self.reviews[(book_id, account_id)] = (rating, body, source_cd)
 
     async def list_for_book(self, book_id):
         return [
-            ReviewView(id=uuid.uuid4(), rating=r, body=b, author="독자", created_at=datetime.now(timezone.utc))
-            for (bk, _ac), (r, b) in self.reviews.items()
+            ReviewView(id=uuid.uuid4(), rating=r, body=b, author="독자", created_at=datetime.now(timezone.utc), source_cd=s)
+            for (bk, _ac), (r, b, s) in self.reviews.items()
             if bk == book_id
         ]
 
     async def summary(self, book_id) -> ReviewSummary:
-        rs = [r for (bk, _ac), (r, _b) in self.reviews.items() if bk == book_id]
+        rs = [r for (bk, _ac), (r, _b, _s) in self.reviews.items() if bk == book_id]
         return ReviewSummary(average=round(sum(rs) / len(rs), 2) if rs else 0.0, count=len(rs))

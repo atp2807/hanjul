@@ -39,8 +39,10 @@ async def add_review(
         raise HTTPException(404, "book not found")
     if not await orders.owns(principal.id, book_id):
         raise HTTPException(403, "구매한 독자만 리뷰할 수 있어요")
+    # 증정본 권한이면 '서평단' 리뷰로 표시(법적 공개·배지)
+    source = "REVIEW_COPY" if await orders.is_review_copy(principal.id, book_id) else "PURCHASE"
     try:
-        await ReviewService(repo).add(book_id, principal.id, body.rating, body.body)
+        await ReviewService(repo).add(book_id, principal.id, body.rating, body.body, source)
     except ValueError as e:
         raise HTTPException(422, str(e))
     return {"ok": True}

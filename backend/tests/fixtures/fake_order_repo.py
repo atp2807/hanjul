@@ -56,6 +56,22 @@ class FakeOrderRepository:
             for o in self.orders.values()
         )
 
+    async def grant_review_copy(self, book_id, account_id) -> None:
+        if await self.owns(account_id, book_id):
+            return
+        oid = uuid.uuid4()
+        self.orders[oid] = OrderView(
+            id=oid, book_id=book_id, buyer_account_id=account_id,
+            amount_amt=0, channel_cd="REVIEW", status_cd=PAID,
+        )
+
+    async def is_review_copy(self, account_id, book_id) -> bool:
+        return any(
+            o.buyer_account_id == account_id and o.book_id == book_id
+            and o.status_cd == PAID and o.channel_cd == "REVIEW"
+            for o in self.orders.values()
+        )
+
     async def buyer_ids(self, book_id) -> list:
         return list(
             {o.buyer_account_id for o in self.orders.values() if o.book_id == book_id and o.status_cd == PAID}

@@ -25,13 +25,15 @@ class SqlReviewRepository:
             )
         ).scalar_one_or_none()
 
-    async def upsert(self, book_id: UUID, account_id: UUID, rating: int, body: str | None) -> None:
+    async def upsert(
+        self, book_id: UUID, account_id: UUID, rating: int, body: str | None, source_cd: str = "PURCHASE"
+    ) -> None:
         existing = await self._find(book_id, account_id)
         if existing:
-            existing.rating, existing.body = rating, body
+            existing.rating, existing.body, existing.source_cd = rating, body, source_cd
             await self.session.commit()
             return
-        self.session.add(Review(book_id=book_id, account_id=account_id, rating=rating, body=body))
+        self.session.add(Review(book_id=book_id, account_id=account_id, rating=rating, body=body, source_cd=source_cd))
         try:
             await self.session.commit()
         except IntegrityError:
@@ -39,7 +41,7 @@ class SqlReviewRepository:
             await self.session.rollback()
             again = await self._find(book_id, account_id)
             if again:
-                again.rating, again.body = rating, body
+                again.rating, again.body, again.source_cd = rating, body, source_cd
                 await self.session.commit()
 
     async def list_for_book(self, book_id: UUID) -> list[ReviewView]:
@@ -53,7 +55,7 @@ class SqlReviewRepository:
         return [
             ReviewView(
                 id=r.id, rating=r.rating, body=r.body, author=name,
-                created_at=r.created_at, updated_at=r.updated_at,
+                created_at=r.created_at, updated_at=r.updated_at, source_cd=r.source_cd,
             )
             for r, name in rows
         ]

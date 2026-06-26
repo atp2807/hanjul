@@ -22,6 +22,7 @@ class ReviewItem(_Camel):
     author: str | None
     created_at: datetime
     updated_at: datetime | None = None
+    source_cd: str = "PURCHASE"
 
 
 class ReviewListResponse(_Camel):

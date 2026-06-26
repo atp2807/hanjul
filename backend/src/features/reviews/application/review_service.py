@@ -13,12 +13,14 @@ class ReviewService:
     def __init__(self, repo: ReviewRepository):
         self.repo = repo
 
-    async def add(self, book_id: UUID, account_id: UUID, rating: int, body: str | None) -> None:
+    async def add(
+        self, book_id: UUID, account_id: UUID, rating: int, body: str | None, source_cd: str = "PURCHASE"
+    ) -> None:
         if not (1 <= rating <= 5):
             raise ValueError("평점은 1~5")
         if not await self.repo.book_exists(book_id):
             raise BookNotFound(book_id)
-        await self.repo.upsert(book_id, account_id, rating, (body or "").strip() or None)
+        await self.repo.upsert(book_id, account_id, rating, (body or "").strip() or None, source_cd)
 
     async def list(self, book_id: UUID) -> tuple[ReviewSummary, list[ReviewView]]:
         return await self.repo.summary(book_id), await self.repo.list_for_book(book_id)

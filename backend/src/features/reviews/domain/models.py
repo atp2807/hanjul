@@ -13,6 +13,7 @@ class ReviewView:
     author: str | None
     created_at: datetime
     updated_at: datetime | None = None
+    source_cd: str = "PURCHASE"  # PURCHASE | REVIEW_COPY(서평단)
 
 
 @dataclass
@@ -29,8 +30,10 @@ class ReviewRepository(Protocol):
     async def book_exists(self, book_id: UUID) -> bool:
         ...
 
-    async def upsert(self, book_id: UUID, account_id: UUID, rating: int, body: str | None) -> None:
-        """(책,계정) 한 건 — 있으면 갱신, 없으면 생성."""
+    async def upsert(
+        self, book_id: UUID, account_id: UUID, rating: int, body: str | None, source_cd: str = "PURCHASE"
+    ) -> None:
+        """(책,계정) 한 건 — 있으면 갱신, 없으면 생성. source_cd=리뷰 출처."""
         ...
 
     async def list_for_book(self, book_id: UUID) -> list[ReviewView]:

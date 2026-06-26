@@ -92,6 +92,32 @@ class SqlOrderRepository:
         await self.session.commit()
         return True
 
+    async def grant_review_copy(self, book_id: UUID, account_id: UUID) -> None:
+        """서평단 증정본 — 0원 REVIEW 채널 PAID 주문 생성(권한만, 분배 없음). 이미 있으면 무시."""
+        if await self.owns(account_id, book_id):
+            return
+        self.session.add(
+            Order(
+                book_id=book_id, buyer_account_id=account_id, amount_amt=0,
+                channel_cd="REVIEW", status_cd="PAID", paid_at=datetime.now(timezone.utc),
+            )
+        )
+        await self.session.commit()
+
+    async def is_review_copy(self, account_id: UUID, book_id: UUID) -> bool:
+        """이 사용자의 이 책 권한이 서평단 증정본인가 (리뷰 배지용)."""
+        stmt = (
+            select(Order.id)
+            .where(
+                Order.buyer_account_id == account_id,
+                Order.book_id == book_id,
+                Order.status_cd == "PAID",
+                Order.channel_cd == "REVIEW",
+            )
+            .limit(1)
+        )
+        return (await self.session.execute(stmt)).scalar_one_or_none() is not None
+
     async def owns(self, account_id, book_id) -> bool:
         stmt = (
             select(Order.id)
@@ -127,7 +153,7 @@ class SqlOrderRepository:
             .select_from(Settlement)
             .join(Order, Order.id == Settlement.order_id)
             .join(Book, Book.id == Order.book_id)
-            .where(Book.author_id == author_id, Order.status_cd == "PAID")  # 환불·취소 제외
+            .where(Book.author_id == author_id, Order.status_cd == "PAID", Order.channel_cd != "REVIEW")  # 환불·취소·서평단 증정본 제외
             .group_by(Book.id, Book.title)
         )
         rows = (await self.session.execute(stmt)).all()
