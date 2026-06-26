@@ -3,13 +3,14 @@ import { Link } from 'react-router-dom';
 
 import { useAuth } from '../auth/AuthContext';
 import { getLibrary, refundOrder } from '../services/api/orders';
+import { coverGradient, T } from '../theme';
 
 function Cover({ url, title }) {
   if (url) {
-    return <img src={url} alt={title} loading="lazy" style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: 8 }} />;
+    return <img src={url} alt={title} loading="lazy" style={{ width: '100%', aspectRatio: '3/4.3', objectFit: 'cover', borderRadius: T.radius.lg }} />;
   }
   return (
-    <div style={{ width: '100%', aspectRatio: '3/4', borderRadius: 8, background: 'linear-gradient(135deg,#f3f4f6,#e5e7eb)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: 13, padding: 12, textAlign: 'center', boxSizing: 'border-box' }}>
+    <div style={{ width: '100%', aspectRatio: '3/4.3', borderRadius: T.radius.lg, background: coverGradient(title), display: 'flex', alignItems: 'flex-end', padding: 14, color: '#dff5ef', fontSize: 14, fontWeight: 700, lineHeight: 1.3, boxSizing: 'border-box' }}>
       {title}
     </div>
   );
@@ -47,20 +48,21 @@ export function LibraryPage() {
   if (!user) return <Center>로그인이 필요해요.</Center>;
 
   return (
-    <div style={{ maxWidth: 980, margin: '0 auto', padding: '28px 24px' }}>
-      <h2 style={{ marginTop: 0, fontWeight: 700 }}>내 서재</h2>
+    <div style={{ maxWidth: 1080, margin: '0 auto', padding: '34px 40px 56px' }}>
+      <h1 style={{ margin: '0 0 4px', fontSize: 28, fontWeight: 800, color: T.ink, letterSpacing: '-0.025em' }}>내 서재</h1>
+      <div style={{ fontSize: 14, color: T.muted, marginBottom: 28 }}>읽던 자리에서 바로 이어보세요.</div>
       {error && <p style={{ color: 'crimson' }}>{error}</p>}
-      {items.length === 0 && <p style={{ color: '#999' }}>아직 구매한 책이 없어요.</p>}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 20 }}>
+      {items.length === 0 && <p style={{ color: T.muted }}>아직 구매한 책이 없어요.</p>}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: 22 }}>
         {items.map((b) => (
           <div key={b.bookId}>
             <Link to={`/read/${b.bookId}`} style={{ textDecoration: 'none', color: 'inherit' }}>
               <Cover url={b.coverUrl} title={b.title} />
-              <div style={{ marginTop: 8, fontWeight: 600, fontSize: 15 }}>{b.title}</div>
+              <div style={{ marginTop: 10, fontWeight: 700, fontSize: 15, color: T.textStrong }}>{b.title}</div>
             </Link>
             <button
               onClick={() => handleRefund(b.orderId)}
-              style={{ marginTop: 6, fontSize: 12, color: '#999', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+              style={{ marginTop: 6, fontSize: 12, color: T.muted, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
             >
               환불
             </button>
@@ -72,5 +74,5 @@ export function LibraryPage() {
 }
 
 function Center({ children }) {
-  return <p style={{ textAlign: 'center', color: '#999', padding: 40 }}>{children}</p>;
+  return <p style={{ textAlign: 'center', color: T.muted, padding: 40 }}>{children}</p>;
 }

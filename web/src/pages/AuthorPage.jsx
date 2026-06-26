@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { getAuthor } from '../services/api/authors';
 import { followAuthor, getFollowStatus, unfollowAuthor } from '../services/api/notifications';
+import { coverGradient, T } from '../theme';
 
 export function AuthorPage() {
   const { id } = useParams();
@@ -22,28 +23,52 @@ export function AuthorPage() {
   const canFollow = user && user.id !== author.id;
 
   return (
-    <div style={{ maxWidth: 980, margin: '0 auto', padding: '28px 24px' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <h1 data-testid="author-name" style={{ margin: '0 0 6px', fontWeight: 700 }}>{author.displayName || '작가'}</h1>
-        {canFollow && <FollowButton authorId={author.id} />}
-      </div>
-      {author.bio && <p data-testid="author-bio" style={{ color: '#555', whiteSpace: 'pre-wrap', lineHeight: 1.6, marginTop: 0 }}>{author.bio}</p>}
+    <div>
+      {/* 커버 배너 */}
+      <div style={{ height: 170, background: `linear-gradient(120deg, ${T.heroFrom}, oklch(0.7 0.11 205))` }} />
+      <div style={{ maxWidth: 1080, margin: '0 auto', padding: '0 40px 56px' }}>
+        <div style={{ display: 'flex', alignItems: 'flex-end', gap: 24, marginTop: -52, position: 'relative', flexWrap: 'wrap' }}>
+          <div style={{ width: 120, height: 120, borderRadius: 28, background: coverGradient(author.displayName || id), border: `4px solid ${T.bg}`, boxShadow: '0 10px 24px -10px rgba(12,58,50,0.4)', flexShrink: 0 }} />
+          <div style={{ flex: 1, paddingBottom: 8, minWidth: 180 }}>
+            <h1 data-testid="author-name" style={{ margin: 0, fontSize: 30, fontWeight: 800, color: T.ink, letterSpacing: '-0.025em' }}>{author.displayName || '작가'}</h1>
+            {author.bio && <div style={{ fontSize: 14, color: T.muted, marginTop: 4 }}>{author.bio.split('\n')[0].slice(0, 60)}</div>}
+          </div>
+          {canFollow && <div style={{ paddingBottom: 8 }}><FollowButton authorId={author.id} /></div>}
+        </div>
 
-      <h2 style={{ fontSize: 16, marginTop: 28 }}>출판작 {author.books.length}</h2>
-      {author.books.length === 0 && <p style={{ color: '#999' }}>아직 출판한 책이 없어요.</p>}
-      <div data-testid="author-books" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 20 }}>
-        {author.books.map((b) => (
-          <Link key={b.id} to={`/books/${b.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-            {b.coverUrl ? (
-              <img src={b.coverUrl} alt={b.title} style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: 8 }} />
-            ) : (
-              <div style={{ width: '100%', aspectRatio: '3/4', borderRadius: 8, background: 'linear-gradient(135deg,#f3f4f6,#e5e7eb)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: 13, padding: 12, textAlign: 'center', boxSizing: 'border-box' }}>{b.title}</div>
-            )}
-            <div style={{ marginTop: 8, fontWeight: 600, fontSize: 15 }}>{b.title}</div>
-            <div style={{ color: '#666', fontSize: 13 }}>{b.priceAmt != null ? `${b.priceAmt.toLocaleString()}원` : '무료'}</div>
-          </Link>
-        ))}
+        <div style={{ display: 'flex', gap: 40, margin: '28px 0 0', padding: '20px 0', borderTop: `1px solid ${T.border}`, borderBottom: `1px solid ${T.border}` }}>
+          <Stat n={author.books.length} label="작품" />
+        </div>
+
+        {author.bio && (
+          <p data-testid="author-bio" style={{ margin: '26px 0 0', maxWidth: 680, fontSize: 15, lineHeight: 1.85, color: '#52615b', whiteSpace: 'pre-wrap' }}>{author.bio}</p>
+        )}
+
+        <h3 style={{ margin: '38px 0 18px', fontSize: 20, fontWeight: 800, color: T.ink, letterSpacing: '-0.02em' }}>작품</h3>
+        {author.books.length === 0 && <p style={{ color: T.muted }}>아직 출판한 책이 없어요.</p>}
+        <div data-testid="author-books" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: 22 }}>
+          {author.books.map((b) => (
+            <Link key={b.id} to={`/books/${b.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+              {b.coverUrl ? (
+                <img src={b.coverUrl} alt={b.title} style={{ width: '100%', aspectRatio: '3/4.3', objectFit: 'cover', borderRadius: 12 }} />
+              ) : (
+                <div style={{ width: '100%', aspectRatio: '3/4.3', borderRadius: 12, background: coverGradient(b.title), display: 'flex', alignItems: 'flex-end', padding: 14, color: '#dff5ef', fontSize: 14, fontWeight: 700, lineHeight: 1.3, boxSizing: 'border-box' }}>{b.title}</div>
+              )}
+              <div style={{ marginTop: 9, fontWeight: 700, fontSize: 15, color: T.textStrong }}>{b.title}</div>
+              <div style={{ color: T.muted, fontSize: 13 }}>{b.priceAmt != null ? `${b.priceAmt.toLocaleString()}원` : '무료'}</div>
+            </Link>
+          ))}
+        </div>
       </div>
+    </div>
+  );
+}
+
+function Stat({ n, label }) {
+  return (
+    <div>
+      <span style={{ fontSize: 20, fontWeight: 800, color: T.ink }}>{n}</span>{' '}
+      <span style={{ fontSize: 14, color: T.muted }}>{label}</span>
     </div>
   );
 }
@@ -78,21 +103,21 @@ function FollowButton({ authorId }) {
       onClick={toggle}
       disabled={busy}
       style={{
-        padding: '6px 16px',
-        borderRadius: 999,
-        border: following ? '1px solid #ddd' : '1px solid #111',
-        background: following ? '#fff' : '#111',
-        color: following ? '#555' : '#fff',
-        fontWeight: 600,
-        fontSize: 13,
+        padding: '12px 26px',
+        borderRadius: 12,
+        border: following ? `1px solid #d6e4de` : 'none',
+        background: following ? T.surface : T.ink,
+        color: following ? T.textMid : T.inkText,
+        fontWeight: 700,
+        fontSize: 14,
         cursor: 'pointer',
       }}
     >
-      {following ? '팔로잉' : '팔로우'}
+      {following ? '팔로잉' : '＋ 팔로우'}
     </button>
   );
 }
 
 function Center({ children }) {
-  return <p style={{ textAlign: 'center', color: '#999', padding: 40 }}>{children}</p>;
+  return <p style={{ textAlign: 'center', color: T.muted, padding: 40 }}>{children}</p>;
 }

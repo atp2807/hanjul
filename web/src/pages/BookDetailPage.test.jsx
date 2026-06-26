@@ -36,7 +36,7 @@ describe('BookDetailPage 결제', () => {
         <BookDetailPage />
       </MemoryRouter>,
     );
-    fireEvent.click(await screen.findByText('구매'));
+    fireEvent.click(await screen.findByText('바로 구매'));
 
     await waitFor(() => expect(requestPayment).toHaveBeenCalled());
     const [method, opts] = requestPayment.mock.calls[0];
@@ -57,7 +57,7 @@ describe('BookDetailPage 결제', () => {
         <BookDetailPage />
       </MemoryRouter>,
     );
-    fireEvent.click(await screen.findByText('구매'));
+    fireEvent.click(await screen.findByText('바로 구매'));
 
     await waitFor(() => expect(ordersApi.confirmPayment).toHaveBeenCalledWith('order-9', 'demo'));
     expect(requestPayment).not.toHaveBeenCalled();
