@@ -1,7 +1,6 @@
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../auth/AuthContext';
-import { getLoginUrl } from '../services/api/auth';
 import { T } from '../theme';
 import { NotificationBell } from './NotificationBell';
 
@@ -26,11 +25,8 @@ function navStyle({ isActive }) {
 
 export function Header() {
   const { user, logout } = useAuth();
-
-  async function startLogin() {
-    const { authorizationUrl } = await getLoginUrl('google');
-    window.location.href = authorizationUrl; // Google 동의 화면으로 이동
-  }
+  const navigate = useNavigate();
+  const goLogin = () => navigate('/login');
 
   return (
     <header
@@ -78,11 +74,11 @@ export function Header() {
           </>
         ) : (
           <>
-            <span onClick={startLogin} style={{ fontSize: 14, color: T.textMid, fontWeight: 600, cursor: 'pointer' }}>
+            <span onClick={goLogin} style={{ fontSize: 14, color: T.textMid, fontWeight: 600, cursor: 'pointer' }}>
               로그인
             </span>
             <button
-              onClick={startLogin}
+              onClick={goLogin}
               style={{ padding: '10px 20px', background: T.ink, color: T.inkText, border: 'none', borderRadius: T.radius.pill, fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
             >
               무료로 시작
