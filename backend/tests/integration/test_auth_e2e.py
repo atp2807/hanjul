@@ -42,6 +42,46 @@ async def test_callback_redirects_with_token(override_auth):
         assert token  # 프론트로 리다이렉트되며 fragment 에 토큰 실림
 
 
+async def test_callback_user_cancel_redirects_with_error(override_auth):
+    """사용자가 동의 취소(?error=access_denied) → 422 아니라 #error 리다이렉트."""
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
+        r = await c.get("/api/auth/google/callback?error=access_denied", follow_redirects=False)
+        assert r.status_code == 302
+        assert "/auth/callback#error=access_denied" in r.headers["location"]
+
+
+async def test_callback_no_code_redirects_with_error(override_auth):
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
+        r = await c.get("/api/auth/google/callback", follow_redirects=False)
+        assert r.status_code == 302
+        assert "#error=no_code" in r.headers["location"]
+
+
+async def test_callback_exchange_failure_redirects_with_error():
+    """토큰 교환 실패(redirect_uri_mismatch 등) → 500 아니라 #error=auth_failed."""
+    from src.features.auth.application.token import JwtTokenIssuer
+    from src.features.auth.domain.models import OAuthExchangeError
+    from src.features.auth.presentation.dependencies import get_auth_service
+    from tests.fixtures.fake_account_repo import FakeAccountRepository
+
+    class BoomProvider:
+        provider_cd = "GOOGLE"
+        def authorization_url(self, state):
+            return "https://fake"
+        async def exchange(self, code):
+            raise OAuthExchangeError("token exchange 400: redirect_uri_mismatch")
+
+    svc = AuthService(FakeAccountRepository(), {"GOOGLE": BoomProvider()}, JwtTokenIssuer("s", "HS256", 1))
+    app.dependency_overrides[get_auth_service] = lambda: svc
+    try:
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
+            r = await c.get("/api/auth/google/callback?code=badcode", follow_redirects=False)
+            assert r.status_code == 302
+            assert "#error=auth_failed" in r.headers["location"]
+    finally:
+        app.dependency_overrides.clear()
+
+
 async def test_unknown_provider_returns_400(override_auth):
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
         r = await c.get("/api/auth/naver/login")

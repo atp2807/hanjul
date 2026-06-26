@@ -7,7 +7,7 @@ from urllib.parse import urlencode
 
 import httpx
 
-from src.features.auth.domain.models import SocialProfile
+from src.features.auth.domain.models import OAuthExchangeError, SocialProfile
 
 _AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 _TOKEN_URL = "https://oauth2.googleapis.com/token"
@@ -46,14 +46,23 @@ class GoogleOAuthProvider:
                     "grant_type": "authorization_code",
                 },
             )
-            token_res.raise_for_status()
-            access_token = token_res.json()["access_token"]
+            if token_res.status_code != 200:
+                # Google 에러 원문 보존 → redirect_uri_mismatch/invalid_client 등 즉시 진단
+                body = token_res.json() if "json" in token_res.headers.get("content-type", "") else {}
+                detail = body.get("error_description") or body.get("error") or token_res.text[:200]
+                raise OAuthExchangeError(f"token exchange {token_res.status_code}: {detail}")
+            access_token = token_res.json().get("access_token")
+            if not access_token:
+                raise OAuthExchangeError("token response missing access_token")
 
             info_res = await client.get(
                 _USERINFO_URL, headers={"Authorization": f"Bearer {access_token}"}
             )
-            info_res.raise_for_status()
+            if info_res.status_code != 200:
+                raise OAuthExchangeError(f"userinfo {info_res.status_code}: {info_res.text[:200]}")
             info = info_res.json()
+        if not info.get("sub"):
+            raise OAuthExchangeError("userinfo missing sub")
 
         return SocialProfile(
             provider_cd=self.provider_cd,

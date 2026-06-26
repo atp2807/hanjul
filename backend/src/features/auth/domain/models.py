@@ -39,3 +39,13 @@ class UnknownProvider(Exception):
     def __init__(self, provider_cd: str):
         self.provider_cd = provider_cd
         super().__init__(f"unknown or disabled provider: {provider_cd}")
+
+
+class OAuthExchangeError(Exception):
+    """소셜 토큰 교환/조회 실패 — redirect_uri_mismatch, invalid_grant(코드 재사용) 등.
+
+    detail 에 provider가 준 에러 원문을 담아 로그로 디버깅(첫 실연동 시 필수).
+    """
+    def __init__(self, detail: str):
+        self.detail = detail
+        super().__init__(detail)
