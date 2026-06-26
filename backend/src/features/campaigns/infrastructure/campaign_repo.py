@@ -198,6 +198,7 @@ class SqlCampaignRepository:
                     ReviewApplication.applicant_id == applicant_id,
                     ReviewApplication.status_cd == "ASSIGNED",
                 )
+                .order_by(ReviewApplication.assigned_at.asc())  # 다중 캠페인 시 가장 먼저 배정된 것부터(결정적)
             )
         ).scalars().first()
         if app is None:

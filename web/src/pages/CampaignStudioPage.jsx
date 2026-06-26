@@ -163,7 +163,7 @@ export function CampaignStudioPage() {
                       <span style={{ fontSize: 14, fontWeight: 700, color: T.textStrong }}>{c.bookTitle || '제목 없음'}</span>
                     </div>
                     <span style={{ width: 80 }}><span style={{ padding: '4px 10px', background: st.bg, color: st.fg, borderRadius: T.radius.pill, fontSize: 12, fontWeight: 700 }}>{st.label}</span></span>
-                    <span style={{ width: 110, textAlign: 'center', fontSize: 14, color: T.text }}>{c.applicants} / {c.slots}</span>
+                    <span style={{ width: 110, textAlign: 'center', fontSize: 14, color: T.text }}>{c.applicants} / {c.filled}</span>
                     <span style={{ width: 140, display: 'flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ flex: 1, height: 6, background: T.borderSoft, borderRadius: T.radius.pill, overflow: 'hidden' }}>
                         <span style={{ display: 'block', width: `${rate}%`, height: '100%', background: 'oklch(0.7 0.11 188)' }} />
