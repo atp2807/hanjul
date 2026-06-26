@@ -98,7 +98,7 @@ export function ReviewerActivityPage() {
                   {a.statusCd === 'PENDING' ? (
                     <button onClick={() => onCancel(a)} style={{ padding: '9px 16px', background: T.tint, color: T.ink, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, minWidth: 88, cursor: 'pointer' }}>신청 취소</button>
                   ) : (
-                    <button onClick={() => navigate(`/books/${a.bookId}`)} style={{ padding: '9px 16px', background: a.statusCd === 'ASSIGNED' ? T.ink : T.tint, color: a.statusCd === 'ASSIGNED' ? T.inkText : T.ink, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, minWidth: 88, cursor: 'pointer' }}>
+                    <button onClick={() => navigate(a.statusCd === 'ASSIGNED' ? `/campaigns/${a.campaignId}/review` : `/books/${a.bookId}`)} style={{ padding: '9px 16px', background: a.statusCd === 'ASSIGNED' ? T.ink : T.tint, color: a.statusCd === 'ASSIGNED' ? T.inkText : T.ink, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, minWidth: 88, cursor: 'pointer' }}>
                       {a.statusCd === 'ASSIGNED' ? '리뷰 쓰기' : '리뷰 보기'}
                     </button>
                   )}

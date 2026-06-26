@@ -3,9 +3,11 @@ import { Route, Routes, useLocation } from 'react-router-dom';
 import { Header } from './components/Header';
 import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { AuthorPage } from './pages/AuthorPage';
+import { B2BPlanPage } from './pages/B2BPlanPage';
 import { BookDetailPage } from './pages/BookDetailPage';
 import { CampaignDetailPage } from './pages/CampaignDetailPage';
 import { CampaignStudioPage } from './pages/CampaignStudioPage';
+import { ReviewCopyReviewPage } from './pages/ReviewCopyReviewPage';
 import { LibraryPage } from './pages/LibraryPage';
 import { LoginPage } from './pages/LoginPage';
 import { PaymentResultPage } from './pages/PaymentResultPage';
@@ -39,7 +41,9 @@ export default function App() {
         <Route path="/studio/campaigns" element={<CampaignStudioPage />} />
         <Route path="/studio/:id" element={<StudioEditorPage />} />
         <Route path="/reviewers" element={<ReviewersPage />} />
+        <Route path="/reviewers/business" element={<B2BPlanPage />} />
         <Route path="/campaigns/:id" element={<CampaignDetailPage />} />
+        <Route path="/campaigns/:id/review" element={<ReviewCopyReviewPage />} />
         <Route path="/reviewer/activity" element={<ReviewerActivityPage />} />
         <Route path="/write/:id" element={<WritePage />} />
         <Route path="/pricing" element={<PricingPage />} />
