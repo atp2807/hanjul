@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 
 import { confirmPayment } from '../services/api/orders';
+import { T } from '../theme';
 
 // 토스 결제창(v1) successUrl/failUrl 착지점.
 // 성공: ?paymentKey=&orderId=&amount=&bookId= → 백엔드 confirm → 읽기로.
@@ -41,10 +42,12 @@ export function PaymentResultPage() {
 
   return (
     <div style={{ maxWidth: 480, margin: '80px auto', textAlign: 'center', padding: 24 }}>
-      <p style={{ fontSize: 16, color: '#333' }} data-testid="payment-result">{state}</p>
-      <Link to={bookId ? `/books/${bookId}` : '/'} style={{ display: 'inline-block', marginTop: 16, color: '#2563eb' }}>
-        돌아가기
-      </Link>
+      <div style={{ background: T.surface, borderRadius: 20, padding: '40px 28px', boxShadow: T.shadow }}>
+        <p style={{ fontSize: 16, color: T.textStrong, margin: 0 }} data-testid="payment-result">{state}</p>
+        <Link to={bookId ? `/books/${bookId}` : '/'} style={{ display: 'inline-block', marginTop: 16, color: T.textMid, fontWeight: 600 }}>
+          돌아가기
+        </Link>
+      </div>
     </div>
   );
 }
