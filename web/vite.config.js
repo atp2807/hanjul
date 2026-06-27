@@ -21,5 +21,19 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/setup.js'],
     exclude: ['**/node_modules/**', '**/e2e/**'],
+    coverage: {
+      provider: 'v8',
+      // 유닛(vitest) 커버리지는 src 앱 코드만. 아래는 단위테스트 대상이 아님:
+      //  - e2e/·config: Playwright/빌드, 진입점 App·main, *.test, 셋업, sync-server
+      //  - writer 에디터: ProseMirror 통합 → e2e/통합에서 커버
+      include: ['src/**/*.{js,jsx}'],
+      exclude: [
+        'src/**/*.test.{js,jsx}',
+        'src/test/**',
+        'src/main.jsx',
+        'src/App.jsx',
+        'src/sampleBook.js',
+      ],
+    },
   },
 });
