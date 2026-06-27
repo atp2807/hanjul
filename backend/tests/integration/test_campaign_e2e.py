@@ -104,6 +104,10 @@ async def test_campaign_full_flow(app_db):
         mine = (await c.get("/api/me/campaigns", headers=a_auth)).json()["items"]
         row = next(x for x in mine if x["id"] == cid)
         assert row["applicants"] == 1 and row["reviewed"] == 1 and row["filled"] == 1
+        # 리뷰어 신뢰도·자격 집계(엔드포인트)
+        st = (await c.get("/api/me/reviewer-status", headers=r_auth)).json()
+        assert st["completed"] == 1 and st["missed"] == 0 and st["completionRate"] == 100
+        assert st["received"] == 1 and st["blockedUntil"] is None
 
 
 async def test_cancel_application(app_db):

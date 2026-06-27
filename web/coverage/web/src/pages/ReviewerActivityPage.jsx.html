@@ -1,0 +1,502 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for web/src/pages/ReviewerActivityPage.jsx</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../../prettify.css" />
+    <link rel="stylesheet" href="../../../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../../../index.html">All files</a> / <a href="index.html">web/src/pages</a> ReviewerActivityPage.jsx</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>110/110</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">77.01% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>67/87</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">66.66% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>6/9</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">100% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>110/110</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line high'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">16x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+&nbsp;
+import { useAuth } from '../auth/AuthContext';
+import { useIsMobile } from '../hooks/useIsMobile';
+import { cancelApplication, dday, getMyApplications, getReviewerStatus } from '../services/api/campaigns';
+import { coverGradient, T } from '../theme';
+&nbsp;
+const STATUS = {
+  PENDING: { label: '신청 대기', fg: '#c79318', bg: '#fff3da' },
+  ASSIGNED: { label: '배정됨', fg: '#2f8a6f', bg: '#e3f3ec' },
+  COMPLETED: { label: '리뷰 완료', fg: T.text, bg: '#eef4f1' },
+  EXPIRED: { label: '기한 초과', fg: '#c25540', bg: '#fdeeea' },
+};
+&nbsp;
+function fmtDate(iso) {
+  if (!iso) <span class="branch-0 cbranch-no" title="branch not covered" >return '';</span>
+  const d = new Date(iso);
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+}
+&nbsp;
+function StatCard({ label, value, sub, dark }) {
+  return (
+    &lt;div style={{ background: dark ? 'linear-gradient(140deg,#0e4a5c,#1d7e8e)' : T.surface, borderRadius: 18, padding: '22px 24px' }}&gt;
+      &lt;div style={{ fontSize: 13, color: dark ? T.inkSoft : T.muted }}&gt;{label}&lt;/div&gt;
+      &lt;div style={{ fontSize: 24, fontWeight: 800, color: dark ? '#fff' : T.ink, marginTop: 6 }}&gt;{value}&lt;/div&gt;
+      {sub &amp;&amp; &lt;div style={{ fontSize: 12, color: dark ? T.inkSoft : '#2f8a6f', marginTop: 6 }}&gt;{sub}&lt;/div&gt;}
+    &lt;/div&gt;
+  );
+}
+&nbsp;
+export function ReviewerActivityPage() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const [items, setItems] = useState(null);
+  const [status, setStatus] = useState(null);
+  const [filter, setFilter] = useState('ALL');
+&nbsp;
+  function load() {
+    getMyApplications().then((r) =&gt; setItems(r.items)).catch(() =&gt; setItems([]));
+    getReviewerStatus().then(setStatus).catch(() =&gt; setStatus(null));
+  }
+  useEffect(() =&gt; { if (user) load(); }, [user]);
+&nbsp;
+  if (!user) <span class="branch-0 cbranch-no" title="branch not covered" >return &lt;div style={{ padding: 60, textAlign: 'center', color: T.muted, fontFamily: T.font }}&gt;로그인이 필요해요.&lt;/div&gt;;</span>
+  if (items === null) return &lt;div style={{ padding: 60, textAlign: 'center', color: T.muted, fontFamily: T.font }}&gt;불러오는 중…&lt;/div&gt;;
+&nbsp;
+  const assigned = items.filter((a) =&gt; a.statusCd === 'ASSIGNED');
+  const completed = items.filter((a) =&gt; a.statusCd === 'COMPLETED');
+  const pending = items.filter((a) =&gt; a.statusCd === 'PENDING');
+  const expired = items.filter((a) =&gt; a.statusCd === 'EXPIRED');
+  // 서버 집계 우선, 없으면 목록에서 도출
+  const rate = status ? status.<span class="branch-0 cbranch-no" title="branch not covered" >completionRate : (completed.length + expired.length ? Math.round((completed.length / (completed.length + expired.length)) * 100) : null);</span>
+  const received = status ? status.<span class="branch-0 cbranch-no" title="branch not covered" >received : assigned.length + completed.length;</span>
+  const blockedUntil = status?.blockedUntil || null;
+&nbsp;
+  const counts = { ALL: items.length, PENDING: pending.length, ASSIGNED: assigned.length, COMPLETED: completed.length };
+  const shown = filter === 'ALL' ? <span class="branch-0 cbranch-no" title="branch not covered" >items : items.filter((a) =&gt; a.statusCd === filter);</span>
+&nbsp;
+  async function onCancel(a) {
+    try { await cancelApplication(a.campaignId); load(); <span class="branch-0 cbranch-no" title="branch not covered" >} catch { /* noop */ }</span>
+  }
+&nbsp;
+  return (
+    &lt;div style={{ fontFamily: T.font, color: T.text, background: T.bg, minHeight: '100%' }}&gt;
+      &lt;div style={{ maxWidth: 1180, margin: '0 auto', padding: <span class="branch-0 cbranch-no" title="branch not covered" >isMobile ? '22px 16px 48px' : '</span>34px 40px 56px' }}&gt;
+        &lt;h1 style={{ margin: '0 0 22px', fontSize: <span class="branch-0 cbranch-no" title="branch not covered" >isMobile ? 23 : 2</span>8, fontWeight: 800, color: T.ink, letterSpacing: '-0.025em' }}&gt;내 서평단 활동&lt;/h1&gt;
+&nbsp;
+        {blockedUntil &amp;&amp; (
+          &lt;div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '16px 20px', background: '#fdeeea', border: '1px solid #f3cfc6', borderRadius: 14, marginBottom: 20 }}&gt;
+            &lt;span style={{ fontSize: 20 }}&gt;🚫&lt;/span&gt;
+            &lt;div style={{ fontSize: 13.5, color: '#c25540', lineHeight: 1.6 }}&gt;
+              기한 내 미작성이 누적되어 &lt;b&gt;서평단 자격이 회수&lt;/b&gt;되었어요. &lt;b&gt;{fmtDate(blockedUntil)}&lt;/b&gt;부터 다시 신청할 수 있어요.
+            &lt;/div&gt;
+          &lt;/div&gt;
+        )}
+&nbsp;
+        &lt;div style={{ display: 'grid', gridTemplateColumns: <span class="branch-0 cbranch-no" title="branch not covered" >isMobile ? '1fr 1fr' : '</span>1fr 1fr 1fr 1fr', gap: <span class="branch-0 cbranch-no" title="branch not covered" >isMobile ? 12 : 1</span>6, marginBottom: 28 }}&gt;
+          &lt;StatCard dark label="서평단 자격" value={blockedUntil ? '회수' : '정상'} sub={blockedUntil ? `${fmtDate(blockedUntil)} 해제` : (status &amp;&amp; status.missed ? `미작성 ${status.missed<span class="branch-0 cbranch-no" title="branch not covered" >}회` : '성실 리뷰어')} /</span>&gt;
+          &lt;StatCard label="리뷰 완료율" value={rate === <span class="branch-0 cbranch-no" title="branch not covered" >null ? '—' : `</span>${rate}%`} sub={received ? `${received}건 중 ${completed.length<span class="branch-0 cbranch-no" title="branch not covered" >}건 완료` : '아직 없음'} /</span>&gt;
+          &lt;StatCard label="받은 증정본" value={`${received}권`} /&gt;
+          &lt;StatCard label="진행 중" value={`${assigned.length}건`} sub={assigned.length ? '리뷰 작성 대기' : null} /&gt;
+        &lt;/div&gt;
+&nbsp;
+        &lt;div style={{ display: 'flex', gap: 8, marginBottom: 20 }}&gt;
+          {[['ALL', '전체'], ['PENDING', '대기'], ['ASSIGNED', '배정'], ['COMPLETED', '완료']].map(([k, lab]) =&gt; (
+            &lt;button key={k} onClick={<span class="fstat-no" title="function not covered" >() =&gt; setFilter(k)} s</span>tyle={{ padding: '9px 18px', borderRadius: T.radius.pill, fontSize: 14, fontWeight: 600, cursor: 'pointer', border: filter === k ? 'none' : `1px solid ${T.border}`, background: filter === k ? T.ink : T.surface, color: filter === k ? T.inkText : T.text }}&gt;
+              {lab} {counts[k]}
+            &lt;/button&gt;
+          ))}
+        &lt;/div&gt;
+&nbsp;
+        {shown.length === 0 ? (
+          &lt;div style={{ textAlign: 'center', padding: '56px 16px', background: T.surface, borderRadius: 16, border: `1px solid ${T.borderSoft}` }}&gt;
+            &lt;div style={{ width: 52, height: 52, borderRadius: 15, background: '#e9f7f1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, margin: '0 auto 14px' }}&gt;📭&lt;/div&gt;
+            &lt;div style={{ fontSize: 15, fontWeight: 700, color: T.textStrong }}&gt;아직 활동이 없어요&lt;/div&gt;
+            &lt;div style={{ fontSize: 13, color: T.muted, marginTop: 6 }}&gt;관심 있는 책의 서평단에 신청해 보세요.&lt;/div&gt;
+            &lt;button onClick={<span class="fstat-no" title="function not covered" >() =&gt; navigate('/reviewers')} s</span>tyle={{ marginTop: 14, padding: '9px 18px', background: T.ink, color: T.inkText, border: 'none', borderRadius: 10, fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}&gt;둘러보기&lt;/button&gt;
+          &lt;/div&gt;
+        ) : (
+          &lt;div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}&gt;
+            {shown.map((a) =&gt; {
+              const st = STATUS[a.statusCd<span class="branch-0 cbranch-no" title="branch not covered" >] || STATUS.PENDING;</span>
+              const d = a.statusCd === 'ASSIGNED' ? dday(a.deadlineAt) : null;
+              const urgent = d &amp;&amp; (d === 'D-day' || d === 'D-1' || d === '마감');
+              return (
+                &lt;div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 16, background: T.surface, borderRadius: 14, border: `1px solid ${T.borderSoft}` }}&gt;
+                  &lt;div style={{ width: 44, height: 62, borderRadius: 7, background: coverGradient(a.<span class="branch-0 cbranch-no" title="branch not covered" >bookTitle || a.bookId)</span>, flexShrink: 0 }} /&gt;
+                  &lt;div style={{ flex: 1 }}&gt;
+                    &lt;div style={{ fontSize: 14.5, fontWeight: 700, color: T.textStrong }}&gt;{a.<span class="branch-0 cbranch-no" title="branch not covered" >bookTitle || '제목 없음'}&lt;</span>/div&gt;
+                    &lt;div style={{ fontSize: 12.5, color: T.muted, marginTop: 3 }}&gt;
+                      {a.statusCd === 'ASSIGNED' &amp;&amp; `리뷰 기한 ${d} · 증정본 수령 완료`}
+                      {a.statusCd === 'PENDING' &amp;&amp; '배정 결과를 기다리는 중'}
+                      {a.statusCd === 'COMPLETED' &amp;&amp; '리뷰 게시됨'}
+                      {a.statusCd === 'EXPIRED' &amp;&amp; '리뷰 기한이 지났어요 · 미작성'}
+                    &lt;/div&gt;
+                  &lt;/div&gt;
+                  &lt;span style={{ padding: '5px 12px', borderRadius: T.radius.pill, fontSize: 12, fontWeight: 700, color: <span class="branch-0 cbranch-no" title="branch not covered" >urgent ? '#e0654f' : s</span>t.fg, background: <span class="branch-0 cbranch-no" title="branch not covered" >urgent ? '#fdeeea' : s</span>t.bg }}&gt;
+                    {st.label}{<span class="branch-0 cbranch-no" title="branch not covered" >urgent &amp;&amp; a.statusCd === <span class="branch-0 cbranch-no" title="branch not covered" >'ASSIGNED' ? '</span> · 마감임박' : '</span>'}
+                  &lt;/span&gt;
+                  {a.statusCd === 'PENDING' &amp;&amp; (
+                    &lt;button onClick={() =&gt; onCancel(a)} style={{ padding: '9px 16px', background: T.tint, color: T.ink, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, minWidth: 88, cursor: 'pointer' }}&gt;신청 취소&lt;/button&gt;
+                  )}
+                  {(a.statusCd === 'ASSIGNED' || a.statusCd === 'COMPLETED') &amp;&amp; (
+                    &lt;button onClick={<span class="fstat-no" title="function not covered" >() =&gt; navigate(a.statusCd === 'ASSIGNED' ? `/campaigns/${a.campaignId}/review` : `/books/${a.bookId}`)} s</span>tyle={{ padding: '9px 16px', background: a.statusCd === 'ASSIGNED' ? T.ink : T.tint, color: a.statusCd === 'ASSIGNED' ? T.inkText : T.ink, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, minWidth: 88, cursor: 'pointer' }}&gt;
+                      {a.statusCd === 'ASSIGNED' ? '리뷰 쓰기' : '리뷰 보기'}
+                    &lt;/button&gt;
+                  )}
+                  {a.statusCd === 'EXPIRED' &amp;&amp; &lt;span style={{ minWidth: 88, textAlign: 'center', fontSize: 12.5, color: T.muted }}&gt;기한 종료&lt;/span&gt;}
+                &lt;/div&gt;
+              );
+            })}
+          &lt;/div&gt;
+        )}
+      &lt;/div&gt;
+    &lt;/div&gt;
+  );
+}
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-06-27T07:07:56.818Z
+            </div>
+        <script src="../../../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../../../sorter.js"></script>
+        <script src="../../../block-navigation.js"></script>
+    </body>
+</html>
+    

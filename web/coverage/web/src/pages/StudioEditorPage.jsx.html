@@ -1,0 +1,1150 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for web/src/pages/StudioEditorPage.jsx</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../../prettify.css" />
+    <link rel="stylesheet" href="../../../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../../../index.html">All files</a> / <a href="index.html">web/src/pages</a> StudioEditorPage.jsx</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">86.39% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>254/294</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">67.92% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>36/53</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">43.47% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>10/23</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">86.39% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>254/294</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line high'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a>
+<a name='L85'></a><a href='#L85'>85</a>
+<a name='L86'></a><a href='#L86'>86</a>
+<a name='L87'></a><a href='#L87'>87</a>
+<a name='L88'></a><a href='#L88'>88</a>
+<a name='L89'></a><a href='#L89'>89</a>
+<a name='L90'></a><a href='#L90'>90</a>
+<a name='L91'></a><a href='#L91'>91</a>
+<a name='L92'></a><a href='#L92'>92</a>
+<a name='L93'></a><a href='#L93'>93</a>
+<a name='L94'></a><a href='#L94'>94</a>
+<a name='L95'></a><a href='#L95'>95</a>
+<a name='L96'></a><a href='#L96'>96</a>
+<a name='L97'></a><a href='#L97'>97</a>
+<a name='L98'></a><a href='#L98'>98</a>
+<a name='L99'></a><a href='#L99'>99</a>
+<a name='L100'></a><a href='#L100'>100</a>
+<a name='L101'></a><a href='#L101'>101</a>
+<a name='L102'></a><a href='#L102'>102</a>
+<a name='L103'></a><a href='#L103'>103</a>
+<a name='L104'></a><a href='#L104'>104</a>
+<a name='L105'></a><a href='#L105'>105</a>
+<a name='L106'></a><a href='#L106'>106</a>
+<a name='L107'></a><a href='#L107'>107</a>
+<a name='L108'></a><a href='#L108'>108</a>
+<a name='L109'></a><a href='#L109'>109</a>
+<a name='L110'></a><a href='#L110'>110</a>
+<a name='L111'></a><a href='#L111'>111</a>
+<a name='L112'></a><a href='#L112'>112</a>
+<a name='L113'></a><a href='#L113'>113</a>
+<a name='L114'></a><a href='#L114'>114</a>
+<a name='L115'></a><a href='#L115'>115</a>
+<a name='L116'></a><a href='#L116'>116</a>
+<a name='L117'></a><a href='#L117'>117</a>
+<a name='L118'></a><a href='#L118'>118</a>
+<a name='L119'></a><a href='#L119'>119</a>
+<a name='L120'></a><a href='#L120'>120</a>
+<a name='L121'></a><a href='#L121'>121</a>
+<a name='L122'></a><a href='#L122'>122</a>
+<a name='L123'></a><a href='#L123'>123</a>
+<a name='L124'></a><a href='#L124'>124</a>
+<a name='L125'></a><a href='#L125'>125</a>
+<a name='L126'></a><a href='#L126'>126</a>
+<a name='L127'></a><a href='#L127'>127</a>
+<a name='L128'></a><a href='#L128'>128</a>
+<a name='L129'></a><a href='#L129'>129</a>
+<a name='L130'></a><a href='#L130'>130</a>
+<a name='L131'></a><a href='#L131'>131</a>
+<a name='L132'></a><a href='#L132'>132</a>
+<a name='L133'></a><a href='#L133'>133</a>
+<a name='L134'></a><a href='#L134'>134</a>
+<a name='L135'></a><a href='#L135'>135</a>
+<a name='L136'></a><a href='#L136'>136</a>
+<a name='L137'></a><a href='#L137'>137</a>
+<a name='L138'></a><a href='#L138'>138</a>
+<a name='L139'></a><a href='#L139'>139</a>
+<a name='L140'></a><a href='#L140'>140</a>
+<a name='L141'></a><a href='#L141'>141</a>
+<a name='L142'></a><a href='#L142'>142</a>
+<a name='L143'></a><a href='#L143'>143</a>
+<a name='L144'></a><a href='#L144'>144</a>
+<a name='L145'></a><a href='#L145'>145</a>
+<a name='L146'></a><a href='#L146'>146</a>
+<a name='L147'></a><a href='#L147'>147</a>
+<a name='L148'></a><a href='#L148'>148</a>
+<a name='L149'></a><a href='#L149'>149</a>
+<a name='L150'></a><a href='#L150'>150</a>
+<a name='L151'></a><a href='#L151'>151</a>
+<a name='L152'></a><a href='#L152'>152</a>
+<a name='L153'></a><a href='#L153'>153</a>
+<a name='L154'></a><a href='#L154'>154</a>
+<a name='L155'></a><a href='#L155'>155</a>
+<a name='L156'></a><a href='#L156'>156</a>
+<a name='L157'></a><a href='#L157'>157</a>
+<a name='L158'></a><a href='#L158'>158</a>
+<a name='L159'></a><a href='#L159'>159</a>
+<a name='L160'></a><a href='#L160'>160</a>
+<a name='L161'></a><a href='#L161'>161</a>
+<a name='L162'></a><a href='#L162'>162</a>
+<a name='L163'></a><a href='#L163'>163</a>
+<a name='L164'></a><a href='#L164'>164</a>
+<a name='L165'></a><a href='#L165'>165</a>
+<a name='L166'></a><a href='#L166'>166</a>
+<a name='L167'></a><a href='#L167'>167</a>
+<a name='L168'></a><a href='#L168'>168</a>
+<a name='L169'></a><a href='#L169'>169</a>
+<a name='L170'></a><a href='#L170'>170</a>
+<a name='L171'></a><a href='#L171'>171</a>
+<a name='L172'></a><a href='#L172'>172</a>
+<a name='L173'></a><a href='#L173'>173</a>
+<a name='L174'></a><a href='#L174'>174</a>
+<a name='L175'></a><a href='#L175'>175</a>
+<a name='L176'></a><a href='#L176'>176</a>
+<a name='L177'></a><a href='#L177'>177</a>
+<a name='L178'></a><a href='#L178'>178</a>
+<a name='L179'></a><a href='#L179'>179</a>
+<a name='L180'></a><a href='#L180'>180</a>
+<a name='L181'></a><a href='#L181'>181</a>
+<a name='L182'></a><a href='#L182'>182</a>
+<a name='L183'></a><a href='#L183'>183</a>
+<a name='L184'></a><a href='#L184'>184</a>
+<a name='L185'></a><a href='#L185'>185</a>
+<a name='L186'></a><a href='#L186'>186</a>
+<a name='L187'></a><a href='#L187'>187</a>
+<a name='L188'></a><a href='#L188'>188</a>
+<a name='L189'></a><a href='#L189'>189</a>
+<a name='L190'></a><a href='#L190'>190</a>
+<a name='L191'></a><a href='#L191'>191</a>
+<a name='L192'></a><a href='#L192'>192</a>
+<a name='L193'></a><a href='#L193'>193</a>
+<a name='L194'></a><a href='#L194'>194</a>
+<a name='L195'></a><a href='#L195'>195</a>
+<a name='L196'></a><a href='#L196'>196</a>
+<a name='L197'></a><a href='#L197'>197</a>
+<a name='L198'></a><a href='#L198'>198</a>
+<a name='L199'></a><a href='#L199'>199</a>
+<a name='L200'></a><a href='#L200'>200</a>
+<a name='L201'></a><a href='#L201'>201</a>
+<a name='L202'></a><a href='#L202'>202</a>
+<a name='L203'></a><a href='#L203'>203</a>
+<a name='L204'></a><a href='#L204'>204</a>
+<a name='L205'></a><a href='#L205'>205</a>
+<a name='L206'></a><a href='#L206'>206</a>
+<a name='L207'></a><a href='#L207'>207</a>
+<a name='L208'></a><a href='#L208'>208</a>
+<a name='L209'></a><a href='#L209'>209</a>
+<a name='L210'></a><a href='#L210'>210</a>
+<a name='L211'></a><a href='#L211'>211</a>
+<a name='L212'></a><a href='#L212'>212</a>
+<a name='L213'></a><a href='#L213'>213</a>
+<a name='L214'></a><a href='#L214'>214</a>
+<a name='L215'></a><a href='#L215'>215</a>
+<a name='L216'></a><a href='#L216'>216</a>
+<a name='L217'></a><a href='#L217'>217</a>
+<a name='L218'></a><a href='#L218'>218</a>
+<a name='L219'></a><a href='#L219'>219</a>
+<a name='L220'></a><a href='#L220'>220</a>
+<a name='L221'></a><a href='#L221'>221</a>
+<a name='L222'></a><a href='#L222'>222</a>
+<a name='L223'></a><a href='#L223'>223</a>
+<a name='L224'></a><a href='#L224'>224</a>
+<a name='L225'></a><a href='#L225'>225</a>
+<a name='L226'></a><a href='#L226'>226</a>
+<a name='L227'></a><a href='#L227'>227</a>
+<a name='L228'></a><a href='#L228'>228</a>
+<a name='L229'></a><a href='#L229'>229</a>
+<a name='L230'></a><a href='#L230'>230</a>
+<a name='L231'></a><a href='#L231'>231</a>
+<a name='L232'></a><a href='#L232'>232</a>
+<a name='L233'></a><a href='#L233'>233</a>
+<a name='L234'></a><a href='#L234'>234</a>
+<a name='L235'></a><a href='#L235'>235</a>
+<a name='L236'></a><a href='#L236'>236</a>
+<a name='L237'></a><a href='#L237'>237</a>
+<a name='L238'></a><a href='#L238'>238</a>
+<a name='L239'></a><a href='#L239'>239</a>
+<a name='L240'></a><a href='#L240'>240</a>
+<a name='L241'></a><a href='#L241'>241</a>
+<a name='L242'></a><a href='#L242'>242</a>
+<a name='L243'></a><a href='#L243'>243</a>
+<a name='L244'></a><a href='#L244'>244</a>
+<a name='L245'></a><a href='#L245'>245</a>
+<a name='L246'></a><a href='#L246'>246</a>
+<a name='L247'></a><a href='#L247'>247</a>
+<a name='L248'></a><a href='#L248'>248</a>
+<a name='L249'></a><a href='#L249'>249</a>
+<a name='L250'></a><a href='#L250'>250</a>
+<a name='L251'></a><a href='#L251'>251</a>
+<a name='L252'></a><a href='#L252'>252</a>
+<a name='L253'></a><a href='#L253'>253</a>
+<a name='L254'></a><a href='#L254'>254</a>
+<a name='L255'></a><a href='#L255'>255</a>
+<a name='L256'></a><a href='#L256'>256</a>
+<a name='L257'></a><a href='#L257'>257</a>
+<a name='L258'></a><a href='#L258'>258</a>
+<a name='L259'></a><a href='#L259'>259</a>
+<a name='L260'></a><a href='#L260'>260</a>
+<a name='L261'></a><a href='#L261'>261</a>
+<a name='L262'></a><a href='#L262'>262</a>
+<a name='L263'></a><a href='#L263'>263</a>
+<a name='L264'></a><a href='#L264'>264</a>
+<a name='L265'></a><a href='#L265'>265</a>
+<a name='L266'></a><a href='#L266'>266</a>
+<a name='L267'></a><a href='#L267'>267</a>
+<a name='L268'></a><a href='#L268'>268</a>
+<a name='L269'></a><a href='#L269'>269</a>
+<a name='L270'></a><a href='#L270'>270</a>
+<a name='L271'></a><a href='#L271'>271</a>
+<a name='L272'></a><a href='#L272'>272</a>
+<a name='L273'></a><a href='#L273'>273</a>
+<a name='L274'></a><a href='#L274'>274</a>
+<a name='L275'></a><a href='#L275'>275</a>
+<a name='L276'></a><a href='#L276'>276</a>
+<a name='L277'></a><a href='#L277'>277</a>
+<a name='L278'></a><a href='#L278'>278</a>
+<a name='L279'></a><a href='#L279'>279</a>
+<a name='L280'></a><a href='#L280'>280</a>
+<a name='L281'></a><a href='#L281'>281</a>
+<a name='L282'></a><a href='#L282'>282</a>
+<a name='L283'></a><a href='#L283'>283</a>
+<a name='L284'></a><a href='#L284'>284</a>
+<a name='L285'></a><a href='#L285'>285</a>
+<a name='L286'></a><a href='#L286'>286</a>
+<a name='L287'></a><a href='#L287'>287</a>
+<a name='L288'></a><a href='#L288'>288</a>
+<a name='L289'></a><a href='#L289'>289</a>
+<a name='L290'></a><a href='#L290'>290</a>
+<a name='L291'></a><a href='#L291'>291</a>
+<a name='L292'></a><a href='#L292'>292</a>
+<a name='L293'></a><a href='#L293'>293</a>
+<a name='L294'></a><a href='#L294'>294</a>
+<a name='L295'></a><a href='#L295'>295</a>
+<a name='L296'></a><a href='#L296'>296</a>
+<a name='L297'></a><a href='#L297'>297</a>
+<a name='L298'></a><a href='#L298'>298</a>
+<a name='L299'></a><a href='#L299'>299</a>
+<a name='L300'></a><a href='#L300'>300</a>
+<a name='L301'></a><a href='#L301'>301</a>
+<a name='L302'></a><a href='#L302'>302</a>
+<a name='L303'></a><a href='#L303'>303</a>
+<a name='L304'></a><a href='#L304'>304</a>
+<a name='L305'></a><a href='#L305'>305</a>
+<a name='L306'></a><a href='#L306'>306</a>
+<a name='L307'></a><a href='#L307'>307</a>
+<a name='L308'></a><a href='#L308'>308</a>
+<a name='L309'></a><a href='#L309'>309</a>
+<a name='L310'></a><a href='#L310'>310</a>
+<a name='L311'></a><a href='#L311'>311</a>
+<a name='L312'></a><a href='#L312'>312</a>
+<a name='L313'></a><a href='#L313'>313</a>
+<a name='L314'></a><a href='#L314'>314</a>
+<a name='L315'></a><a href='#L315'>315</a>
+<a name='L316'></a><a href='#L316'>316</a>
+<a name='L317'></a><a href='#L317'>317</a>
+<a name='L318'></a><a href='#L318'>318</a>
+<a name='L319'></a><a href='#L319'>319</a>
+<a name='L320'></a><a href='#L320'>320</a>
+<a name='L321'></a><a href='#L321'>321</a>
+<a name='L322'></a><a href='#L322'>322</a>
+<a name='L323'></a><a href='#L323'>323</a>
+<a name='L324'></a><a href='#L324'>324</a>
+<a name='L325'></a><a href='#L325'>325</a>
+<a name='L326'></a><a href='#L326'>326</a>
+<a name='L327'></a><a href='#L327'>327</a>
+<a name='L328'></a><a href='#L328'>328</a>
+<a name='L329'></a><a href='#L329'>329</a>
+<a name='L330'></a><a href='#L330'>330</a>
+<a name='L331'></a><a href='#L331'>331</a>
+<a name='L332'></a><a href='#L332'>332</a>
+<a name='L333'></a><a href='#L333'>333</a>
+<a name='L334'></a><a href='#L334'>334</a>
+<a name='L335'></a><a href='#L335'>335</a>
+<a name='L336'></a><a href='#L336'>336</a>
+<a name='L337'></a><a href='#L337'>337</a>
+<a name='L338'></a><a href='#L338'>338</a>
+<a name='L339'></a><a href='#L339'>339</a>
+<a name='L340'></a><a href='#L340'>340</a>
+<a name='L341'></a><a href='#L341'>341</a>
+<a name='L342'></a><a href='#L342'>342</a>
+<a name='L343'></a><a href='#L343'>343</a>
+<a name='L344'></a><a href='#L344'>344</a>
+<a name='L345'></a><a href='#L345'>345</a>
+<a name='L346'></a><a href='#L346'>346</a>
+<a name='L347'></a><a href='#L347'>347</a>
+<a name='L348'></a><a href='#L348'>348</a>
+<a name='L349'></a><a href='#L349'>349</a>
+<a name='L350'></a><a href='#L350'>350</a>
+<a name='L351'></a><a href='#L351'>351</a>
+<a name='L352'></a><a href='#L352'>352</a>
+<a name='L353'></a><a href='#L353'>353</a>
+<a name='L354'></a><a href='#L354'>354</a>
+<a name='L355'></a><a href='#L355'>355</a>
+<a name='L356'></a><a href='#L356'>356</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">52x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-yes">7x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">70x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">6x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">8x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">10x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-yes">2x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">58x</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-yes">3x</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { useEffect, useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+&nbsp;
+import { getBookContent } from '../services/api/books';
+import {
+  distributeBook,
+  downloadEpub,
+  downloadOnix,
+  generateCover,
+  getDistributions,
+  getMyBooks,
+  importText,
+  publishBook,
+  publishNow,
+  schedulePublish,
+  setBookPrice,
+  setDiscount,
+  suggestBlurb,
+  setIsbn,
+  submitBook,
+  updateMeta,
+} from '../services/api/studio';
+import { STATUS_LABEL } from './StudioPage';
+import { T } from '../theme';
+&nbsp;
+const CHANNELS = [
+  ['KYOBO', '교보문고'],
+  ['YES24', '예스24'],
+  ['ALADIN', '알라딘'],
+  ['RIDIBOOKS', '리디북스'],
+];
+&nbsp;
+const CATEGORIES = ['소설', '에세이', '시', '자기계발', '경제경영', '인문', '과학', '판타지', '로맨스', '기타'];
+&nbsp;
+export function StudioEditorPage() {
+  const { id } = useParams();
+  const [book, setBook] = useState(null);
+  const [text, setText] = useState('');
+  const [price, setPrice] = useState('');
+  const [discAmt, setDiscAmt] = useState('');
+  const [discUntil, setDiscUntil] = useState('');
+  const [isbn, setIsbnValue] = useState('');
+  const [subtitle, setSubtitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('');
+  const [coverUrl, setCoverUrl] = useState(null);
+  const [coverPrompt, setCoverPrompt] = useState('');
+  const [coverBusy, setCoverBusy] = useState(false);
+  const [scheduleAt, setScheduleAt] = useState('');
+  const [channel, setChannel] = useState('KYOBO');
+  const [dists, setDists] = useState([]);
+  const [msg, setMsg] = useState(null);
+  const [error, setError] = useState(null);
+&nbsp;
+  async function load() {
+    const c = await getBookContent(id);
+    setBook(c);
+    setPrice(c.priceAmt != null ? String(c.priceAmt<span class="branch-0 cbranch-no" title="branch not covered" >) : '')</span>;
+    // ISBN·배포이력은 content 응답 밖이라 별도 조회
+    const mine = await getMyBooks();
+    const summary = mine.items.find((b) =&gt; b.id === id);
+    if (summary) {
+      setIsbnValue(summary.<span class="branch-0 cbranch-no" title="branch not covered" >isbn || '')</span>;
+      setSubtitle(summary.subtitle || '');
+      setDescription(summary.description || '');
+      setCategory(summary.category || '');
+      setCoverUrl(summary.coverUrl || null);
+    }
+    if (c.status === 'PUBLISHED') {
+      setDists(await getDistributions(id));
+    }
+  }
+  useEffect(() =&gt; {
+    load().catch((e) =&gt; setError(e.message));
+  }, [id]);
+&nbsp;
+  function notify(m) {
+    setMsg(m);
+    setError(null);
+  }
+  function run(fn, ok) {
+    return async () =&gt; {
+<span class="cstat-no" title="statement not covered" >      try {</span>
+<span class="cstat-no" title="statement not covered" >        await fn();</span>
+<span class="cstat-no" title="statement not covered" >        if (ok) notify(ok);</span>
+<span class="cstat-no" title="statement not covered" >        await load();</span>
+<span class="cstat-no" title="statement not covered" >      } catch (e) {</span>
+<span class="cstat-no" title="statement not covered" >        setError(e.message);</span>
+<span class="cstat-no" title="statement not covered" >      }</span>
+<span class="cstat-no" title="statement not covered" >    };</span>
+  }
+&nbsp;
+<span class="fstat-no" title="function not covered" >  async function doImport() {</span>
+<span class="cstat-no" title="statement not covered" >    if (!text.trim()) return;</span>
+<span class="cstat-no" title="statement not covered" >    try {</span>
+<span class="cstat-no" title="statement not covered" >      const r = await importText(id, text);</span>
+<span class="cstat-no" title="statement not covered" >      notify(`${r.blockCount}개 블록이 새 장으로 추가됐어요.`);</span>
+<span class="cstat-no" title="statement not covered" >      setText('');</span>
+<span class="cstat-no" title="statement not covered" >      await load();</span>
+<span class="cstat-no" title="statement not covered" >    } catch (e) {</span>
+<span class="cstat-no" title="statement not covered" >      setError(e.message);</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+  async function doCover() {
+    if (!coverPrompt.trim()) <span class="branch-0 cbranch-no" title="branch not covered" >return setError('표지 설명을 입력하세요.');</span>
+    setCoverBusy(true);
+    setError(null);
+    try {
+      const r = await generateCover(id, coverPrompt);
+      setCoverUrl(r.coverUrl);
+      notify('표지가 생성됐어요.');
+<span class="branch-0 cbranch-no" title="branch not covered" >    } catch (e) {</span>
+<span class="cstat-no" title="statement not covered" >      setError(e.status === 503 ? 'AI 표지 생성이 비활성 상태예요(운영 설정 필요).' : e.message);</span>
+    } finally {
+      setCoverBusy(false);
+    }
+  }
+<span class="fstat-no" title="function not covered" >  async function doSchedule() {</span>
+<span class="cstat-no" title="statement not covered" >    if (!scheduleAt) return setError('발행 시각을 선택하세요.');</span>
+<span class="cstat-no" title="statement not covered" >    try {</span>
+<span class="cstat-no" title="statement not covered" >      await schedulePublish(id, new Date(scheduleAt).toISOString());</span>
+<span class="cstat-no" title="statement not covered" >      notify(`${new Date(scheduleAt).toLocaleString()}에 자동 발행 예약됐어요.`);</span>
+<span class="cstat-no" title="statement not covered" >      await load();</span>
+<span class="cstat-no" title="statement not covered" >    } catch (e) {</span>
+<span class="cstat-no" title="statement not covered" >      setError(e.message);</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+<span class="cstat-no" title="statement not covered" >  }</span>
+  async function doDistribute() {
+    try {
+      const r = await distributeBook(id, channel);
+      notify(
+        r.statusCd === 'SENT'
+          ? `${labelOf(channel)<span class="branch-0 cbranch-no" title="branch not covered" >}로 배포 전송 완료.`</span>
+<span class="cstat-no" title="statement not covered" >          : `배포 실패: ${r.message || ''}`,</span>
+      );
+      await load();
+<span class="branch-0 cbranch-no" title="branch not covered" >    } catch (e) {</span>
+<span class="cstat-no" title="statement not covered" >      setError(e.message);</span>
+<span class="cstat-no" title="statement not covered" >    }</span>
+  }
+&nbsp;
+  if (<span class="branch-0 cbranch-no" title="branch not covered" >error &amp;&amp; !book) <span class="branch-0 cbranch-no" title="branch not covered" >r</span>eturn &lt;Center&gt;{error}&lt;/Center&gt;;</span>
+  if (!book) return &lt;Center&gt;불러오는 중…&lt;/Center&gt;;
+  const blockCount = book.chapters.reduce((n, ch) =&gt; n + ch.blocks.length, 0);
+  const published = book.status === 'PUBLISHED';
+&nbsp;
+  // 수익 미리보기 (SELF 70% · 개인 3.3% 원천징수)
+  const pNum = parseInt(<span class="branch-0 cbranch-no" title="branch not covered" >price || '0', 1</span>0) || 0;
+  const gross = Math.round(pNum * 0.7);
+  const wh = Math.round(gross * 0.033);
+  const net = gross - wh;
+&nbsp;
+  return (
+    &lt;div style={{ maxWidth: 820, margin: '0 auto', padding: '28px 24px' }}&gt;
+      &lt;Link to="/studio" style={{ fontSize: 13, color: T.muted, textDecoration: 'none' }}&gt;← 스튜디오&lt;/Link&gt;
+      &lt;div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '8px 0 4px' }}&gt;
+        &lt;h2 style={{ margin: 0, fontWeight: 800, color: T.ink, letterSpacing: '-0.025em' }}&gt;{book.title}&lt;/h2&gt;
+        &lt;span style={{ padding: '4px 11px', background: published ? '#e3f3ec' : '#fff3da', color: published ? '#2f8a6f' : '#c79318', borderRadius: 999, fontSize: 12, fontWeight: 700 }}&gt;
+          {STATUS_LABEL[book.status<span class="branch-0 cbranch-no" title="branch not covered" >] || book.status}</span>
+        &lt;/span&gt;
+      &lt;/div&gt;
+      &lt;p style={{ color: T.muted, marginTop: 0, fontSize: 14 }}&gt;
+        블록 {blockCount}개{book.priceAmt != null ? ` · ${book.priceAmt.toLocaleString()<span class="branch-0 cbranch-no" title="branch not covered" >}원` : ''}</span>
+      &lt;/p&gt;
+      {msg &amp;&amp; &lt;p style={{ color: '#2f8a6f' }}&gt;{msg}&lt;/p&gt;}
+      {<span class="branch-0 cbranch-no" title="branch not covered" >error &amp;&amp; &lt;p style={{ color: 'crimson' }}&gt;{error}&lt;/p&gt;}</span>
+&nbsp;
+      &lt;Section title="책 정보"&gt;
+        &lt;input
+          value={subtitle}
+          onChange={<span class="fstat-no" title="function not covered" >(e) =&gt; setSubtitle(e.target.value)}</span>
+          placeholder="부제 (선택)"
+          style={{ ...inp, width: '100%', boxSizing: 'border-box', marginBottom: 8 }}
+        /&gt;
+        &lt;textarea
+          value={description}
+          onChange={<span class="fstat-no" title="function not covered" >(e) =&gt; setDescription(e.target.value)}</span>
+          rows={4}
+          placeholder="책 소개 (스토어 상세에 노출)"
+          style={{ width: '100%', boxSizing: 'border-box', padding: 12, border: '1px solid #ddd', borderRadius: 8, fontFamily: 'inherit', marginBottom: 8 }}
+        /&gt;
+        &lt;button
+          onClick={<span class="fstat-no" title="function not covered" >async () =&gt; {</span>
+<span class="cstat-no" title="statement not covered" >            try {</span>
+<span class="cstat-no" title="statement not covered" >              const { blurb } = await suggestBlurb(id);</span>
+<span class="cstat-no" title="statement not covered" >              setDescription(blurb);</span>
+<span class="cstat-no" title="statement not covered" >              notify('본문에서 소개문을 추천했어요. 다듬은 뒤 저장하세요.');</span>
+<span class="cstat-no" title="statement not covered" >            } catch (e) {</span>
+<span class="cstat-no" title="statement not covered" >              setError(e.message);</span>
+<span class="cstat-no" title="statement not covered" >            }</span>
+<span class="cstat-no" title="statement not covered" >          }}</span>
+          style={{ ...btn, marginLeft: 0, marginBottom: 8 }}
+        &gt;
+          소개문 추천
+        &lt;/button&gt;
+        &lt;select value={category} onChange={<span class="fstat-no" title="function not covered" >(e) =&gt; setCategory(e.target.value)} s</span>tyle={inp}&gt;
+          &lt;option value=""&gt;분류 선택&lt;/option&gt;
+          {CATEGORIES.map((c) =&gt; (
+            &lt;option key={c} value={c}&gt;{c}&lt;/option&gt;
+          ))}
+        &lt;/select&gt;
+        &lt;button
+          onClick={run(() =&gt; updateMeta(id, { subtitle, description, category }), '책 정보가 저장됐어요.')}
+          style={btn}
+        &gt;
+          정보 저장
+        &lt;/button&gt;
+      &lt;/Section&gt;
+&nbsp;
+      &lt;Section title="표지"&gt;
+        &lt;div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}&gt;
+          &lt;div style={{ width: 120, flexShrink: 0 }}&gt;
+            {coverUrl ? (
+              &lt;img src={coverUrl} alt="표지" style={{ width: '100%', aspectRatio: '3/4', objectFit: 'cover', borderRadius: 8, border: '1px solid #eee' }} /&gt;
+            ) : (
+              &lt;div style={{ width: '100%', aspectRatio: '3/4', borderRadius: 8, background: '#f1f2f4', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#aaa', fontSize: 12 }}&gt;
+                표지 없음
+              &lt;/div&gt;
+            )}
+          &lt;/div&gt;
+          &lt;div style={{ flex: 1 }}&gt;
+            &lt;textarea
+              value={coverPrompt}
+              onChange={(e) =&gt; setCoverPrompt(e.target.value)}
+              rows={3}
+              placeholder="표지 분위기·소재를 설명하세요 (예: 잔잔한 한국 에세이, 따뜻한 색감)"
+              style={{ width: '100%', boxSizing: 'border-box', padding: 12, border: '1px solid #ddd', borderRadius: 8, fontFamily: 'inherit' }}
+            /&gt;
+            &lt;button onClick={doCover} disabled={coverBusy} style={primary}&gt;
+              {coverBusy ? '생성 중…' : 'AI 표지 생성'}
+            &lt;/button&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/Section&gt;
+&nbsp;
+      &lt;Section title="원고 추가"&gt;
+        &lt;textarea
+          value={text}
+          onChange={<span class="fstat-no" title="function not covered" >(e) =&gt; setText(e.target.value)}</span>
+          rows={10}
+          placeholder={'# 장 제목\n\n빈 줄로 문단을 구분하세요.\n&gt; 인용\n---'}
+          style={{ width: '100%', boxSizing: 'border-box', padding: 12, border: '1px solid #ddd', borderRadius: 8, fontFamily: 'inherit' }}
+        /&gt;
+        &lt;button onClick={doImport} style={btn}&gt;장 추가&lt;/button&gt;
+      &lt;/Section&gt;
+&nbsp;
+      &lt;Section title="가격"&gt;
+        &lt;input type="number" value={price} onChange={<span class="fstat-no" title="function not covered" >(e) =&gt; setPrice(e.target.value)} s</span>tyle={inp} /&gt; 원
+        &lt;button onClick={run(() =&gt; setBookPrice(id, parseInt(price || '0', 10)), '가격이 저장됐어요.')} style={btn}&gt;가격 저장&lt;/button&gt;
+        &lt;span style={{ color: T.faint, fontSize: 13, marginLeft: 8 }}&gt;0이면 무료&lt;/span&gt;
+        {pNum &gt; 0 &amp;&amp; (
+          &lt;div style={{ marginTop: 16, background: T.ink, borderRadius: 14, padding: '18px 20px' }}&gt;
+            &lt;div style={{ fontSize: 12, color: T.inkSoft, marginBottom: 12 }}&gt;수익 미리보기 · SELF 1권 판매 기준 · 개인 작가&lt;/div&gt;
+            &lt;div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', color: '#fff', fontSize: 14 }}&gt;
+              &lt;span style={{ color: T.inkSoft }}&gt;판매가 &lt;b style={{ color: '#fff' }}&gt;{pNum.toLocaleString()}원&lt;/b&gt;&lt;/span&gt;
+              &lt;span style={{ color: T.inkSoft }}&gt;작가 몫(70%) &lt;b style={{ color: '#fff' }}&gt;{gross.toLocaleString()}원&lt;/b&gt;&lt;/span&gt;
+              &lt;span style={{ color: T.inkSoft }}&gt;원천징수(3.3%) &lt;b style={{ color: '#ffb4a2' }}&gt;−{wh.toLocaleString()}원&lt;/b&gt;&lt;/span&gt;
+              &lt;span style={{ color: '#06342c', background: 'oklch(0.7 0.11 188)', padding: '2px 12px', borderRadius: 999, fontWeight: 800 }}&gt;실지급 {net.toLocaleString()}원&lt;/span&gt;
+            &lt;/div&gt;
+            &lt;div style={{ fontSize: 11.5, color: T.faint, marginTop: 10 }}&gt;외부 서점 판매 시 작가 60% 기준 별도 정산.&lt;/div&gt;
+          &lt;/div&gt;
+        )}
+      &lt;/Section&gt;
+&nbsp;
+      &lt;Section title="기간 할인"&gt;
+        &lt;input type="number" value={discAmt} onChange={<span class="fstat-no" title="function not covered" >(e) =&gt; setDiscAmt(e.target.value)} p</span>laceholder="할인가" style={inp} /&gt; 원
+        &lt;input type="datetime-local" value={discUntil} onChange={<span class="fstat-no" title="function not covered" >(e) =&gt; setDiscUntil(e.target.value)} s</span>tyle={{ ...inp, marginLeft: 8 }} /&gt; 까지
+        &lt;button
+          onClick={run(() =&gt; setDiscount(id, parseInt(discAmt || '0', 10), new Date(discUntil).toISOString()), '할인이 설정됐어요.')}
+          style={btn}
+        &gt;
+          할인 저장
+        &lt;/button&gt;
+        &lt;span style={{ color: '#aaa', fontSize: 13, marginLeft: 8 }}&gt;종료시각까지 할인가로 판매&lt;/span&gt;
+      &lt;/Section&gt;
+&nbsp;
+      &lt;Section title="ISBN"&gt;
+        &lt;input value={isbn} onChange={<span class="fstat-no" title="function not covered" >(e) =&gt; setIsbnValue(e.target.value)} p</span>laceholder="978-89-..." style={{ ...inp, width: 220 }} /&gt;
+        &lt;button onClick={run(() =&gt; setIsbn(id, isbn), 'ISBN이 저장됐어요.')} style={btn}&gt;ISBN 저장&lt;/button&gt;
+        &lt;span style={{ color: '#aaa', fontSize: 13, marginLeft: 8 }}&gt;없으면 서점에 자체 식별자로 나갑니다&lt;/span&gt;
+      &lt;/Section&gt;
+&nbsp;
+      &lt;Section title="파일 산출물"&gt;
+        &lt;button onClick={run(() =&gt; downloadEpub(id))} style={btn}&gt;EPUB 내려받기&lt;/button&gt;
+        &lt;button onClick={run(() =&gt; downloadOnix(id))} style={btn}&gt;ONIX(메타) 내려받기&lt;/button&gt;
+      &lt;/Section&gt;
+&nbsp;
+      &lt;Section title="출판"&gt;
+        {book.status === 'DRAFT' &amp;&amp; (
+          &lt;button onClick={run(submitBook.bind(null, id), '심사 제출됐어요.')} style={btn}&gt;심사 제출&lt;/button&gt;
+        )}
+        {book.status === <span class="branch-0 cbranch-no" title="branch not covered" >'REVIEW' &amp;&amp; (</span>
+<span class="cstat-no" title="statement not covered" >          &lt;button onClick={run(publishBook.bind(null, id), '출판 완료! 스토어에 노출됩니다.')} style={primary}&gt;출판&lt;/button&gt;</span>
+        )}
+        {!published &amp;&amp; (
+          &lt;&gt;
+            &lt;button onClick={run(publishNow.bind(null, id), '즉시 출간됐어요! 스토어에 노출됩니다.')} style={primary}&gt;즉시 출간&lt;/button&gt;
+            &lt;span style={{ display: 'block', marginTop: 12 }} /&gt;
+            &lt;input type="datetime-local" value={scheduleAt} onChange={<span class="fstat-no" title="function not covered" >(e) =&gt; setScheduleAt(e.target.value)} s</span>tyle={inp} /&gt;
+            &lt;button onClick={doSchedule} style={btn}&gt;예약 발행&lt;/button&gt;
+            &lt;span style={{ color: '#aaa', fontSize: 13, marginLeft: 8 }}&gt;지정 시각에 자동 게시&lt;/span&gt;
+          &lt;/&gt;
+        )}
+        {published &amp;&amp; &lt;Link to={`/books/${id}`} style={{ color: '#111' }}&gt;스토어에서 보기 →&lt;/Link&gt;}
+      &lt;/Section&gt;
+&nbsp;
+      {published &amp;&amp; (
+        &lt;Section title="서점 배포"&gt;
+          &lt;select value={channel} onChange={<span class="fstat-no" title="function not covered" >(e) =&gt; setChannel(e.target.value)} s</span>tyle={inp}&gt;
+            {CHANNELS.map(([v, l]) =&gt; (
+              &lt;option key={v} value={v}&gt;{l}&lt;/option&gt;
+            ))}
+          &lt;/select&gt;
+          &lt;button onClick={doDistribute} style={primary}&gt;배포 전송&lt;/button&gt;
+          {dists.length &gt; 0 &amp;&amp; (
+            &lt;ul style={{ listStyle: 'none', padding: 0, marginTop: 14, fontSize: 14 }}&gt;
+              {dists.map((d) =&gt; (
+                &lt;li key={d.id} style={{ padding: '6px 0', borderTop: '1px solid #f0f0f0' }}&gt;
+                  &lt;b&gt;{labelOf(d.channelCd)}&lt;/b&gt;{' '}
+                  &lt;span style={{ color: d.statusCd === 'SENT' ? <span class="branch-0 cbranch-no" title="branch not covered" >'green' : 'crimson' }</span>}&gt;
+                    {d.statusCd === 'SENT' ? <span class="branch-0 cbranch-no" title="branch not covered" >'전송됨' : '실패'}</span>
+                  &lt;/span&gt;{' '}
+                  &lt;span style={{ color: '#aaa' }}&gt;{new Date(d.createdAt).toLocaleString()}&lt;/span&gt;
+                  {d.<span class="branch-0 cbranch-no" title="branch not covered" >message &amp;&amp; &lt;span style={{ color: '#c00', marginLeft: 6 }}&gt;{d.message}&lt;/span&gt;}</span>
+                &lt;/li&gt;
+              ))}
+            &lt;/ul&gt;
+          )}
+        &lt;/Section&gt;
+      )}
+    &lt;/div&gt;
+  );
+}
+&nbsp;
+function labelOf(cd) {
+  const found = CHANNELS.find(([v]) =&gt; v === cd);
+  return found ? found[1<span class="branch-0 cbranch-no" title="branch not covered" >] : cd;</span>
+}
+&nbsp;
+const btn = { marginLeft: 8, padding: '9px 15px', borderRadius: 10, border: `1px solid ${T.border}`, background: T.surface, color: T.textMid, fontWeight: 600, cursor: 'pointer' };
+const primary = { ...btn, background: T.ink, color: T.inkText, border: 'none' };
+const inp = { padding: '10px 13px', border: `1px solid #dfeae5`, borderRadius: 11, width: 160, background: T.bg, fontFamily: 'inherit', color: T.textStrong };
+&nbsp;
+function Section({ title, children }) {
+  return (
+    &lt;section style={{ background: T.surface, borderRadius: 18, padding: 24, marginTop: 16 }}&gt;
+      &lt;h3 style={{ fontSize: 15, fontWeight: 800, color: T.textStrong, margin: '0 0 14px' }}&gt;{title}&lt;/h3&gt;
+      &lt;div&gt;{children}&lt;/div&gt;
+    &lt;/section&gt;
+  );
+}
+&nbsp;
+function Center({ children }) {
+  return &lt;p style={{ textAlign: 'center', color: T.muted, padding: 40 }}&gt;{children}&lt;/p&gt;;
+}
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-06-27T07:07:56.818Z
+            </div>
+        <script src="../../../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../../../sorter.js"></script>
+        <script src="../../../block-navigation.js"></script>
+    </body>
+</html>
+    

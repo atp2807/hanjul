@@ -1,0 +1,334 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Code coverage report for web/src/pages/PricingPage.jsx</title>
+    <meta charset="utf-8" />
+    <link rel="stylesheet" href="../../../prettify.css" />
+    <link rel="stylesheet" href="../../../base.css" />
+    <link rel="shortcut icon" type="image/x-icon" href="../../../favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style type='text/css'>
+        .coverage-summary .sorter {
+            background-image: url(../../../sort-arrow-sprite.png);
+        }
+    </style>
+</head>
+    
+<body>
+<div class='wrapper'>
+    <div class='pad1'>
+        <h1><a href="../../../index.html">All files</a> / <a href="index.html">web/src/pages</a> PricingPage.jsx</h1>
+        <div class='clearfix'>
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Statements</span>
+                <span class='fraction'>0/70</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Branches</span>
+                <span class='fraction'>0/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Functions</span>
+                <span class='fraction'>0/1</span>
+            </div>
+        
+            
+            <div class='fl pad1y space-right2'>
+                <span class="strong">0% </span>
+                <span class="quiet">Lines</span>
+                <span class='fraction'>0/70</span>
+            </div>
+        
+            
+        </div>
+        <p class="quiet">
+            Press <em>n</em> or <em>j</em> to go to the next uncovered block, <em>b</em>, <em>p</em> or <em>k</em> for the previous block.
+        </p>
+        <template id="filterTemplate">
+            <div class="quiet">
+                Filter:
+                <input type="search" id="fileSearch">
+            </div>
+        </template>
+    </div>
+    <div class='status-line low'></div>
+    <pre><table class="coverage">
+<tr><td class="line-count quiet"><a name='L1'></a><a href='#L1'>1</a>
+<a name='L2'></a><a href='#L2'>2</a>
+<a name='L3'></a><a href='#L3'>3</a>
+<a name='L4'></a><a href='#L4'>4</a>
+<a name='L5'></a><a href='#L5'>5</a>
+<a name='L6'></a><a href='#L6'>6</a>
+<a name='L7'></a><a href='#L7'>7</a>
+<a name='L8'></a><a href='#L8'>8</a>
+<a name='L9'></a><a href='#L9'>9</a>
+<a name='L10'></a><a href='#L10'>10</a>
+<a name='L11'></a><a href='#L11'>11</a>
+<a name='L12'></a><a href='#L12'>12</a>
+<a name='L13'></a><a href='#L13'>13</a>
+<a name='L14'></a><a href='#L14'>14</a>
+<a name='L15'></a><a href='#L15'>15</a>
+<a name='L16'></a><a href='#L16'>16</a>
+<a name='L17'></a><a href='#L17'>17</a>
+<a name='L18'></a><a href='#L18'>18</a>
+<a name='L19'></a><a href='#L19'>19</a>
+<a name='L20'></a><a href='#L20'>20</a>
+<a name='L21'></a><a href='#L21'>21</a>
+<a name='L22'></a><a href='#L22'>22</a>
+<a name='L23'></a><a href='#L23'>23</a>
+<a name='L24'></a><a href='#L24'>24</a>
+<a name='L25'></a><a href='#L25'>25</a>
+<a name='L26'></a><a href='#L26'>26</a>
+<a name='L27'></a><a href='#L27'>27</a>
+<a name='L28'></a><a href='#L28'>28</a>
+<a name='L29'></a><a href='#L29'>29</a>
+<a name='L30'></a><a href='#L30'>30</a>
+<a name='L31'></a><a href='#L31'>31</a>
+<a name='L32'></a><a href='#L32'>32</a>
+<a name='L33'></a><a href='#L33'>33</a>
+<a name='L34'></a><a href='#L34'>34</a>
+<a name='L35'></a><a href='#L35'>35</a>
+<a name='L36'></a><a href='#L36'>36</a>
+<a name='L37'></a><a href='#L37'>37</a>
+<a name='L38'></a><a href='#L38'>38</a>
+<a name='L39'></a><a href='#L39'>39</a>
+<a name='L40'></a><a href='#L40'>40</a>
+<a name='L41'></a><a href='#L41'>41</a>
+<a name='L42'></a><a href='#L42'>42</a>
+<a name='L43'></a><a href='#L43'>43</a>
+<a name='L44'></a><a href='#L44'>44</a>
+<a name='L45'></a><a href='#L45'>45</a>
+<a name='L46'></a><a href='#L46'>46</a>
+<a name='L47'></a><a href='#L47'>47</a>
+<a name='L48'></a><a href='#L48'>48</a>
+<a name='L49'></a><a href='#L49'>49</a>
+<a name='L50'></a><a href='#L50'>50</a>
+<a name='L51'></a><a href='#L51'>51</a>
+<a name='L52'></a><a href='#L52'>52</a>
+<a name='L53'></a><a href='#L53'>53</a>
+<a name='L54'></a><a href='#L54'>54</a>
+<a name='L55'></a><a href='#L55'>55</a>
+<a name='L56'></a><a href='#L56'>56</a>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a>
+<a name='L68'></a><a href='#L68'>68</a>
+<a name='L69'></a><a href='#L69'>69</a>
+<a name='L70'></a><a href='#L70'>70</a>
+<a name='L71'></a><a href='#L71'>71</a>
+<a name='L72'></a><a href='#L72'>72</a>
+<a name='L73'></a><a href='#L73'>73</a>
+<a name='L74'></a><a href='#L74'>74</a>
+<a name='L75'></a><a href='#L75'>75</a>
+<a name='L76'></a><a href='#L76'>76</a>
+<a name='L77'></a><a href='#L77'>77</a>
+<a name='L78'></a><a href='#L78'>78</a>
+<a name='L79'></a><a href='#L79'>79</a>
+<a name='L80'></a><a href='#L80'>80</a>
+<a name='L81'></a><a href='#L81'>81</a>
+<a name='L82'></a><a href='#L82'>82</a>
+<a name='L83'></a><a href='#L83'>83</a>
+<a name='L84'></a><a href='#L84'>84</a></td><td class="line-coverage quiet"><span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span>
+<span class="cline-any cline-no">&nbsp;</span>
+<span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js"><span class="cstat-no" title="statement not covered" ><span class="fstat-no" title="function not covered" ><span class="branch-0 cbranch-no" title="branch not covered" >import { T } from '../theme';</span></span></span>
+&nbsp;
+// 수수료·정산 안내 (구 요금제 — 우리는 구독 티어가 아니라 판매 수수료(분배) 모델).
+<span class="cstat-no" title="statement not covered" >function Stat({ value, label, color }) {</span>
+<span class="cstat-no" title="statement not covered" >  return (</span>
+<span class="cstat-no" title="statement not covered" >    &lt;div style={{ background: T.surface, borderRadius: 18, padding: 26, textAlign: 'center' }}&gt;</span>
+<span class="cstat-no" title="statement not covered" >      &lt;div style={{ fontSize: 34, fontWeight: 800, color: color || T.ink, letterSpacing: '-0.02em' }}&gt;{value}&lt;/div&gt;</span>
+<span class="cstat-no" title="statement not covered" >      &lt;div style={{ fontSize: 13.5, color: T.muted, marginTop: 6 }}&gt;{label}&lt;/div&gt;</span>
+<span class="cstat-no" title="statement not covered" >    &lt;/div&gt;</span>
+  );
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >function ChannelCard({ title, desc, authorPct, authorLabel, platLabel, recommend }) {</span>
+<span class="cstat-no" title="statement not covered" >  return (</span>
+<span class="cstat-no" title="statement not covered" >    &lt;div style={{ background: T.surface, borderRadius: 20, padding: '28px 30px' }}&gt;</span>
+<span class="cstat-no" title="statement not covered" >      &lt;div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;div style={{ fontSize: 17, fontWeight: 800, color: T.ink }}&gt;{title}&lt;/div&gt;</span>
+<span class="cstat-no" title="statement not covered" >        {recommend &amp;&amp; &lt;span style={{ padding: '4px 11px', background: '#e3f3ec', borderRadius: 999, fontSize: 12, fontWeight: 700, color: '#2f8a6f' }}&gt;추천&lt;/span&gt;}</span>
+<span class="cstat-no" title="statement not covered" >      &lt;/div&gt;</span>
+<span class="cstat-no" title="statement not covered" >      &lt;p style={{ margin: '0 0 20px', fontSize: 13.5, color: T.muted, lineHeight: 1.6 }}&gt;{desc}&lt;/p&gt;</span>
+<span class="cstat-no" title="statement not covered" >      &lt;div style={{ display: 'flex', height: 42, borderRadius: 11, overflow: 'hidden' }}&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;div style={{ width: `${authorPct}%`, background: 'oklch(0.7 0.11 188)', display: 'flex', alignItems: 'center', paddingLeft: 16, color: '#06342c', fontSize: 14, fontWeight: 800 }}&gt;{authorLabel}&lt;/div&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;div style={{ width: `${100 - authorPct}%`, background: '#dceee9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: T.textMid, fontSize: 13, fontWeight: 700 }}&gt;{platLabel}&lt;/div&gt;</span>
+<span class="cstat-no" title="statement not covered" >      &lt;/div&gt;</span>
+<span class="cstat-no" title="statement not covered" >    &lt;/div&gt;</span>
+  );
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >function Step({ label, value, highlight }) {</span>
+<span class="cstat-no" title="statement not covered" >  return (</span>
+<span class="cstat-no" title="statement not covered" >    &lt;div style={{ flex: highlight ? 1.1 : 1, background: highlight ? 'oklch(0.7 0.11 188)' : 'rgba(255,255,255,0.08)', borderRadius: 14, padding: 20 }}&gt;</span>
+<span class="cstat-no" title="statement not covered" >      &lt;div style={{ fontSize: 12.5, color: highlight ? '#06342c' : T.inkSoft, fontWeight: highlight ? 600 : 400 }}&gt;{label}&lt;/div&gt;</span>
+<span class="cstat-no" title="statement not covered" >      &lt;div style={{ fontSize: highlight ? 26 : 24, fontWeight: 800, color: highlight ? '#06342c' : '#fff', marginTop: 6 }}&gt;{value}&lt;/div&gt;</span>
+<span class="cstat-no" title="statement not covered" >    &lt;/div&gt;</span>
+  );
+<span class="cstat-no" title="statement not covered" >}</span>
+<span class="cstat-no" title="statement not covered" >const Op = ({ ch }) =&gt; &lt;div style={{ display: 'flex', alignItems: 'center', color: '#6f9aa4', fontSize: 20 }}&gt;{ch}&lt;/div&gt;;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >export function PricingPage() {</span>
+<span class="cstat-no" title="statement not covered" >  return (</span>
+<span class="cstat-no" title="statement not covered" >    &lt;div style={{ padding: '54px 56px 64px' }}&gt;</span>
+<span class="cstat-no" title="statement not covered" >      &lt;div style={{ textAlign: 'center', maxWidth: 680, margin: '0 auto 44px' }}&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;div style={{ display: 'inline-block', padding: '6px 14px', background: '#e3f3ec', borderRadius: 999, fontSize: 12.5, fontWeight: 700, color: '#2f8a6f', marginBottom: 18 }}&gt;작가에게 가장 많이 남기는 구조&lt;/div&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;h1 style={{ margin: '0 0 14px', fontSize: 36, fontWeight: 800, color: T.ink, letterSpacing: '-0.03em', lineHeight: 1.25 }}&gt;월 요금 없이, 팔린 만큼&lt;br /&gt;투명하게 나눕니다&lt;/h1&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;p style={{ margin: 0, fontSize: 16, lineHeight: 1.75, color: T.muted }}&gt;</span>
+          가입도, 글쓰기 에디터도, 출판도 무료예요. 작가에게 월 구독료를 받지 않습니다. 책이 팔릴 때만, 처음부터 공개된 비율로 정산합니다.
+<span class="cstat-no" title="statement not covered" >        &lt;/p&gt;</span>
+<span class="cstat-no" title="statement not covered" >      &lt;/div&gt;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >      &lt;div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, maxWidth: 920, margin: '0 auto 44px' }}&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;Stat value="0원" label="가입·에디터·출판 비용" /&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;Stat value="70%" label="한줄 직판 시 작가 몫" color="oklch(0.6 0.1 195)" /&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;Stat value="M+2" label="판매월 + 2개월 정산" /&gt;</span>
+<span class="cstat-no" title="statement not covered" >      &lt;/div&gt;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >      &lt;div style={{ maxWidth: 920, margin: '0 auto' }}&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;h2 style={{ margin: '0 0 18px', fontSize: 20, fontWeight: 800, color: T.textStrong, letterSpacing: '-0.02em' }}&gt;판매 채널별 분배율&lt;/h2&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 18, marginBottom: 44 }}&gt;</span>
+<span class="cstat-no" title="statement not covered" >          &lt;ChannelCard title="SELF · 한줄 직판" desc="한줄 서점에서 직접 팔릴 때. 가장 높은 작가 몫." authorPct={70} authorLabel="작가 70%" platLabel="한줄 30%" recommend /&gt;</span>
+<span class="cstat-no" title="statement not covered" >          &lt;ChannelCard title="EXTERNAL · 외부 서점" desc="교보·예스24 등 외부 채널 판매 (서점 몫 포함)." authorPct={60} authorLabel="작가 60%" platLabel="서점·플랫폼 40%" /&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;/div&gt;</span>
+&nbsp;
+<span class="cstat-no" title="statement not covered" >        &lt;h2 style={{ margin: '0 0 18px', fontSize: 20, fontWeight: 800, color: T.textStrong, letterSpacing: '-0.02em' }}&gt;정산은 이렇게 계산돼요&lt;/h2&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;div style={{ background: T.ink, borderRadius: 22, padding: '34px 36px', marginBottom: 20 }}&gt;</span>
+<span class="cstat-no" title="statement not covered" >          &lt;div style={{ fontSize: 13, color: T.inkSoft, marginBottom: 22 }}&gt;예시 · 10,000원 책이 &lt;b style={{ color: '#fff' }}&gt;한줄 직판(SELF)&lt;/b&gt;으로 1권 팔렸을 때&lt;/div&gt;</span>
+<span class="cstat-no" title="statement not covered" >          &lt;div style={{ display: 'flex', alignItems: 'stretch', gap: 14, flexWrap: 'wrap' }}&gt;</span>
+<span class="cstat-no" title="statement not covered" >            &lt;Step label="판매가" value="10,000원" /&gt;</span>
+<span class="cstat-no" title="statement not covered" >            &lt;Op ch="→" /&gt;</span>
+<span class="cstat-no" title="statement not covered" >            &lt;Step label="작가 몫 (70%)" value="7,000원" /&gt;</span>
+<span class="cstat-no" title="statement not covered" >            &lt;Op ch="−" /&gt;</span>
+<span class="cstat-no" title="statement not covered" >            &lt;Step label="원천징수 (3.3%)" value="231원" /&gt;</span>
+<span class="cstat-no" title="statement not covered" >            &lt;Op ch="=" /&gt;</span>
+<span class="cstat-no" title="statement not covered" >            &lt;Step label="실지급액" value="6,769원" highlight /&gt;</span>
+<span class="cstat-no" title="statement not covered" >          &lt;/div&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;/div&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;div style={{ display: 'flex', gap: 24, fontSize: 13, color: T.muted, lineHeight: 1.7, flexWrap: 'wrap' }}&gt;</span>
+<span class="cstat-no" title="statement not covered" >          &lt;div style={{ flex: 1, minWidth: 260 }}&gt;&lt;b style={{ color: T.textMid }}&gt;원천징수란?&lt;/b&gt; 개인 작가는 작가 몫에서 소득세 3% + 주민세 0.3% = 3.3%를 떼고 지급해요. (사업자 작가는 세금계산서 발행, 원천징수 없음)&lt;/div&gt;</span>
+<span class="cstat-no" title="statement not covered" >          &lt;div style={{ flex: 1, minWidth: 260 }}&gt;&lt;b style={{ color: T.textMid }}&gt;정산 주기&lt;/b&gt; 판매가 일어난 달 기준 2개월 뒤(M+2)에 등록한 계좌로 지급됩니다. 스튜디오에서 실시간 적립·예정 정산액을 확인할 수 있어요.&lt;/div&gt;</span>
+<span class="cstat-no" title="statement not covered" >        &lt;/div&gt;</span>
+<span class="cstat-no" title="statement not covered" >      &lt;/div&gt;</span>
+<span class="cstat-no" title="statement not covered" >    &lt;/div&gt;</span>
+  );
+<span class="cstat-no" title="statement not covered" >}</span>
+&nbsp;</pre></td></tr></table></pre>
+
+                <div class='push'></div><!-- for sticky footer -->
+            </div><!-- /wrapper -->
+            <div class='footer quiet pad2 space-top1 center small'>
+                Code coverage generated by
+                <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
+                at 2026-06-27T07:07:56.818Z
+            </div>
+        <script src="../../../prettify.js"></script>
+        <script>
+            window.onload = function () {
+                prettyPrint();
+            };
+        </script>
+        <script src="../../../sorter.js"></script>
+        <script src="../../../block-navigation.js"></script>
+    </body>
+</html>
+    
