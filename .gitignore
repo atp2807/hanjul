@@ -22,3 +22,8 @@ dist/
 web/test-results/
 web/playwright-report/
 web/blob-report/
+
+# 테스트 커버리지 산출물
+web/coverage/
+backend/.coverage
+backend/htmlcov/
