@@ -6,6 +6,7 @@ from uuid import UUID
 
 NEW_BOOK = "NEW_BOOK"
 REVISION = "REVISION"
+ASSIGNED = "ASSIGNED"   # 서평단 배정 — 증정본 도착 안내
 
 
 @dataclass

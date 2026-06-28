@@ -131,6 +131,34 @@ async def test_cancel_application(app_db):
         assert (await c.post(f"/api/campaigns/{cid}/assign", json={"applicantId": reader["id"]}, headers=a_auth)).status_code == 409
 
 
+async def test_assign_notifies_reviewer(app_db):
+    """배정되면 리뷰어 알림함에 '배정' 알림이 떠야 한다 (증정본 도착 안내)."""
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
+        author_token, _ = await login_account(c, "google", "a")
+        reader_token, reader = await login_account(c, "naver", "r")
+        a_auth = {"Authorization": f"Bearer {author_token}"}
+        r_auth = {"Authorization": f"Bearer {reader_token}"}
+
+        book = (await c.post("/api/books", json={"title": "알림책"}, headers=a_auth)).json()["bookId"]
+        await c.put(f"/api/books/{book}/price", json={"amount": 1000}, headers=a_auth)
+        await c.post(f"/api/books/{book}/publish-now", headers=a_auth)
+        cid = (await c.post("/api/campaigns", json={"bookId": book, "slots": 1}, headers=a_auth)).json()["campaignId"]
+        await c.post(f"/api/campaigns/{cid}/apply", headers=r_auth)
+
+        # 배정 전: 알림 없음
+        before = (await c.get("/api/me/notifications", headers=r_auth)).json()
+        assert before["unreadCount"] == 0
+
+        # 배정
+        assert (await c.post(f"/api/campaigns/{cid}/assign", json={"applicantId": reader["id"]}, headers=a_auth)).status_code == 204
+
+        # 배정 후: 리뷰어에게 ASSIGNED 알림(책 제목 포함, 안읽음)
+        after = (await c.get("/api/me/notifications", headers=r_auth)).json()
+        assert after["unreadCount"] >= 1
+        item = next(n for n in after["items"] if n["kindCd"] == "ASSIGNED")
+        assert item["title"] == "알림책" and item["bookId"] == book and item["readYn"] is False
+
+
 async def test_assign_only_by_campaign_author(app_db):
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
         author_token, _ = await login_account(c, "google", "a")

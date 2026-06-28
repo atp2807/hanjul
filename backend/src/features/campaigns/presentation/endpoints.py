@@ -9,6 +9,8 @@ from src.features.auth.domain.models import AccountPrincipal
 from src.features.auth.presentation.dependencies import get_current_account
 from src.features.billing.application.order_service import OrderService
 from src.features.billing.presentation.dependencies import get_order_service
+from src.features.notifications.application.notification_service import NotificationService
+from src.features.notifications.presentation.dependencies import get_notification_service
 from src.features.campaigns.application.campaign_service import CampaignService
 from src.features.campaigns.domain.models import CampaignNotFound, NoSlotsLeft, ReviewerBlocked
 from src.features.campaigns.infrastructure.campaign_repo import SqlCampaignRepository
@@ -132,8 +134,9 @@ async def assign(
     principal: AccountPrincipal = Depends(get_current_account),
     svc: CampaignService = Depends(get_campaign_service),
     orders: OrderService = Depends(get_order_service),
+    notifs: NotificationService = Depends(get_notification_service),
 ) -> None:
-    """리뷰어 배정 — 캠페인 작가만. 배정 성공 시 증정본 지급."""
+    """리뷰어 배정 — 캠페인 작가만. 배정 성공 시 증정본 지급 + 리뷰어 알림."""
     try:
         camp = await svc.get(campaign_id)
     except CampaignNotFound:
@@ -145,6 +148,7 @@ async def assign(
     except NoSlotsLeft:
         raise HTTPException(409, "슬롯이 없거나 신청자가 아니에요")
     await orders.grant_review_copy(camp.book_id, body.applicant_id)  # 증정본 지급
+    await notifs.notify_assigned(body.applicant_id, camp.book_id, camp.book_title)  # 배정 알림
 
 
 @router.get("/me/reviewer-status", response_model=ReviewerStatusResponse)

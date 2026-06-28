@@ -2,6 +2,7 @@
 from uuid import UUID
 
 from src.features.notifications.domain.models import (
+    ASSIGNED,
     NEW_BOOK,
     REVISION,
     FollowRepository,
@@ -37,6 +38,10 @@ class NotificationService:
             return 0
         await self.notifs.create_for_recipients(recipients, NEW_BOOK, book_id, title)
         return len(recipients)
+
+    async def notify_assigned(self, reviewer_id: UUID, book_id: UUID | None, title: str | None) -> None:
+        """서평단 배정 — 그 리뷰어에게 '배정/증정본 도착' 알림."""
+        await self.notifs.create_for_recipients([reviewer_id], ASSIGNED, book_id, title)
 
     async def notify_revision(self, book_id: UUID, title: str | None, buyer_ids: list[UUID]) -> int:
         """개정판 재발행 — 구매자에게 알림 재점등(매 개정마다 다시 안읽음). 보낸 수 반환."""
