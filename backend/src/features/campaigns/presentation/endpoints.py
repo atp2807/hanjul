@@ -120,7 +120,7 @@ async def apply(
     try:
         await svc.apply(campaign_id, principal.id)
     except ReviewerBlocked as e:
-        raise HTTPException(403, f"자격회수 기간이에요(해제 {e.until:%Y-%m-%d}).")
+        raise HTTPException(403, f"서평단 참여 제한 기간이에요(해제 {e.until:%Y-%m-%d}).")
     except CampaignNotFound:
         raise HTTPException(404, "campaign not found")
     except NoSlotsLeft:

@@ -46,7 +46,7 @@ describe('ReviewerActivityPage', () => {
     campaigns.getReviewerStatus.mockResolvedValue({ completed: 0, missed: 2, active: 0, pending: 0, received: 2, completionRate: 0, blockedUntil: '2099-06-01T00:00:00Z' });
     renderPage();
 
-    expect(await screen.findByText(/서평단 자격이 회수/)).toBeInTheDocument();
-    expect(screen.getByText('회수')).toBeInTheDocument(); // 자격 카드 값
+    expect(await screen.findByText(/서평단 참여가.*제한/)).toBeInTheDocument();
+    expect(screen.getByText('제한 중')).toBeInTheDocument(); // 참여 카드 값
   });
 });

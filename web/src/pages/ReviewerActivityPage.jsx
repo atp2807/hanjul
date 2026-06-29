@@ -71,13 +71,13 @@ export function ReviewerActivityPage() {
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '16px 20px', background: '#fdeeea', border: '1px solid #f3cfc6', borderRadius: 14, marginBottom: 20 }}>
             <span style={{ fontSize: 20 }}>🚫</span>
             <div style={{ fontSize: 13.5, color: '#c25540', lineHeight: 1.6 }}>
-              기한 내 미작성이 누적되어 <b>서평단 자격이 회수</b>되었어요. <b>{fmtDate(blockedUntil)}</b>부터 다시 신청할 수 있어요.
+              기한 내 미작성이 누적돼 <b>서평단 참여가 14일간 제한</b>됐어요. <b>{fmtDate(blockedUntil)}</b>부터 다시 참여할 수 있어요.
             </div>
           </div>
         )}
 
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '1fr 1fr 1fr 1fr', gap: isMobile ? 12 : 16, marginBottom: 28 }}>
-          <StatCard dark label="서평단 자격" value={blockedUntil ? '회수' : '정상'} sub={blockedUntil ? `${fmtDate(blockedUntil)} 해제` : (status && status.missed ? `미작성 ${status.missed}회` : '성실 리뷰어')} />
+          <StatCard dark label="서평단 참여" value={blockedUntil ? '제한 중' : '정상'} sub={blockedUntil ? `${fmtDate(blockedUntil)} 해제` : (status && status.missed ? `미작성 ${status.missed}회` : '성실 리뷰어')} />
           <StatCard label="리뷰 완료율" value={rate === null ? '—' : `${rate}%`} sub={received ? `${received}건 중 ${completed.length}건 완료` : '아직 없음'} />
           <StatCard label="받은 증정본" value={`${received}권`} />
           <StatCard label="진행 중" value={`${assigned.length}건`} sub={assigned.length ? '리뷰 작성 대기' : null} />
