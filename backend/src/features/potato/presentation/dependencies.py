@@ -39,13 +39,21 @@ _LOOPBACK = {"127.0.0.1", "::1"}
 
 
 def _effective_ip(request: Request) -> str:
-    """진짜 클라이언트 IP — Cloudflare 프록시 뒤에선 CF-Connecting-IP 가 권위."""
+    """진짜 클라이언트 IP.
+
+    1순위 CF-Connecting-IP — Cloudflare가 세팅, CF 통과 시 위조 불가(권위).
+    2순위 X-Forwarded-For의 **마지막** 항목 — nginx가 append한 실제 TCP peer.
+      (앞쪽은 클라가 위조 가능하므로 신뢰하지 않음. origin 직접접근 방어.)
+    3순위 request.client — nginx 미경유(로컬) 경우뿐.
+    """
     cf = request.headers.get("cf-connecting-ip")
     if cf:
         return cf.strip()
     xff = request.headers.get("x-forwarded-for")
     if xff:
-        return xff.split(",")[0].strip()
+        parts = [p.strip() for p in xff.split(",") if p.strip()]
+        if parts:
+            return parts[-1]
     return request.client.host if request.client else ""
 
 
