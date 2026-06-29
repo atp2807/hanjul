@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { KIND_ICON, KIND_ICON_BG, KIND_LABEL, KIND_SUFFIX } from '../notificationKinds';
 import { getNotifications, markAllRead, markRead } from '../services/api/notifications';
+import { Icon } from '../components/Icon';
 import { T } from '../theme';
 import { EmptyState } from '../components/EmptyState';
 
@@ -63,8 +64,8 @@ export function NotificationsPage() {
                 onClick={() => onItem(n)}
                 style={{ display: 'flex', gap: 13, alignItems: 'center', textAlign: 'left', padding: '16px 18px', borderRadius: 13, cursor: 'pointer', border: `1px solid ${T.borderSoft}`, background: n.readYn ? T.surface : T.tint }}
               >
-                <span style={{ width: 40, height: 40, borderRadius: 11, background: KIND_ICON_BG[n.kindCd] || T.tint, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
-                  {KIND_ICON[n.kindCd] || '🔔'}
+                <span style={{ width: 40, height: 40, borderRadius: 11, background: KIND_ICON_BG[n.kindCd] || T.tint, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Icon name={KIND_ICON[n.kindCd] || 'bell'} size={18} stroke="#143e4a" />
                 </span>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 13.5, color: T.textStrong, lineHeight: 1.5 }}>

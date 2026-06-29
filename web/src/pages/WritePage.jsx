@@ -268,7 +268,7 @@ export function WritePage() {
         )}
 
         <div style={{ marginTop: 22, paddingTop: 14, borderTop: '1px solid #f0f0f0' }}>
-          <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 8 }}>자료 📎 (인물·설정 메모)</div>
+          <div style={{ fontSize: 12, color: '#9ca3af', marginBottom: 8 }}>자료 (인물·설정 메모)</div>
           <textarea
             data-testid="notes"
             value={notes}
@@ -349,7 +349,7 @@ export function WritePage() {
             />
             <span>자</span>
             <span data-testid="progress" style={{ marginLeft: 6, color: goal && totalChars >= goal ? '#16a34a' : '#666' }}>
-              {goal ? (totalChars >= goal ? `목표 달성 🎉 ${totalChars.toLocaleString()} / ${goal.toLocaleString()}자` : `${totalChars.toLocaleString()} / ${goal.toLocaleString()}자`) : `${totalChars.toLocaleString()}자`}
+              {goal ? (totalChars >= goal ? `목표 달성 · ${totalChars.toLocaleString()} / ${goal.toLocaleString()}자` : `${totalChars.toLocaleString()} / ${goal.toLocaleString()}자`) : `${totalChars.toLocaleString()}자`}
             </span>
             {goal > 0 && (
               <span style={{ flex: 1, height: 6, background: '#f0f0f0', borderRadius: 3, overflow: 'hidden', maxWidth: 180 }}>

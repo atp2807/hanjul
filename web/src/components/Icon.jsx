@@ -17,6 +17,8 @@ const PATHS = {
   clock: <><circle cx="12" cy="12" r="8.5" /><path d="M12 7v5l3.5 2" /></>,
   check: <path d="M20 6 9 17l-5-5" />,
   chevron: <path d="M9 6 15 12 9 18" />,
+  gift: <><rect x="4" y="9" width="16" height="11" rx="1.2" /><path d="M4 13h16M12 9v11" /><path d="M12 9c-3.5 0-4.5-5 0-3 4.5-2 3.5 3 0 3Z" /></>,
+  ban: <><circle cx="12" cy="12" r="8.5" /><path d="m6.2 6.2 11.6 11.6" /></>,
 };
 
 export function Icon({ name, size = 22, stroke = 'currentColor', strokeWidth = 1.9, fill = 'none', style }) {

@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { cancelApplication, dday, getMyApplications, getReviewerStatus } from '../services/api/campaigns';
 import { coverGradient, T } from '../theme';
+import { Icon } from '../components/Icon';
 import { EmptyState } from '../components/EmptyState';
 
 const STATUS = {
@@ -70,7 +71,7 @@ export function ReviewerActivityPage() {
 
         {blockedUntil && (
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '16px 20px', background: '#fdeeea', border: '1px solid #f3cfc6', borderRadius: 14, marginBottom: 20 }}>
-            <span style={{ fontSize: 20 }}>🚫</span>
+            <span style={{ flexShrink: 0, display: 'flex' }}><Icon name="ban" size={20} stroke="#c25540" /></span>
             <div style={{ fontSize: 13.5, color: '#c25540', lineHeight: 1.6 }}>
               기한 내 미작성이 누적돼 <b>서평단 참여가 14일간 제한</b>됐어요. <b>{fmtDate(blockedUntil)}</b>부터 다시 참여할 수 있어요.
             </div>

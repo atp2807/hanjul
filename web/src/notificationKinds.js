@@ -7,5 +7,6 @@ export const KIND_SUFFIX = {
   ASSIGNED: ' 서평단에 배정됐어요. 증정본이 서재에 도착했어요.',
   DUE_SOON: ' 리뷰 마감이 다가와요. 잊지 말고 작성해 주세요.',
 };
-export const KIND_ICON = { NEW_BOOK: '🚀', REVISION: '✏️', ASSIGNED: '🎁', DUE_SOON: '⏰' };
+// 우리 Icon 세트 이름 (이모지 안 씀). Icon.jsx PATHS 키와 일치.
+export const KIND_ICON = { NEW_BOOK: 'read', REVISION: 'edit', ASSIGNED: 'gift', DUE_SOON: 'clock' };
 export const KIND_ICON_BG = { NEW_BOOK: '#e3f3ec', REVISION: '#fff3da', ASSIGNED: '#e3f3ec', DUE_SOON: '#fdeeea' };
