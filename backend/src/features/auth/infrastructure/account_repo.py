@@ -28,16 +28,6 @@ class SqlAccountRepository:
         acc = (await self.session.execute(stmt)).scalar_one_or_none()
         return _to_auth_account(acc) if acc else None
 
-    async def get_account(self, account_id) -> AuthAccount | None:
-        acc = await self.session.get(Account, account_id)
-        return _to_auth_account(acc) if acc else None
-
-    async def update_bio(self, account_id, bio: str | None) -> None:
-        acc = await self.session.get(Account, account_id)
-        if acc is not None:
-            acc.bio = (bio or "").strip() or None
-            await self.session.commit()
-
     async def create_with_credential(self, profile: SocialProfile) -> AuthAccount:
         account = Account(
             email=profile.email,

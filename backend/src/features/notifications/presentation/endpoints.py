@@ -6,7 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import get_session
 from src.features.auth.domain.models import AccountPrincipal
-from src.features.auth.infrastructure.account_repo import SqlAccountRepository
+from src.features.accounts.application.account_service import AccountService
+from src.features.accounts.presentation.dependencies import get_account_service
 from src.features.auth.presentation.dependencies import get_current_account
 from src.features.notifications.application.notification_service import NotificationService
 from src.features.notifications.presentation.dependencies import get_notification_service
@@ -25,10 +26,10 @@ async def follow_author(
     author_id: UUID,
     principal: AccountPrincipal = Depends(get_current_account),
     svc: NotificationService = Depends(get_notification_service),
-    session: AsyncSession = Depends(get_session),
+    acct: AccountService = Depends(get_account_service),
 ) -> None:
     """작가 팔로우 — 신간 출판 시 알림. 없는 작가 404 / 자기 자신 400."""
-    if await SqlAccountRepository(session).get_account(author_id) is None:
+    if not await acct.exists(author_id):
         raise HTTPException(404, "author not found")
     try:
         await svc.follow(principal.id, author_id)

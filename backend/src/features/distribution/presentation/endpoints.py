@@ -9,7 +9,8 @@ from src.config.database import get_session
 from src.config.settings import settings
 from src.engine.publishing.epub import EpubBook, EpubChapter, build_epub
 from src.engine.publishing.onix import OnixProduct, build_onix
-from src.features.auth.infrastructure.account_repo import SqlAccountRepository
+from src.features.accounts.application.account_service import AccountService
+from src.features.accounts.presentation.dependencies import get_account_service
 from src.features.books.application.book_service import BookService
 from src.features.books.domain.models import BookNotFound
 from src.features.books.presentation.dependencies import get_book_service
@@ -31,6 +32,7 @@ async def distribute(
     body: DistributeRequest,
     book_svc: BookService = Depends(get_book_service),
     catalog_svc: CatalogService = Depends(get_catalog_service),
+    acct: AccountService = Depends(get_account_service),
     session: AsyncSession = Depends(get_session),
 ) -> DistributionResponse:
     try:
@@ -43,8 +45,8 @@ async def distribute(
 
     author = None
     if meta.author_id:
-        acc = await SqlAccountRepository(session).get_account(meta.author_id)
-        author = acc.display_name if acc else None
+        names = await acct.names_for([meta.author_id])
+        author = names.get(meta.author_id)
 
     modified = datetime.now(timezone.utc)
     epub = build_epub(

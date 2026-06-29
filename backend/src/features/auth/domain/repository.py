@@ -13,10 +13,3 @@ class AccountRepository(Protocol):
         """소셜 프로필로 account + credential 을 함께 생성."""
         ...
 
-    async def get_account(self, account_id: UUID) -> AuthAccount | None:
-        """id 로 계정 조회 (GET /me 등)."""
-        ...
-
-    async def update_bio(self, account_id: UUID, bio: str | None) -> None:
-        """작가 소개 수정."""
-        ...

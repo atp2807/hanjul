@@ -10,7 +10,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.config.database import get_session
 from src.engine.publishing.onix import OnixProduct, build_onix
 from src.features.auth.domain.models import AccountPrincipal
-from src.features.auth.infrastructure.account_repo import SqlAccountRepository
+from src.features.accounts.application.account_service import AccountService
+from src.features.accounts.domain.models import AccountNotFound
+from src.features.accounts.presentation.dependencies import get_account_service
 from src.features.auth.presentation.dependencies import get_current_account
 from src.features.billing.application.order_service import OrderService
 from src.features.billing.presentation.dependencies import get_order_service
@@ -241,6 +243,7 @@ async def set_isbn(
 async def book_onix(
     book_id: UUID,
     svc: CatalogService = Depends(get_catalog_service),
+    acct: AccountService = Depends(get_account_service),
     session: AsyncSession = Depends(get_session),
 ) -> Response:
     """책 메타 → ONIX 3.0 XML (서점 유통 표준 피드)."""
@@ -250,8 +253,8 @@ async def book_onix(
         raise HTTPException(404, "book not found")
     author = None
     if meta.author_id:
-        acc = await SqlAccountRepository(session).get_account(meta.author_id)
-        author = acc.display_name if acc else None
+        names = await acct.names_for([meta.author_id])
+        author = names.get(meta.author_id)
     product = OnixProduct(
         record_reference=str(meta.id),
         title=meta.title,
@@ -279,10 +282,11 @@ async def my_books(
 async def author_profile(
     author_id: UUID,
     svc: CatalogService = Depends(get_catalog_service),
-    session: AsyncSession = Depends(get_session),
+    acct: AccountService = Depends(get_account_service),
 ) -> AuthorProfileResponse:
-    acc = await SqlAccountRepository(session).get_account(author_id)
-    if acc is None:
+    try:
+        acc = await acct.get_profile(author_id)
+    except AccountNotFound:
         raise HTTPException(404, "author not found")
     books = await svc.list_published_by_author(author_id)
     return AuthorProfileResponse(

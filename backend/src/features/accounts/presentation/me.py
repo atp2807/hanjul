@@ -1,14 +1,17 @@
-"""현재 로그인 계정 — GET /api/me, PUT /api/me/profile."""
+"""현재 로그인 계정(유저) — GET /api/me, PUT /api/me/profile.
+
+인증(누구인지)은 auth 의 get_current_account 가, 유저 데이터(프로필)는 accounts 가.
+"""
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.config.database import get_session
+from src.features.accounts.application.account_service import AccountService
+from src.features.accounts.domain.models import AccountNotFound
+from src.features.accounts.presentation.dependencies import get_account_service
+from src.features.accounts.presentation.schemas import AccountResponse
 from src.features.auth.domain.models import AccountPrincipal
-from src.features.auth.infrastructure.account_repo import SqlAccountRepository
 from src.features.auth.presentation.dependencies import get_current_account
-from src.features.auth.presentation.schemas import AccountResponse
 
 router = APIRouter(tags=["account"])
 
@@ -21,25 +24,20 @@ class UpdateProfileRequest(BaseModel):
 @router.get("/me", response_model=AccountResponse)
 async def me(
     principal: AccountPrincipal = Depends(get_current_account),
-    session: AsyncSession = Depends(get_session),
+    svc: AccountService = Depends(get_account_service),
 ) -> AccountResponse:
-    account = await SqlAccountRepository(session).get_account(principal.id)
-    if account is None:
+    try:
+        acc = await svc.get_profile(principal.id)
+    except AccountNotFound:
         raise HTTPException(status_code=404, detail="account not found")
-    return AccountResponse(
-        id=account.id,
-        email=account.email,
-        display_name=account.display_name,
-        role_cd=account.role_cd,
-        bio=account.bio,
-    )
+    return AccountResponse.model_validate(acc)
 
 
 @router.put("/me/profile", status_code=204)
 async def update_profile(
     body: UpdateProfileRequest,
     principal: AccountPrincipal = Depends(get_current_account),
-    session: AsyncSession = Depends(get_session),
+    svc: AccountService = Depends(get_account_service),
 ) -> None:
     """작가 소개(bio) 수정."""
-    await SqlAccountRepository(session).update_bio(principal.id, body.bio)
+    await svc.update_bio(principal.id, body.bio)

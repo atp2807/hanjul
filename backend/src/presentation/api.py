@@ -2,7 +2,7 @@
 from fastapi import APIRouter
 
 from src.features.auth.presentation.endpoints import router as auth_router
-from src.features.auth.presentation.me import router as me_router
+from src.features.accounts.presentation.me import router as me_router
 from src.features.books.presentation.endpoints import router as books_router
 from src.features.billing.presentation.endpoints import payments_router
 from src.features.billing.presentation.endpoints import router as billing_router
