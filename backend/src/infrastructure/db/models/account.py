@@ -1,6 +1,7 @@
 """계정/인증 모델 — 스키마 `usr`.
 
-account = 사람(작가·독자·관리자, role_cd 로 구분). credential = 소셜 신원(provider별).
+account = 고객(독자=작가 한 사람). credential = 소셜 신원(provider별).
+운영자는 여기 없음 — 완전 분리된 potato.operator (구매 불가, 별도 인증).
 provider_cd 로 나라별 소셜(GOOGLE/NAVER/KAKAO/LINE/APPLE…)을 스키마 변경 없이 확장.
 """
 import uuid
@@ -25,7 +26,7 @@ class Account(Base):
     email = Column(String(320), unique=True)  # 소셜이 이메일 미제공 가능 → nullable
     display_name = Column(String(200))
     bio = Column(Text)  # 작가 소개(프로필)
-    role_cd = Column(String(20), nullable=False, default="READER")   # READER | AUTHOR | ADMIN
+    role_cd = Column(String(20), nullable=False, default="READER")   # READER | AUTHOR (운영자는 potato.operator)
     status_cd = Column(String(20), nullable=False, default="ACTIVE")  # ACTIVE | SUSPENDED
     review_blocked_at = Column("review_blocked_ts", DateTime(timezone=True))  # 서평단 자격회수: 이 시각까지 신청 제한(NULL=정상)
     created_at = Column("created_ts", DateTime(timezone=True), default=_now, nullable=False)
