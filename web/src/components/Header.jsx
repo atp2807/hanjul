@@ -3,6 +3,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { T } from '../theme';
+import { BrandMark } from './BrandMark';
 import { NotificationBell } from './NotificationBell';
 
 const NAV = [
@@ -48,7 +49,7 @@ export function Header() {
       }}
     >
       <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none' }}>
-        <span style={{ width: 26, height: 26, borderRadius: 8, background: T.accent, display: 'inline-block' }} />
+        <BrandMark size={28} />
         <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.03em', color: T.ink }}>한줄</span>
       </Link>
 

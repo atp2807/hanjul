@@ -3,13 +3,14 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { T } from '../theme';
+import { TabIcon } from './tabIcons';
 
 const TABS = [
-  { icon: '🏠', label: '홈', to: '/' },
-  { icon: '🎁', label: '서평단', to: '/reviewers' },
-  { icon: '📖', label: '서재', to: '/library' },
-  { icon: '✍️', label: '스튜디오', to: '/studio' },
-  { icon: '👤', label: '마이', to: '__my__' },
+  { name: 'home', label: '홈', to: '/' },
+  { name: 'reviewers', label: '서평단', to: '/reviewers' },
+  { name: 'library', label: '서재', to: '/library' },
+  { name: 'studio', label: '스튜디오', to: '/studio' },
+  { name: 'my', label: '마이', to: '__my__' },
 ];
 
 // 모바일 전용 하단 탭바. 데스크톱/몰입화면(리더·에디터)에선 렌더 안 함.
@@ -44,9 +45,9 @@ export function MobileTabBar() {
           <button
             key={t.label}
             onClick={() => navigate(resolve(t.to))}
-            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', padding: '2px 10px', opacity: on ? 1 : 0.55 }}
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, background: 'none', border: 'none', cursor: 'pointer', padding: '2px 10px' }}
           >
-            <span style={{ fontSize: 19, lineHeight: 1 }}>{t.icon}</span>
+            <TabIcon name={t.name} active={on} />
             <span style={{ fontSize: 10, fontWeight: on ? 700 : 600, color: on ? T.ink : T.muted }}>{t.label}</span>
           </button>
         );

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import { BrandMark } from '../components/BrandMark';
 import { getLoginUrl } from '../services/api/auth';
 import { T } from '../theme';
 
@@ -26,7 +27,7 @@ export function LoginPage() {
           <div style={{ position: 'absolute', right: -90, top: -90, width: 300, height: 300, borderRadius: 999, background: 'rgba(255,255,255,0.15)' }} />
           <div style={{ position: 'absolute', left: -60, bottom: -100, width: 240, height: 240, borderRadius: 999, background: 'rgba(255,255,255,0.1)' }} />
           <div style={{ display: 'flex', alignItems: 'center', gap: 9, position: 'relative' }}>
-            <span style={{ width: 26, height: 26, borderRadius: 8, background: '#fff' }} />
+            <BrandMark size={28} />
             <span style={{ fontSize: 22, fontWeight: 800, color: '#06342c' }}>한줄</span>
           </div>
           <div style={{ marginTop: 'auto', position: 'relative' }}>
