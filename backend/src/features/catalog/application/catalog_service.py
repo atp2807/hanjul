@@ -93,9 +93,10 @@ class CatalogService:
         return await self.repo.publish_due(now)
 
     async def list_store(
-        self, q: str | None = None, kind: str | None = None, limit: int = 20, offset: int = 0
+        self, q: str | None = None, kind: str | None = None, limit: int = 20, offset: int = 0,
+        category: str | None = None,
     ) -> list[BookSummary]:
-        return await self.repo.list_published(q, limit, offset, kind)
+        return await self.repo.list_published(q, limit, offset, kind, category)
 
     async def set_isbn(self, book_id: UUID, isbn: str) -> None:
         await self._require(book_id)

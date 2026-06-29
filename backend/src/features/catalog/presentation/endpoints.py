@@ -298,11 +298,12 @@ async def author_profile(
 async def store_list(
     q: str | None = None,
     kind: str | None = None,  # BOOK | WEBNOVEL
+    category: str | None = None,  # 소설 | 에세이 | ...
     limit: int = 20,
     offset: int = 0,
     svc: CatalogService = Depends(get_catalog_service),
 ) -> StoreListResponse:
-    items = await svc.list_store(q, kind, limit, offset)
+    items = await svc.list_store(q, kind, limit, offset, category)
     return StoreListResponse(items=[_summary_response(s) for s in items], count=len(items))
 
 

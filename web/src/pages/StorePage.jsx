@@ -51,22 +51,24 @@ export function StorePage() {
   const [q, setQ] = useState('');
   const [query, setQuery] = useState('');
   const [kind, setKind] = useState(''); // '' | BOOK | WEBNOVEL
+  const [category, setCategory] = useState(null); // null = 전체
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     setLoading(true);
-    listStore(query, kind || undefined)
+    listStore(query, kind || undefined, category || undefined)
       .then((d) => setItems(d.items))
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [query, kind]);
+  }, [query, kind, category]);
 
   const TABS = [
     ['', '전체'],
     ['BOOK', '일반서적'],
     ['WEBNOVEL', '웹소설'],
   ];
+  const GENRES = ['소설', '에세이', '시', '자기계발', '경제경영', '인문', '과학', '판타지', '로맨스'];
 
   return (
     <div>
@@ -151,6 +153,21 @@ export function StorePage() {
               {label}
             </button>
           ))}
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 22 }}>
+          {[['전체', null], ...GENRES.map((g) => [g, g])].map(([label, val]) => {
+            const on = category === val;
+            return (
+              <button
+                key={label}
+                onClick={() => setCategory(val)}
+                style={{ padding: '7px 14px', borderRadius: T.radius.pill, border: on ? 'none' : `1px solid ${T.border}`, background: on ? T.ink : T.surface, color: on ? T.inkText : T.textMid, fontWeight: 600, fontSize: 13.5, cursor: 'pointer' }}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
 
         {error && <p style={{ color: 'crimson' }}>불러오기 실패: {error}</p>}

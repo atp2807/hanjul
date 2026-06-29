@@ -1,10 +1,11 @@
 import { apiClient } from './api_client';
 
 // 스토어 — 출판된 책 목록 (검색 + 카테고리)
-export function listStore(q, kind) {
+export function listStore(q, kind, category) {
   const params = new URLSearchParams();
   if (q) params.set('q', q);
   if (kind) params.set('kind', kind);
+  if (category) params.set('category', category);
   const qs = params.toString();
   return apiClient.get(`/store/books${qs ? `?${qs}` : ''}`);
 }
