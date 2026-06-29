@@ -1,0 +1,15 @@
+import { chromium } from '@playwright/test';
+const base = 'http://127.0.0.1:35180';
+const b = await chromium.launch();
+const p = await b.newPage({ viewport: { width: 1280, height: 900 } });
+const shot = (n) => p.screenshot({ path: `/tmp/potato_${n}.png` });
+await p.goto(base + '/login', { waitUntil: 'networkidle' });
+await p.waitForTimeout(700); await shot('login');
+await p.fill('input[type=email]', 'dev@hanjul.io');
+await p.fill('input[type=password]', 'devpotato123');
+await p.click('button[type=submit]');
+await p.waitForTimeout(1500); await shot('dashboard');
+await p.click('text=모더레이션'); await p.waitForTimeout(900); await shot('moderation');
+await p.click('text=신고'); await p.waitForTimeout(700); await shot('reports');
+await b.close();
+console.log('shots done');

@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import { api } from '../api';
 import { T } from '../theme';
-import { Badge, Button, Card, Field } from '../ui.jsx';
+import { Badge, Button, Card, Field, Icon, PageHeader } from '../ui.jsx';
 
 export default function Accounts() {
   const [id, setId] = useState('');
@@ -27,19 +27,20 @@ export default function Accounts() {
 
   return (
     <div>
-      <h1 style={{ fontSize: 22, color: T.textStrong, marginTop: 0 }}>계정 조치</h1>
+      <PageHeader title="회원·작가 관리" subtitle="계정을 조회하고 정지·서평단 자격을 조치하세요." />
+
       <Card style={{ marginBottom: 16 }}>
-        <form onSubmit={lookup} style={{ display: 'flex', gap: 8, alignItems: 'flex-end' }}>
+        <form onSubmit={lookup} style={{ display: 'flex', gap: 10, alignItems: 'flex-end' }}>
           <div style={{ flex: 1 }}>
             <Field
               label="계정 ID (UUID)"
               value={id}
               onChange={(e) => setId(e.target.value)}
               placeholder="00000000-0000-..."
-              style={{ marginBottom: 0 }}
             />
           </div>
-          <Button kind="primary" type="submit">
+          <Button kind="primary" type="submit" style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+            <Icon name="search" size={16} color="#eafaf5" />
             조회
           </Button>
         </form>
@@ -48,15 +49,30 @@ export default function Accounts() {
 
       {acc && (
         <Card>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-            <strong style={{ color: T.textStrong, fontSize: 16 }}>
-              {acc.displayName || '(이름 없음)'}
-            </strong>
-            <Badge tone={acc.statusCd === 'SUSPENDED' ? 'danger' : 'ok'}>{acc.statusCd}</Badge>
-            {acc.reviewBlocked && <Badge tone="warn">서평단 차단</Badge>}
-          </div>
-          <div style={{ fontSize: 13, color: T.muted, marginBottom: 16 }}>
-            {acc.email} · {acc.roleCd}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 13, marginBottom: 16 }}>
+            <span
+              style={{
+                width: 46,
+                height: 46,
+                borderRadius: 999,
+                background: 'linear-gradient(140deg,#1d7e8e,#2aa0a8)',
+                flexShrink: 0,
+              }}
+            />
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                <strong style={{ color: T.textStrong, fontSize: 17 }}>
+                  {acc.displayName || '(이름 없음)'}
+                </strong>
+                <Badge tone={acc.statusCd === 'SUSPENDED' ? 'danger' : 'ok'}>
+                  {acc.statusCd === 'SUSPENDED' ? '정지됨' : '정상'}
+                </Badge>
+                {acc.reviewBlocked && <Badge tone="warn">서평단 차단</Badge>}
+              </div>
+              <div style={{ fontSize: 13, color: T.muted, marginTop: 4 }}>
+                {acc.email} · {acc.roleCd}
+              </div>
+            </div>
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
             {acc.statusCd === 'SUSPENDED' ? (
@@ -64,9 +80,7 @@ export default function Accounts() {
             ) : (
               <Button
                 kind="danger"
-                onClick={() =>
-                  act(() => api.suspend(acc.id, window.prompt('정지 사유 (선택)') || null))
-                }
+                onClick={() => act(() => api.suspend(acc.id, window.prompt('정지 사유 (선택)') || null))}
               >
                 계정 정지
               </Button>
@@ -75,10 +89,7 @@ export default function Accounts() {
               <Button onClick={() => act(() => api.unblockReview(acc.id))}>서평단 차단 해제</Button>
             ) : (
               <Button
-                kind="ghost"
-                onClick={() =>
-                  act(() => api.blockReview(acc.id, window.prompt('자격회수 사유 (선택)') || null))
-                }
+                onClick={() => act(() => api.blockReview(acc.id, window.prompt('자격회수 사유 (선택)') || null))}
               >
                 서평단 자격회수
               </Button>
