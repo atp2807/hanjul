@@ -55,10 +55,27 @@ async function download(path, fallbackName) {
   URL.revokeObjectURL(url);
 }
 
+// 파일 업로드 (multipart). Content-Type은 브라우저가 boundary와 함께 자동 설정 → 지정 금지.
+async function upload(path, formData) {
+  const token = getToken();
+  const res = await fetch(`${BASE}/api${path}`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: formData,
+  });
+  if (!res.ok) {
+    const err = new Error(`API ${res.status}: ${path}`);
+    err.status = res.status;
+    throw err;
+  }
+  return res.json();
+}
+
 export const apiClient = {
   get: (path) => request(path),
   post: (path, body) => request(path, { method: 'POST', body: body ? JSON.stringify(body) : undefined }),
   put: (path, body) => request(path, { method: 'PUT', body: body ? JSON.stringify(body) : undefined }),
   del: (path) => request(path, { method: 'DELETE' }),
+  upload,
   download,
 };

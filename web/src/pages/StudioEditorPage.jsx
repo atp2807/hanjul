@@ -7,6 +7,7 @@ import {
   downloadEpub,
   downloadOnix,
   generateCover,
+  uploadCover,
   getDistributions,
   getMyBooks,
   importText,
@@ -102,6 +103,22 @@ export function StudioEditorPage() {
       await load();
     } catch (e) {
       setError(e.message);
+    }
+  }
+  async function doUpload(e) {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // 같은 파일 재선택 허용
+    if (!file) return;
+    setCoverBusy(true);
+    setError(null);
+    try {
+      const r = await uploadCover(id, file);
+      setCoverUrl(r.coverUrl);
+      notify('표지를 올렸어요.');
+    } catch (err) {
+      setError(err.status === 422 ? '이미지 파일(PNG·JPG·WebP, 5MB 이하)만 올릴 수 있어요.' : err.message);
+    } finally {
+      setCoverBusy(false);
     }
   }
   async function doCover() {
@@ -229,9 +246,16 @@ export function StudioEditorPage() {
               placeholder="표지 분위기·소재를 설명하세요 (예: 잔잔한 한국 에세이, 따뜻한 색감)"
               style={{ width: '100%', boxSizing: 'border-box', padding: 12, border: '1px solid #ddd', borderRadius: 8, fontFamily: 'inherit' }}
             />
-            <button onClick={doCover} disabled={coverBusy} style={primary}>
-              {coverBusy ? '생성 중…' : 'AI 표지 생성'}
-            </button>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+              <button onClick={doCover} disabled={coverBusy} style={primary}>
+                {coverBusy ? '처리 중…' : 'AI 표지 생성'}
+              </button>
+              <label style={{ ...btn, cursor: coverBusy ? 'default' : 'pointer', margin: 0, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <Icon name="download" size={15} stroke={T.textMid} style={{ transform: 'rotate(180deg)' }} /> 이미지 올리기
+                <input type="file" accept="image/png,image/jpeg,image/webp" onChange={doUpload} disabled={coverBusy} style={{ display: 'none' }} />
+              </label>
+            </div>
+            <div style={{ fontSize: 12, color: T.muted, marginTop: 8 }}>직접 만든 표지가 있으면 올리고, 없으면 AI로 생성하세요. (PNG·JPG·WebP, 5MB)</div>
           </div>
         </div>
       </Section>

@@ -14,6 +14,16 @@ class FakeCoverGenerator:
         return self.url
 
 
+class FakeCoverStorage:
+    """업로드 표지 저장 Fake — 디스크 안 쓰고 기록만."""
+    def __init__(self) -> None:
+        self.saved: list[tuple[int, str]] = []  # (바이트수, ext)
+
+    async def save(self, data: bytes, ext: str) -> str:
+        self.saved.append((len(data), ext))
+        return f"https://img.hanjul.io/uploads/covers/fake.{ext}"
+
+
 class FakeCoverRepository:
     def __init__(self) -> None:
         self.existing: set[UUID] = set()

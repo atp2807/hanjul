@@ -27,3 +27,6 @@ web/blob-report/
 web/coverage/
 backend/.coverage
 backend/htmlcov/
+
+# 업로드 표지(로컬 디스크 저장)
+backend/uploads/

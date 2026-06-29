@@ -57,6 +57,12 @@ export function suggestBlurb(bookId) {
 export function generateCover(bookId, prompt) {
   return apiClient.post(`/books/${bookId}/cover`, { prompt });
 }
+// 표지 직접 업로드 (PNG/JPG/WebP, 5MB 이하 → 이미지 URL, 책에 연결)
+export function uploadCover(bookId, file) {
+  const fd = new FormData();
+  fd.append('file', file);
+  return apiClient.upload(`/books/${bookId}/cover/upload`, fd);
+}
 // 에디터 정본 전체 교체 (원클릭 출판) — chapters=[{title, blocks:[{type,html}]}]
 export function setBookContent(bookId, chapters) {
   return apiClient.put(`/books/${bookId}/content`, { chapters });

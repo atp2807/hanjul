@@ -4,8 +4,11 @@ import logging
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from src.config.database import Base, get_engine
 from src.config.settings import settings
@@ -104,3 +107,7 @@ app.add_middleware(
 )
 
 app.include_router(api_router)
+
+# 업로드 표지 정적 서빙 (/uploads/covers/...) — 작가 직접 업로드 표지
+os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")

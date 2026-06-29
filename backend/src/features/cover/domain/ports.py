@@ -19,6 +19,12 @@ class CoverGenerator(Protocol):
         ...
 
 
+class CoverStorage(Protocol):
+    async def save(self, data: bytes, ext: str) -> str:
+        """업로드 이미지 바이트를 저장하고 공개 URL 을 반환."""
+        ...
+
+
 class CoverRepository(Protocol):
     async def book_exists(self, book_id: UUID) -> bool:
         ...
