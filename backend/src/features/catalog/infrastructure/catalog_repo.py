@@ -27,6 +27,7 @@ def _to_summary(b: Book) -> BookSummary:
         category=b.category,
         discount_amt=int(b.discount_amt) if b.discount_amt is not None else None,
         discount_until=b.discount_until,
+        blocked_at=b.blocked_at,
     )
 
 
@@ -44,6 +45,25 @@ class SqlCatalogRepository:
         if published_at is not None:
             b.published_at = published_at
         await self.session.commit()
+
+    async def set_blocked(self, book_id: UUID, blocked_at: datetime | None) -> None:
+        """운영자 takedown(blocked_at=시각) / 복원(None)."""
+        b = await self.session.get(Book, book_id)
+        b.blocked_at = blocked_at
+        await self.session.commit()
+
+    async def list_for_ops(
+        self, q: str | None, status: str | None, limit: int, offset: int
+    ) -> list[BookSummary]:
+        """운영자 모더레이션 브라우저 — 차단 포함 전 상태, 최신순."""
+        stmt = select(Book)
+        if status:
+            stmt = stmt.where(Book.status == status)
+        if q:
+            stmt = stmt.where(Book.title.ilike(f"%{q}%"))
+        stmt = stmt.order_by(Book.created_at.desc()).limit(limit).offset(offset)
+        rows = (await self.session.execute(stmt)).scalars().all()
+        return [_to_summary(b) for b in rows]
 
     async def delete(self, book_id: UUID) -> None:
         b = await self.session.get(Book, book_id)
@@ -116,7 +136,7 @@ class SqlCatalogRepository:
     async def list_published(
         self, q: str | None, limit: int, offset: int, kind: str | None = None, category: str | None = None
     ) -> list[BookSummary]:
-        stmt = select(Book).where(Book.status == PUBLISHED)
+        stmt = select(Book).where(Book.status == PUBLISHED, Book.blocked_at.is_(None))
         if q:
             stmt = stmt.where(Book.title.ilike(f"%{q}%"))
         if kind:
@@ -140,7 +160,7 @@ class SqlCatalogRepository:
         """작가의 출판본만 (공개 프로필용, 최신순)."""
         stmt = (
             select(Book)
-            .where(Book.author_id == author_id, Book.status == PUBLISHED)
+            .where(Book.author_id == author_id, Book.status == PUBLISHED, Book.blocked_at.is_(None))
             .order_by(Book.published_at.desc())
         )
         rows = (await self.session.execute(stmt)).scalars().all()

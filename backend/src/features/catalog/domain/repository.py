@@ -13,6 +13,16 @@ class CatalogRepository(Protocol):
     async def set_status(self, book_id: UUID, status: str, published_at: datetime | None = None) -> None:
         ...
 
+    async def set_blocked(self, book_id: UUID, blocked_at: datetime | None) -> None:
+        """운영자 takedown(시각) / 복원(None)."""
+        ...
+
+    async def list_for_ops(
+        self, q: str | None, status: str | None, limit: int, offset: int
+    ) -> list[BookSummary]:
+        """운영자 모더레이션 목록 (차단 포함 전 상태)."""
+        ...
+
     async def delete(self, book_id: UUID) -> None:
         """책 삭제 (장·블록 등 CASCADE). 주문 있으면 FK RESTRICT → BookHasOrders."""
         ...

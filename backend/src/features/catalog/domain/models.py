@@ -26,6 +26,7 @@ class BookSummary:
     category: str | None = None
     discount_amt: int | None = None
     discount_until: datetime | None = None
+    blocked_at: datetime | None = None  # 운영자 takedown 시각 (NULL=정상)
 
 
 class CatalogError(Exception):

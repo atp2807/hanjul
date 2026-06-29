@@ -48,6 +48,8 @@ class Book(Base):
     discount_until = Column("discount_until_ts", DateTime(timezone=True))
     # 출판(게시) 시각. NULL = 미출판.
     published_at = Column("published_ts", DateTime(timezone=True))
+    # 운영자 강제 비공개(takedown) 시각. NULL = 정상. 작가 status와 직교 — 재출판해도 안 풀림.
+    blocked_at = Column("blocked_ts", DateTime(timezone=True))
     # 예약발행 시각. 스케줄러가 이 시각 지나면 자동 게시. NULL = 예약 없음.
     scheduled_publish_at = Column("scheduled_publish_ts", DateTime(timezone=True))
     # 작가 = usr.account (role_cd=AUTHOR). 미배정 책 허용 위해 nullable.

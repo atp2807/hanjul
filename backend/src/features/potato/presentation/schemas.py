@@ -1,7 +1,8 @@
 """potato API 스키마 (camelCase)."""
+from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 
 
@@ -27,3 +28,18 @@ class OperatorResponse(_Camel):
     email: str
     name: str
     role_cd: str
+
+
+# ── 모더레이션 ────────────────────────────────────────
+class BookModerationItem(_Camel):
+    id: UUID
+    title: str
+    author_id: UUID | None
+    status: str
+    blocked: bool
+    blocked_at: datetime | None
+    published_at: datetime | None
+
+
+class TakedownRequest(_Camel):
+    reason: str | None = Field(default=None, max_length=500)

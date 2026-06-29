@@ -56,6 +56,21 @@ class CatalogService:
             raise InvalidTransition(s.status, REVIEW)
         await self.repo.set_status(book_id, REVIEW)
 
+    async def takedown(self, book_id: UUID, now: datetime | None = None) -> None:
+        """운영자 강제 비공개 — blocked_at 설정. 작가 status와 직교(재출판해도 유지)."""
+        await self._require(book_id)
+        await self.repo.set_blocked(book_id, now or datetime.now(timezone.utc))
+
+    async def restore(self, book_id: UUID) -> None:
+        """운영자 takedown 해제 — blocked_at 제거."""
+        await self._require(book_id)
+        await self.repo.set_blocked(book_id, None)
+
+    async def list_for_moderation(
+        self, status: str | None = None, q: str | None = None, limit: int = 50, offset: int = 0
+    ) -> list[BookSummary]:
+        return await self.repo.list_for_ops(q, status, limit, offset)
+
     async def unpublish(self, book_id: UUID) -> None:
         """출판 취소(비공개) — 스토어에서 내림. PUBLISHED → DRAFT."""
         await self._require(book_id)
@@ -123,6 +138,6 @@ class CatalogService:
 
     async def get_store_detail(self, book_id: UUID) -> BookSummary:
         s = await self._require(book_id)
-        if s.status != PUBLISHED:
-            raise BookNotFound(book_id)  # 미출판 책은 스토어에 비공개
+        if s.status != PUBLISHED or s.blocked_at is not None:
+            raise BookNotFound(book_id)  # 미출판·차단(takedown) 책은 스토어에 비공개
         return s
