@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { KIND_ICON, KIND_ICON_BG, KIND_LABEL, KIND_SUFFIX } from '../notificationKinds';
 import { getNotifications, markAllRead, markRead } from '../services/api/notifications';
 import { T } from '../theme';
+import { Icon } from './Icon';
 
 // 헤더 알림함 — 안읽음 배지 + 드롭다운. 로그인 상태에서만 렌더.
 export function NotificationBell() {
@@ -58,9 +59,9 @@ export function NotificationBell() {
         data-testid="notif-bell"
         onClick={() => setOpen((v) => !v)}
         aria-label="알림"
-        style={{ position: 'relative', width: 36, height: 36, borderRadius: 999, border: `1px solid ${T.border}`, background: T.surface, fontSize: 16, lineHeight: 1, cursor: 'pointer' }}
+        style={{ position: 'relative', width: 36, height: 36, borderRadius: 999, border: `1px solid ${T.border}`, background: T.surface, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
       >
-        🔔
+        <Icon name="bell" size={19} stroke={T.textMid} />
         {unread > 0 && (
           <span
             data-testid="notif-badge"

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
+import { Icon } from '../components/Icon';
 import { listStore } from '../services/api/books';
 import { coverGradient, T } from '../theme';
 
@@ -118,12 +119,15 @@ export function StorePage() {
             onSubmit={(e) => { e.preventDefault(); setQuery(q); }}
             style={{ marginLeft: 'auto', display: 'flex', gap: 8 }}
           >
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="제목 검색"
-              style={{ padding: '9px 14px', border: `1px solid ${T.border}`, borderRadius: T.radius.md, width: 220, background: T.surface, fontFamily: 'inherit' }}
-            />
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <span style={{ position: 'absolute', left: 12, display: 'flex', color: T.muted, pointerEvents: 'none' }}><Icon name="search" size={17} /></span>
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="제목 검색"
+                style={{ padding: '9px 14px 9px 34px', border: `1px solid ${T.border}`, borderRadius: T.radius.md, width: 220, background: T.surface, fontFamily: 'inherit' }}
+              />
+            </div>
             <button style={{ padding: '9px 16px', borderRadius: T.radius.md, border: 'none', background: T.ink, color: T.inkText, fontWeight: 600, cursor: 'pointer' }}>검색</button>
           </form>
         </div>

@@ -21,7 +21,10 @@ import {
   updateMeta,
 } from '../services/api/studio';
 import { STATUS_LABEL } from './StudioPage';
+import { Icon } from '../components/Icon';
 import { T } from '../theme';
+
+const dlBtn = { display: 'inline-flex', alignItems: 'center', gap: 7 };
 
 const CHANNELS = [
   ['KYOBO', '교보문고'],
@@ -281,8 +284,8 @@ export function StudioEditorPage() {
       </Section>
 
       <Section title="파일 산출물">
-        <button onClick={run(() => downloadEpub(id))} style={btn}>EPUB 내려받기</button>
-        <button onClick={run(() => downloadOnix(id))} style={btn}>ONIX(메타) 내려받기</button>
+        <button onClick={run(() => downloadEpub(id))} style={{ ...btn, ...dlBtn }}><Icon name="download" size={16} stroke={T.textMid} /> EPUB 내려받기</button>
+        <button onClick={run(() => downloadOnix(id))} style={{ ...btn, ...dlBtn }}><Icon name="download" size={16} stroke={T.textMid} /> ONIX(메타) 내려받기</button>
       </Section>
 
       <Section title="출판">
