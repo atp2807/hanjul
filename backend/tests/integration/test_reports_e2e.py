@@ -43,7 +43,9 @@ async def _op_token(c, sessionmaker) -> str:
 
 
 def _client():
-    return httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t")
+    return httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app, client=("127.0.0.1", 50000)), base_url="http://t"
+    )
 
 
 async def test_report_submit_list_resolve(app_db):

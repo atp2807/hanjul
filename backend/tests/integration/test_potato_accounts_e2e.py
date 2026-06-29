@@ -50,7 +50,9 @@ async def _make_account(sessionmaker) -> str:
 
 
 def _client():
-    return httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t")
+    return httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app, client=("127.0.0.1", 50000)), base_url="http://t"
+    )
 
 
 async def test_suspend_and_block_review_with_audit(app_db):

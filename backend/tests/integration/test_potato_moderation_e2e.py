@@ -61,7 +61,9 @@ async def _make_published_book(sessionmaker, title="문제의 책") -> str:
 
 
 def _client():
-    return httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t")
+    return httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app, client=("127.0.0.1", 50000)), base_url="http://t"
+    )
 
 
 async def test_takedown_hides_from_store_and_audits(app_db):

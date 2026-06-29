@@ -43,7 +43,9 @@ async def _seed_operator(sessionmaker, role: str = DEVELOPER) -> None:
 
 
 def _client():
-    return httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t")
+    return httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app, client=("127.0.0.1", 50000)), base_url="http://t"
+    )
 
 
 async def test_login_success_and_me(app_db):

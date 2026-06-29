@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     # 고객 JWT와 분리된 시크릿 — 키 자체가 방화벽(고객 토큰은 potato 서명검증 실패).
     POTATO_JWT_SECRET_KEY: str = "dev-insecure-potato-change-me"
     POTATO_JWT_TTL_HOURS: int = 12
+    # 운영자 콘솔 IP 화이트리스트 — CSV. 비면 무제한(dev). 운영은 허용 IP만.
+    # api.hanjul.io는 Cloudflare 프록시 → 진짜 클라 IP는 CF-Connecting-IP 헤더.
+    POTATO_ALLOWED_IPS: str = ""
 
     # ── 소셜 OAuth ──────────────────────────────────────
     # 활성 provider (나라별 확장: GOOGLE,NAVER,KAKAO,LINE…). CSV.
@@ -84,6 +87,10 @@ class Settings(BaseSettings):
     @property
     def auth_provider_list(self) -> list[str]:
         return [p.strip().upper() for p in self.AUTH_PROVIDERS.split(",") if p.strip()]
+
+    @property
+    def potato_allowed_ip_list(self) -> list[str]:
+        return [ip.strip() for ip in self.POTATO_ALLOWED_IPS.split(",") if ip.strip()]
 
 
 settings = Settings()

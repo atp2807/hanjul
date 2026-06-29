@@ -1,7 +1,7 @@
 """potato 표현 레이어 DI — 고객(auth)과 분리된 운영자 인증 합성 루트."""
 from uuid import UUID
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -33,6 +33,36 @@ def get_audit_service(session: AsyncSession = Depends(get_session)) -> AuditServ
 
 def get_dashboard_service(session: AsyncSession = Depends(get_session)) -> DashboardService:
     return DashboardService(SqlStatsRepository(session))
+
+
+_LOOPBACK = {"127.0.0.1", "::1"}
+
+
+def _effective_ip(request: Request) -> str:
+    """진짜 클라이언트 IP — Cloudflare 프록시 뒤에선 CF-Connecting-IP 가 권위."""
+    cf = request.headers.get("cf-connecting-ip")
+    if cf:
+        return cf.strip()
+    xff = request.headers.get("x-forwarded-for")
+    if xff:
+        return xff.split(",")[0].strip()
+    return request.client.host if request.client else ""
+
+
+def require_allowed_ip(request: Request) -> None:
+    """운영자 영역 IP 화이트리스트. 비면 무제한(dev), 로컬(loopback)은 항상 허용.
+
+    운영(Cloudflare 프록시)에선 effective IP=CF-Connecting-IP 라 loopback 으로 안 떨어짐
+    → 화이트리스트가 실제로 강제됨. 직접 origin 접근은 XFF/허용목록 불일치로 403.
+    """
+    allowed = settings.potato_allowed_ip_list
+    if not allowed:
+        return
+    ip = _effective_ip(request)
+    if ip in _LOOPBACK:
+        return
+    if ip not in allowed:
+        raise HTTPException(status_code=403, detail="forbidden")
 
 
 _bearer = HTTPBearer(auto_error=False)

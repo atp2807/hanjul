@@ -1,5 +1,7 @@
 """API 라우터 집합 — 피처별 라우터를 여기에 include."""
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+
+from src.features.potato.presentation.dependencies import require_allowed_ip
 
 from src.features.auth.presentation.endpoints import router as auth_router
 from src.features.accounts.presentation.me import router as me_router
@@ -40,9 +42,11 @@ router.include_router(distribution_router)
 router.include_router(reviews_router)
 router.include_router(notifications_router)
 router.include_router(campaigns_router)
-router.include_router(potato_router)
-router.include_router(potato_moderation_router)
-router.include_router(potato_reports_router)
-router.include_router(potato_accounts_router)
-router.include_router(potato_dashboard_router)
-router.include_router(reports_router)
+# 운영자 영역 — IP 화이트리스트 게이트 적용 (로그인 포함 전 라우트).
+_potato_guard = [Depends(require_allowed_ip)]
+router.include_router(potato_router, dependencies=_potato_guard)
+router.include_router(potato_moderation_router, dependencies=_potato_guard)
+router.include_router(potato_reports_router, dependencies=_potato_guard)
+router.include_router(potato_accounts_router, dependencies=_potato_guard)
+router.include_router(potato_dashboard_router, dependencies=_potato_guard)
+router.include_router(reports_router)  # 고객 신고 접수 — 게이트 없음
