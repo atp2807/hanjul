@@ -62,6 +62,18 @@ describe('NotificationBell', () => {
     expect(item).toHaveTextContent('배정');
   });
 
+  it('마감임박 알림을 마감 문구로 렌더한다', async () => {
+    notifApi.getNotifications.mockResolvedValue({
+      items: [{ id: 'n3', kindCd: 'DUE_SOON', bookId: 'b1', title: '밤의 편집자', readYn: false }],
+      unreadCount: 1,
+    });
+    renderBell();
+    fireEvent.click(await screen.findByTestId('notif-bell'));
+    const item = await screen.findByTestId('notif-item');
+    expect(item).toHaveTextContent('밤의 편집자');
+    expect(item).toHaveTextContent('마감');
+  });
+
   it('알림이 없으면 배지가 없다', async () => {
     notifApi.getNotifications.mockResolvedValue({ items: [], unreadCount: 0 });
     renderBell();

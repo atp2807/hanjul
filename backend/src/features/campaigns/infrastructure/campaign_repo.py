@@ -198,6 +198,24 @@ class SqlCampaignRepository:
             for a, name in rows
         ]
 
+    async def due_soon(self, now, within_days) -> list[tuple]:
+        """기한이 (now, now+within_days] 인 ASSIGNED 신청 — (리뷰어, 책, 제목)."""
+        cutoff = now + timedelta(days=within_days)
+        rows = (
+            await self.session.execute(
+                select(ReviewApplication.applicant_id, ReviewCampaign.book_id, Book.title)
+                .join(ReviewCampaign, ReviewCampaign.id == ReviewApplication.campaign_id)
+                .outerjoin(Book, Book.id == ReviewCampaign.book_id)
+                .where(
+                    ReviewApplication.status_cd == "ASSIGNED",
+                    ReviewApplication.deadline_at.is_not(None),
+                    ReviewApplication.deadline_at > now,
+                    ReviewApplication.deadline_at <= cutoff,
+                )
+            )
+        ).all()
+        return [(r[0], r[1], r[2]) for r in rows]
+
     async def mark_completed(self, book_id, applicant_id) -> None:
         app = (
             await self.session.execute(

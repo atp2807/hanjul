@@ -40,19 +40,42 @@ async def publish_due_and_notify(session, now) -> int:
     return len(published)
 
 
+async def remind_due_soon(session, now, within_days: int = 2) -> int:
+    """서평단 리뷰 마감 임박(기한 within_days 내) 리뷰어에게 ⏰ 알림. (리뷰어,책)당 1회(멱등). 보낸 수 반환."""
+    from src.features.campaigns.infrastructure.campaign_repo import SqlCampaignRepository
+    from src.features.notifications.application.notification_service import NotificationService
+    from src.features.notifications.infrastructure.notification_repo import (
+        SqlFollowRepository,
+        SqlNotificationRepository,
+    )
+
+    due = await SqlCampaignRepository(session).due_soon(now, within_days)
+    if not due:
+        return 0
+    notif = NotificationService(SqlFollowRepository(session), SqlNotificationRepository(session))
+    for reviewer_id, book_id, title in due:
+        try:
+            await notif.notify_due_soon(reviewer_id, book_id, title)
+        except Exception:
+            logger.exception("마감임박 알림 실패 (reviewer=%s book=%s)", reviewer_id, book_id)
+    return len(due)
+
+
 async def _publish_scheduler():
-    """예약 발행: 주기적으로 예약 시각 지난 책을 자동 게시 + 신간 알림."""
+    """주기 작업: 예약 발행 + 신간 알림, 서평단 마감임박 알림."""
     from src.config.database import get_session_factory
 
     while True:
         await asyncio.sleep(SCHEDULER_INTERVAL_SEC)
         try:
             async with get_session_factory()() as session:
-                n = await publish_due_and_notify(session, datetime.now(timezone.utc))
+                now = datetime.now(timezone.utc)
+                n = await publish_due_and_notify(session, now)
                 if n:
                     logger.info("예약발행 %d건 자동 게시", n)
+                await remind_due_soon(session, now)
         except Exception:
-            logger.exception("예약발행 스케줄러 오류")
+            logger.exception("스케줄러 오류")
 
 
 @asynccontextmanager

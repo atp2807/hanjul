@@ -4,14 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import { getNotifications, markAllRead, markRead } from '../services/api/notifications';
 import { T } from '../theme';
 
-const KIND_LABEL = { NEW_BOOK: '신간', REVISION: '개정판', ASSIGNED: '서평단' };
+const KIND_LABEL = { NEW_BOOK: '신간', REVISION: '개정판', ASSIGNED: '서평단', DUE_SOON: '마감 임박' };
 const KIND_SUFFIX = {
   NEW_BOOK: '이(가) 출간됐어요.',
   REVISION: '의 개정판이 나왔어요.',
   ASSIGNED: ' 서평단에 배정됐어요. 증정본이 서재에 도착했어요.',
+  DUE_SOON: ' 리뷰 마감이 다가와요. 잊지 말고 작성해 주세요.',
 };
-const KIND_ICON = { NEW_BOOK: '🚀', REVISION: '✏️', ASSIGNED: '🎁' };
-const KIND_ICON_BG = { NEW_BOOK: '#e3f3ec', REVISION: '#fff3da', ASSIGNED: '#e3f3ec' };
+const KIND_ICON = { NEW_BOOK: '🚀', REVISION: '✏️', ASSIGNED: '🎁', DUE_SOON: '⏰' };
+const KIND_ICON_BG = { NEW_BOOK: '#e3f3ec', REVISION: '#fff3da', ASSIGNED: '#e3f3ec', DUE_SOON: '#fdeeea' };
 
 // 헤더 알림함 — 안읽음 배지 + 드롭다운. 로그인 상태에서만 렌더.
 export function NotificationBell() {
