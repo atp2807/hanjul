@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { updateProfile } from '../services/api/authors';
 import { createBook, getMyBooks, getSales } from '../services/api/studio';
+import { Icon } from '../components/Icon';
 import { T } from '../theme';
 
 export const STATUS_LABEL = { DRAFT: '초안', REVIEW: '심사중', PUBLISHED: '출판됨' };
@@ -70,7 +71,7 @@ export function StudioPage() {
           </h1>
           <div style={{ fontSize: 14, color: T.muted, marginTop: 4 }}>이번 달 성과를 한눈에 살펴보세요.</div>
         </div>
-        <Link to="/studio/campaigns" style={{ padding: '11px 18px', background: T.ink, color: T.inkText, borderRadius: 11, fontSize: 13.5, fontWeight: 700, textDecoration: 'none' }}>🏷️ 서평단 관리</Link>
+        <Link to="/studio/campaigns" style={{ padding: '11px 18px', background: T.ink, color: T.inkText, borderRadius: 11, fontSize: 13.5, fontWeight: 700, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 7 }}><Icon name="bookmark" size={16} stroke={T.inkText} /> 서평단 관리</Link>
       </div>
 
       {sales && (

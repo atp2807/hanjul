@@ -40,9 +40,9 @@ function Cover({ url, title }) {
 }
 
 const FEATURES = [
-  ['📚 서점', '수천 권의 전자책과 취향 큐레이션으로 다음 책을 만나세요.'],
-  ['✍️ 에디터', '집중을 위한 깨끗한 글쓰기 공간, 자동 저장으로 문장에만 몰입.'],
-  ['🚀 출판', '표지와 가격을 정하면 클릭 몇 번으로 바로 서점에 출간.'],
+  { icon: 'read', title: '서점', desc: '수천 권의 전자책과 취향 큐레이션으로 다음 책을 만나세요.' },
+  { icon: 'edit', title: '에디터', desc: '집중을 위한 깨끗한 글쓰기 공간, 자동 저장으로 문장에만 몰입.' },
+  { icon: 'share', title: '출판', desc: '표지와 가격을 정하면 클릭 몇 번으로 바로 서점에 출간.' },
 ];
 
 export function StorePage() {
@@ -173,8 +173,11 @@ export function StorePage() {
       {/* Features */}
       <section style={{ padding: '24px 44px 80px', maxWidth: 1280, margin: '0 auto' }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
-          {FEATURES.map(([title, desc]) => (
+          {FEATURES.map(({ icon, title, desc }) => (
             <div key={title} style={{ background: T.surface, borderRadius: T.radius.xl, padding: '30px 26px' }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: T.tint, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+                <Icon name={icon} size={22} stroke={T.ink} />
+              </div>
               <h3 style={{ margin: '0 0 9px', fontSize: 18, fontWeight: 700, color: T.ink }}>{title}</h3>
               <p style={{ margin: 0, fontSize: 14, lineHeight: 1.65, color: T.textSoft }}>{desc}</p>
             </div>

@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { getCampaign, getMyApplications } from '../services/api/campaigns';
 import { addReview } from '../services/api/reviews';
+import { Icon } from '../components/Icon';
 import { T } from '../theme';
 
 // deadlineAt(ISO) → "D-2 · 11:58:04" (남은 시간 실시간)
@@ -115,8 +116,8 @@ export function ReviewCopyReviewPage() {
           {err && <div style={{ color: '#e0654f', fontSize: 12.5, marginTop: 10 }}>{err}</div>}
         </div>
 
-        <div style={{ display: 'flex', gap: 10, marginTop: 16, padding: '14px 18px', background: T.tint, borderRadius: 13, fontSize: 13, color: T.text, lineHeight: 1.6 }}>
-          <span>🏷️</span>
+        <div style={{ display: 'flex', gap: 10, marginTop: 16, padding: '14px 18px', background: T.tint, borderRadius: 13, fontSize: 13, color: T.text, lineHeight: 1.6, alignItems: 'flex-start' }}>
+          <span style={{ flexShrink: 0, marginTop: 1 }}><Icon name="bookmark" size={16} stroke={T.ink} /></span>
           <div>제출하면 이 리뷰에 <b style={{ color: T.ink }}>‘서평단’ 라벨</b>이 표시돼요. 기한 내 미작성 시 신뢰도가 하락할 수 있어요.</div>
         </div>
       </div>
