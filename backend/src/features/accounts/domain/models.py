@@ -4,6 +4,7 @@ usr.account = 사람(작가·독자). 인증(credential/token)은 auth 피처가
 여기는 '유저' 도메인 = 프로필(이름·소개·역할) 조회/수정 + 이름 디렉토리(타 피처용).
 """
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Protocol
 from uuid import UUID
 
@@ -15,6 +16,8 @@ class AccountProfile:
     display_name: str | None
     role_cd: str
     bio: str | None
+    status_cd: str = "ACTIVE"  # ACTIVE | SUSPENDED (운영자 정지)
+    review_blocked_at: datetime | None = None  # 서평단 자격회수 시각 (NULL=정상)
 
 
 class AccountNotFound(Exception):
@@ -34,4 +37,12 @@ class AccountRepository(Protocol):
 
     async def names_for(self, account_ids: list[UUID]) -> dict[UUID, str | None]:
         """여러 계정의 표시이름 일괄 조회 — 타 피처가 이름 붙일 때(직접 JOIN 대체)."""
+        ...
+
+    async def set_status(self, account_id: UUID, status: str) -> None:
+        """운영자 계정 정지/해제 (ACTIVE | SUSPENDED)."""
+        ...
+
+    async def set_review_blocked(self, account_id: UUID, blocked_at: datetime | None) -> None:
+        """서평단 자격회수(시각)/복구(None)."""
         ...

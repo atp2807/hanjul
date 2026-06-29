@@ -14,6 +14,10 @@ from src.features.distribution.presentation.endpoints import router as distribut
 from src.features.notifications.presentation.endpoints import router as notifications_router
 from src.features.potato.presentation.endpoints import router as potato_router
 from src.features.potato.presentation.moderation import router as potato_moderation_router
+from src.features.potato.presentation.accounts import router as potato_accounts_router
+from src.features.potato.presentation.dashboard import router as potato_dashboard_router
+from src.features.potato.presentation.reports import router as potato_reports_router
+from src.features.reports.presentation.endpoints import router as reports_router
 from src.features.reviews.presentation.endpoints import router as reviews_router
 
 router = APIRouter(prefix="/api")
@@ -38,3 +42,7 @@ router.include_router(notifications_router)
 router.include_router(campaigns_router)
 router.include_router(potato_router)
 router.include_router(potato_moderation_router)
+router.include_router(potato_reports_router)
+router.include_router(potato_accounts_router)
+router.include_router(potato_dashboard_router)
+router.include_router(reports_router)

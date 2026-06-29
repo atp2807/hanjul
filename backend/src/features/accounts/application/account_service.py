@@ -1,4 +1,5 @@
-"""accounts 서비스 — 유저 프로필 조회/수정 + 이름 디렉토리."""
+"""accounts 서비스 — 유저 프로필 조회/수정 + 이름 디렉토리 + 운영자 계정 조치."""
+from datetime import datetime, timezone
 from uuid import UUID
 
 from src.features.accounts.domain.models import AccountNotFound, AccountProfile, AccountRepository
@@ -22,3 +23,25 @@ class AccountService:
 
     async def names_for(self, account_ids: list[UUID]) -> dict[UUID, str | None]:
         return await self.repo.names_for(account_ids)
+
+    # ── 운영자 계정 조치 ──────────────────────────────
+    async def _require(self, account_id: UUID) -> None:
+        if not await self.repo.exists(account_id):
+            raise AccountNotFound(account_id)
+
+    async def suspend(self, account_id: UUID) -> None:
+        await self._require(account_id)
+        await self.repo.set_status(account_id, "SUSPENDED")
+
+    async def unsuspend(self, account_id: UUID) -> None:
+        await self._require(account_id)
+        await self.repo.set_status(account_id, "ACTIVE")
+
+    async def block_review(self, account_id: UUID, now: datetime | None = None) -> None:
+        """서평단 자격회수 — 이 시각까지 신청 제한."""
+        await self._require(account_id)
+        await self.repo.set_review_blocked(account_id, now or datetime.now(timezone.utc))
+
+    async def unblock_review(self, account_id: UUID) -> None:
+        await self._require(account_id)
+        await self.repo.set_review_blocked(account_id, None)

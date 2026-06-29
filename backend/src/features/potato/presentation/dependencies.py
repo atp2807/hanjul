@@ -9,10 +9,12 @@ from src.config.database import get_session
 from src.config.settings import settings
 from src.features.potato.application.audit import AuditService
 from src.features.potato.application.auth_service import PotatoAuthService
+from src.features.potato.application.dashboard import DashboardService
 from src.features.potato.application.token import PotatoTokenIssuer
 from src.features.potato.domain.models import DEVELOPER, OperatorPrincipal
 from src.features.potato.infrastructure.audit_repo import SqlAuditRepository
 from src.features.potato.infrastructure.operator_repo import SqlOperatorRepository
+from src.features.potato.infrastructure.stats_repo import SqlStatsRepository
 
 
 def potato_token_issuer() -> PotatoTokenIssuer:
@@ -27,6 +29,10 @@ def get_potato_auth_service(session: AsyncSession = Depends(get_session)) -> Pot
 
 def get_audit_service(session: AsyncSession = Depends(get_session)) -> AuditService:
     return AuditService(SqlAuditRepository(session))
+
+
+def get_dashboard_service(session: AsyncSession = Depends(get_session)) -> DashboardService:
+    return DashboardService(SqlStatsRepository(session))
 
 
 _bearer = HTTPBearer(auto_error=False)
