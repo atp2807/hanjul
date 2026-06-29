@@ -110,6 +110,31 @@ async def test_campaign_full_flow(app_db):
         assert st["received"] == 1 and st["blockedUntil"] is None
 
 
+async def test_open_campaigns_filter_by_category(app_db):
+    """모집 목록 — 각 항목에 (책)장르 노출 + ?category= 로 필터."""
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
+        a_auth = {"Authorization": f"Bearer {(await login_account(c, 'google', 'a'))[0]}"}
+
+        async def make(title, category):
+            bid = (await c.post("/api/books", json={"title": title}, headers=a_auth)).json()["bookId"]
+            await c.put(f"/api/books/{bid}/meta", json={"category": category}, headers=a_auth)
+            await c.put(f"/api/books/{bid}/price", json={"amount": 1000}, headers=a_auth)
+            await c.post(f"/api/books/{bid}/publish-now", headers=a_auth)
+            await c.post("/api/campaigns", json={"bookId": bid, "slots": 2}, headers=a_auth)
+
+        await make("소설책", "소설")
+        await make("에세이책", "에세이")
+
+        # 전체 — 장르 노출
+        allc = (await c.get("/api/campaigns/open")).json()["items"]
+        by_title = {x["bookTitle"]: x for x in allc}
+        assert by_title["소설책"]["category"] == "소설" and by_title["에세이책"]["category"] == "에세이"
+
+        # 장르 필터
+        only = (await c.get("/api/campaigns/open?category=소설")).json()["items"]
+        assert [x["bookTitle"] for x in only] == ["소설책"]
+
+
 async def test_cancel_application(app_db):
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
         author_token, _ = await login_account(c, "google", "a")

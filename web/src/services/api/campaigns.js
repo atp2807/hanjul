@@ -1,8 +1,8 @@
 import { apiClient } from './api_client';
 
-// 모집중 캠페인 목록 (서평단 피드)
-export function listOpenCampaigns() {
-  return apiClient.get('/campaigns/open');
+// 모집중 캠페인 목록 (서평단 피드) — category 지정 시 그 장르만
+export function listOpenCampaigns(category) {
+  return apiClient.get(`/campaigns/open${category ? `?category=${encodeURIComponent(category)}` : ''}`);
 }
 // 캠페인 상세 (공개)
 export function getCampaign(id) {

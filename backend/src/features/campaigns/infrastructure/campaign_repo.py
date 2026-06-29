@@ -28,9 +28,9 @@ from src.infrastructure.db.models.book import Book
 from src.infrastructure.db.models.campaign import ReviewApplication, ReviewCampaign
 
 
-def _campaign_view(c: ReviewCampaign, title: str | None) -> CampaignView:
+def _campaign_view(c: ReviewCampaign, title: str | None, category: str | None = None) -> CampaignView:
     return CampaignView(
-        id=c.id, book_id=c.book_id, book_title=title, author_id=c.author_id,
+        id=c.id, book_id=c.book_id, book_title=title, category=category, author_id=c.author_id,
         slots=c.slots, filled=c.filled, remaining=max(0, c.slots - c.filled),
         review_days=c.review_days, min_chars=c.min_chars, status_cd=c.status_cd, created_at=c.created_at,
     )
@@ -49,26 +49,26 @@ class SqlCampaignRepository:
     async def get(self, campaign_id) -> CampaignView | None:
         row = (
             await self.session.execute(
-                select(ReviewCampaign, Book.title)
+                select(ReviewCampaign, Book.title, Book.category)
                 .outerjoin(Book, Book.id == ReviewCampaign.book_id)
                 .where(ReviewCampaign.id == campaign_id)
             )
         ).one_or_none()
-        return _campaign_view(row[0], row[1]) if row else None
+        return _campaign_view(row[0], row[1], row[2]) if row else None
 
     async def book_author(self, book_id) -> UUID | None:
         return (await self.session.execute(select(Book.author_id).where(Book.id == book_id))).scalar_one_or_none()
 
-    async def list_open(self) -> list[CampaignView]:
-        rows = (
-            await self.session.execute(
-                select(ReviewCampaign, Book.title)
-                .outerjoin(Book, Book.id == ReviewCampaign.book_id)
-                .where(ReviewCampaign.status_cd == "OPEN")
-                .order_by(ReviewCampaign.created_at.desc())
-            )
-        ).all()
-        return [_campaign_view(c, t) for c, t in rows]
+    async def list_open(self, category: str | None = None) -> list[CampaignView]:
+        q = (
+            select(ReviewCampaign, Book.title, Book.category)
+            .outerjoin(Book, Book.id == ReviewCampaign.book_id)
+            .where(ReviewCampaign.status_cd == "OPEN")
+        )
+        if category:
+            q = q.where(Book.category == category)
+        rows = (await self.session.execute(q.order_by(ReviewCampaign.created_at.desc()))).all()
+        return [_campaign_view(c, t, cat) for c, t, cat in rows]
 
     async def apply(self, campaign_id, applicant_id) -> None:
         exists = (

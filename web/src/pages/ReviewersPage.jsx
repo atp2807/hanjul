@@ -37,6 +37,7 @@ function CampaignCard({ c, onClick }) {
         <span style={{ color: '#eaf6f2', fontSize: 16, fontWeight: 700, lineHeight: 1.25 }}>{c.bookTitle || '제목 없음'}</span>
       </div>
       <div style={{ padding: '16px 18px' }}>
+        {c.category && <div style={{ fontSize: 12.5, color: T.muted, marginBottom: 10 }}>{c.category}</div>}
         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: T.text, marginBottom: 6 }}>
           <span>남은 증정본 <b style={{ color: T.ink }}>{c.remaining}부</b></span>
           {d && <span style={{ fontWeight: 600 }}>{d}</span>}
@@ -55,10 +56,12 @@ export function ReviewersPage() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [items, setItems] = useState(null);
+  const [genre, setGenre] = useState(null); // null = 전체
 
   useEffect(() => {
-    listOpenCampaigns().then((r) => setItems(r.items)).catch(() => setItems([]));
-  }, []);
+    setItems(null);
+    listOpenCampaigns(genre).then((r) => setItems(r.items)).catch(() => setItems([]));
+  }, [genre]);
 
   const remaining = (items || []).reduce((s, c) => s + (c.remaining || 0), 0);
 
@@ -92,7 +95,17 @@ export function ReviewersPage() {
       {/* 모집 피드 */}
       <section id="feed" style={{ maxWidth: 1180, margin: '0 auto', padding: isMobile ? '24px 18px 48px' : '34px 40px 64px' }}>
         <h2 style={{ margin: '0 0 6px', fontSize: 26, fontWeight: 800, color: T.ink, letterSpacing: '-0.025em' }}>서평단 모집</h2>
-        <div style={{ fontSize: 14, color: T.muted, marginBottom: 24 }}>출간 전 증정본을 받고 먼저 리뷰할 책을 골라보세요.</div>
+        <div style={{ fontSize: 14, color: T.muted, marginBottom: 18 }}>출간 전 증정본을 받고 먼저 리뷰할 책을 골라보세요.</div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 24 }}>
+          {[['전체', null], ['소설', '소설'], ['에세이', '에세이'], ['시', '시'], ['자기계발', '자기계발'], ['경제·경영', '경제·경영']].map(([lab, val]) => {
+            const on = genre === val;
+            return (
+              <button key={lab} onClick={() => setGenre(val)} style={{ padding: '9px 16px', borderRadius: T.radius.pill, fontSize: 14, fontWeight: 600, cursor: 'pointer', border: on ? 'none' : `1px solid #e0ebe6`, background: on ? T.ink : T.surface, color: on ? T.inkText : T.text }}>
+                {lab}
+              </button>
+            );
+          })}
+        </div>
         {items === null ? (
           <div style={{ color: T.muted, padding: '40px 0' }}>불러오는 중…</div>
         ) : items.length === 0 ? (

@@ -25,6 +25,7 @@ class CampaignItem(_Camel):
     id: UUID
     book_id: UUID
     book_title: str | None
+    category: str | None
     author_id: UUID
     slots: int
     filled: int

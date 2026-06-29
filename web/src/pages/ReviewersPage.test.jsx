@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, expect, it, vi } from 'vitest';
 
@@ -35,5 +35,13 @@ describe('ReviewersPage', () => {
     campaigns.listOpenCampaigns.mockResolvedValue({ items: [] });
     renderPage();
     expect(await screen.findByText('모집 중인 캠페인이 없어요')).toBeInTheDocument();
+  });
+
+  it('장르 칩 클릭 → 해당 장르로 재조회', async () => {
+    campaigns.listOpenCampaigns.mockResolvedValue({ items: [] });
+    renderPage();
+    await screen.findByText('서평단 모집');
+    fireEvent.click(screen.getByRole('button', { name: '소설' }));
+    await waitFor(() => expect(campaigns.listOpenCampaigns).toHaveBeenCalledWith('소설'));
   });
 });

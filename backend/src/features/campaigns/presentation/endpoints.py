@@ -53,8 +53,12 @@ async def create_campaign(
 
 
 @router.get("/campaigns/open", response_model=CampaignListResponse)
-async def list_open(svc: CampaignService = Depends(get_campaign_service)) -> CampaignListResponse:
-    items = await svc.list_open()
+async def list_open(
+    category: str | None = None,
+    svc: CampaignService = Depends(get_campaign_service),
+) -> CampaignListResponse:
+    """모집중 캠페인 — category 지정 시 그 장르만."""
+    items = await svc.list_open(category)
     return CampaignListResponse(items=[CampaignItem.model_validate(c) for c in items])
 
 

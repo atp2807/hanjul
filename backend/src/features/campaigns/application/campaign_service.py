@@ -24,8 +24,8 @@ class CampaignService:
             raise ValueError("증정본은 1부 이상")
         return await self.repo.create(book_id, author_id, slots, review_days, min_chars)
 
-    async def list_open(self) -> list[CampaignView]:
-        return await self.repo.list_open()
+    async def list_open(self, category: str | None = None) -> list[CampaignView]:
+        return await self.repo.list_open(category)
 
     async def get(self, campaign_id: UUID) -> CampaignView:
         c = await self.repo.get(campaign_id)
