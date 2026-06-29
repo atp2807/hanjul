@@ -19,6 +19,8 @@ const PATHS = {
   chevron: <path d="M9 6 15 12 9 18" />,
   gift: <><rect x="4" y="9" width="16" height="11" rx="1.2" /><path d="M4 13h16M12 9v11" /><path d="M12 9c-3.5 0-4.5-5 0-3 4.5-2 3.5 3 0 3Z" /></>,
   ban: <><circle cx="12" cy="12" r="8.5" /><path d="m6.2 6.2 11.6 11.6" /></>,
+  close: <path d="M6 6 18 18M18 6 6 18" />,
+  info: <><circle cx="12" cy="12" r="8.5" /><path d="M12 11v5M12 7.6v.01" /></>,
 };
 
 export function Icon({ name, size = 22, stroke = 'currentColor', strokeWidth = 1.9, fill = 'none', style }) {

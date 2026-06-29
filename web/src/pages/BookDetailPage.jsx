@@ -5,13 +5,14 @@ import { loadTossPayments } from '@tosspayments/payment-sdk';
 
 import { useAuth } from '../auth/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { Stars } from '../components/Stars';
+import { Icon } from '../components/Icon';
 import { getLoginUrl } from '../services/api/auth';
 import { getStoreDetail } from '../services/api/books';
 import { confirmPayment, createOrder, getPaymentConfig } from '../services/api/orders';
 import { addReview, getReviews } from '../services/api/reviews';
 import { coverGradient, T } from '../theme';
 
-const star = 'oklch(0.7 0.13 70)';
 
 export function BookDetailPage() {
   const { id } = useParams();
@@ -122,7 +123,7 @@ export function BookDetailPage() {
               ) : (
                 <Link to={`/read/${book.id}`} style={{ ...primaryBtn, textDecoration: 'none', display: 'block' }}>무료로 읽기</Link>
               )}
-              <Link to={`/read/${book.id}`} style={subBtn}>미리보기 ▸</Link>
+              <Link to={`/read/${book.id}`} style={{ ...subBtn, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>미리보기 <Icon name="chevron" size={14} stroke="currentColor" /></Link>
             </div>
             {error && <p style={{ color: 'crimson', fontSize: 13, marginTop: 12 }}>{error}</p>}
           </div>
@@ -139,12 +140,12 @@ export function BookDetailPage() {
           {book.subtitle && <p style={{ margin: '0 0 6px', fontSize: 16, color: T.textMid }}>{book.subtitle}</p>}
           {book.authorId && (
             <Link to={`/authors/${book.authorId}`} style={{ fontSize: 16, color: T.textMid, fontWeight: 600, textDecoration: 'none' }}>
-              {book.authorName ? `${book.authorName} 지음` : '작가 페이지 →'}
+              {book.authorName ? `${book.authorName} 지음` : <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3 }}>작가 페이지 <Icon name="chevron" size={13} stroke="currentColor" /></span>}
             </Link>
           )}
           {reviews && reviews.count > 0 && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 16 }}>
-              <span style={{ color: star, fontSize: 17, letterSpacing: 2 }}>{'★'.repeat(Math.round(reviews.average))}</span>
+              <Stars value={reviews.average} size={17} />
               <span style={{ fontSize: 14, fontWeight: 700, color: T.ink }}>{reviews.average}</span>
               <span style={{ fontSize: 13, color: T.muted }}>리뷰 {reviews.count.toLocaleString()}개</span>
             </div>
@@ -163,13 +164,13 @@ export function BookDetailPage() {
 
           {/* 리뷰 */}
           <h3 style={{ margin: '40px 0 16px', fontSize: 20, fontWeight: 800, color: T.ink, letterSpacing: '-0.02em' }}>
-            독자 리뷰{reviews && reviews.count > 0 ? ` · ★${reviews.average} (${reviews.count})` : ''}
+            독자 리뷰{reviews && reviews.count > 0 ? ` · ${reviews.average} (${reviews.count})` : ''}
           </h3>
           {user && (
             <div data-testid="review-form" style={{ background: T.surface, borderRadius: 16, padding: '18px 20px', marginBottom: 16 }}>
               <select value={rating} onChange={(e) => setRating(Number(e.target.value))} aria-label="평점" style={{ padding: '7px 10px', border: `1px solid ${T.border}`, borderRadius: 8, fontFamily: 'inherit' }}>
                 {[5, 4, 3, 2, 1].map((n) => (
-                  <option key={n} value={n}>{'★'.repeat(n)} {n}</option>
+                  <option key={n} value={n}>{n}점</option>
                 ))}
               </select>
               <textarea
@@ -194,7 +195,7 @@ export function BookDetailPage() {
                     </span>
                   )}
                   {r.updatedAt && <span style={{ fontSize: 12, color: T.muted }}>(수정됨)</span>}
-                  <span style={{ color: star, fontSize: 13, marginLeft: 'auto' }}>{'★'.repeat(r.rating)}</span>
+                  <span style={{ marginLeft: 'auto' }}><Stars value={r.rating} size={13} /></span>
                 </div>
                 {r.body && <p style={{ margin: 0, fontSize: 14, lineHeight: 1.75, color: '#52615b' }}>{r.body}</p>}
               </div>

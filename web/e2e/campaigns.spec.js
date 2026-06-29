@@ -44,7 +44,7 @@ test('서평단 풀 흐름 — 신청→배정→증정본 리뷰→배지', asy
   await expect(page.getByText('증정본흐름책')).toBeVisible();
   await page.goto(`/campaigns/${cid}`);
   await page.getByRole('button', { name: '리뷰어 신청하기' }).click();
-  await expect(page.getByText('✓ 신청 완료')).toBeVisible();
+  await expect(page.getByText('신청 완료')).toBeVisible();
 
   // 작가: 신청자 배정(증정본 지급)
   const applicants = await (await request.get(`/api/campaigns/${cid}/applications`, { headers: aAuth })).json();
@@ -57,7 +57,7 @@ test('서평단 풀 흐름 — 신청→배정→증정본 리뷰→배지', asy
   await page.getByRole('button', { name: '리뷰 쓰기' }).click();
   await expect(page).toHaveURL(new RegExp(`/campaigns/${cid}/review`));
 
-  await page.getByText('★', { exact: true }).nth(4).click(); // 별 5점
+  await page.getByRole('button', { name: '별점 5점' }).click(); // 별 5점
   await page.getByPlaceholder('이 책을 솔직하게 평가해 주세요.').fill('출간 전 먼저 읽었어요. 좋았습니다.');
   await page.getByRole('button', { name: '리뷰 제출' }).click();
 

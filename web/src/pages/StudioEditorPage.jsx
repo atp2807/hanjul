@@ -155,7 +155,7 @@ export function StudioEditorPage() {
 
   return (
     <div style={{ maxWidth: 820, margin: '0 auto', padding: '28px 24px' }}>
-      <Link to="/studio" style={{ fontSize: 13, color: T.muted, textDecoration: 'none' }}>← 스튜디오</Link>
+      <Link to="/studio" style={{ fontSize: 13, color: T.muted, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 3 }}><Icon name="chevron" size={13} stroke="currentColor" style={{ transform: 'rotate(180deg)' }} /> 스튜디오</Link>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '8px 0 4px' }}>
         <h2 style={{ margin: 0, fontWeight: 800, color: T.ink, letterSpacing: '-0.025em' }}>{book.title}</h2>
         <span style={{ padding: '4px 11px', background: published ? '#e3f3ec' : '#fff3da', color: published ? '#2f8a6f' : '#c79318', borderRadius: 999, fontSize: 12, fontWeight: 700 }}>
@@ -304,7 +304,7 @@ export function StudioEditorPage() {
             <span style={{ color: '#aaa', fontSize: 13, marginLeft: 8 }}>지정 시각에 자동 게시</span>
           </>
         )}
-        {published && <Link to={`/books/${id}`} style={{ color: '#111' }}>스토어에서 보기 →</Link>}
+        {published && <Link to={`/books/${id}`} style={{ color: '#111', display: 'inline-flex', alignItems: 'center', gap: 3 }}>스토어에서 보기 <Icon name="chevron" size={13} stroke="currentColor" /></Link>}
       </Section>
 
       {published && (

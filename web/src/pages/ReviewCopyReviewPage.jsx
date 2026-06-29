@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthContext';
 import { getCampaign, getMyApplications } from '../services/api/campaigns';
 import { addReview } from '../services/api/reviews';
 import { Icon } from '../components/Icon';
+import { Stars } from '../components/Stars';
 import { T } from '../theme';
 
 // deadlineAt(ISO) → "D-2 · 11:58:04" (남은 시간 실시간)
@@ -83,10 +84,8 @@ export function ReviewCopyReviewPage() {
         {/* 작성 폼 */}
         <div style={{ background: T.surface, borderRadius: 18, padding: '30px 32px' }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 10 }}>별점</div>
-          <div style={{ fontSize: 30, letterSpacing: 4, marginBottom: 24, cursor: 'pointer', userSelect: 'none' }}>
-            {[1, 2, 3, 4, 5].map((n) => (
-              <span key={n} onClick={() => setRating(n)} style={{ color: n <= rating ? 'oklch(0.7 0.13 70)' : '#dfe7e3' }}>★</span>
-            ))}
+          <div style={{ marginBottom: 24 }}>
+            <Stars value={rating} onRate={setRating} size={30} gap={4} />
           </div>
           <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 8 }}>리뷰</div>
           <textarea

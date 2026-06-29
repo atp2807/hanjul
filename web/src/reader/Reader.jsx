@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 
+import { Icon } from '../components/Icon';
 import { paginateLines } from './paginateLines';
 import { createPretextLineMeasurer } from './pretextLineMeasurer';
 import { blockStyle, READER_STYLE, READER_THEMES } from './readerStyle';
@@ -133,11 +134,11 @@ export function Reader({ blocks, bookId }) {
       </div>
 
       <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
-        <button style={btn} disabled={idx <= 0} onClick={() => goPage(idx - 1)}>
-          ← 이전
+        <button style={{ ...btn, display: 'inline-flex', alignItems: 'center', gap: 4 }} disabled={idx <= 0} onClick={() => goPage(idx - 1)}>
+          <Icon name="chevron" size={14} stroke="currentColor" style={{ transform: 'rotate(180deg)' }} /> 이전
         </button>
-        <button style={btn} disabled={idx >= pages.length - 1} onClick={() => goPage(idx + 1)}>
-          다음 →
+        <button style={{ ...btn, display: 'inline-flex', alignItems: 'center', gap: 4 }} disabled={idx >= pages.length - 1} onClick={() => goPage(idx + 1)}>
+          다음 <Icon name="chevron" size={14} stroke="currentColor" />
         </button>
       </div>
     </div>

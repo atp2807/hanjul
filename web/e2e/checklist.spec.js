@@ -20,15 +20,15 @@ test('출판 전 체크리스트 — 누락 → 설정 후 충족', async ({ pag
   await page.keyboard.type('본문 내용');
 
   const checklist = page.getByTestId('checklist');
-  await expect(checklist).toContainText('✓ 내용'); // 글 썼으니 충족
-  await expect(checklist).toContainText('✗ 가격'); // 아직 미설정
-  await expect(checklist).toContainText('✗ 소개');
+  await expect(checklist.locator('[data-check="내용"]')).toHaveAttribute('data-ok', 'true'); // 글 썼으니 충족
+  await expect(checklist.locator('[data-check="가격"]')).toHaveAttribute('data-ok', 'false'); // 아직 미설정
+  await expect(checklist.locator('[data-check="소개"]')).toHaveAttribute('data-ok', 'false');
 
   // 스튜디오에서 설정하듯 API로 가격·소개 채우고 새로고침
   await request.put(`/api/books/${id}/price`, { headers: auth, data: { amount: 7000 } });
   await request.put(`/api/books/${id}/meta`, { headers: auth, data: { description: '소개글' } });
   await page.reload();
 
-  await expect(page.getByTestId('checklist')).toContainText('✓ 가격');
-  await expect(page.getByTestId('checklist')).toContainText('✓ 소개');
+  await expect(page.getByTestId('checklist').locator('[data-check="가격"]')).toHaveAttribute('data-ok', 'true');
+  await expect(page.getByTestId('checklist').locator('[data-check="소개"]')).toHaveAttribute('data-ok', 'true');
 });

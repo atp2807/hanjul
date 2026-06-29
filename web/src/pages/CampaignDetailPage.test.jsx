@@ -58,6 +58,6 @@ describe('CampaignDetailPage', () => {
     campaigns.getMyApplications.mockResolvedValue({ items: [{ campaignId: 'c1' }] });
     books.getStoreDetail.mockResolvedValue({});
     renderPage();
-    expect(await screen.findByText('✓ 신청 완료')).toBeInTheDocument();
+    expect(await screen.findByText(/신청 완료/)).toBeInTheDocument();
   });
 });

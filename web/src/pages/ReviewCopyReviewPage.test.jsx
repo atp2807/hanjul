@@ -31,7 +31,7 @@ describe('ReviewCopyReviewPage', () => {
     const submit = await screen.findByText('리뷰 제출');
     expect(submit).toBeDisabled(); // 별점·내용 없음
 
-    fireEvent.click(screen.getAllByText('★')[4]); // 별 5점
+    fireEvent.click(screen.getByRole('button', { name: '별점 5점' })); // 별 5점
     fireEvent.change(screen.getByPlaceholderText(/솔직하게 평가/), { target: { value: '짧음' } });
     expect(submit).toBeDisabled(); // 최소 10자 미달
 

@@ -28,7 +28,7 @@ test('구매자 리뷰 작성 → 평균·목록 노출', async ({ page, request
   await page.getByPlaceholder(/리뷰를 남겨주세요/).fill('술술 읽혀요');
   await page.getByRole('button', { name: '리뷰 등록' }).click();
 
-  await expect(page.getByRole('heading', { name: /리뷰 · ★4/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /리뷰 · 4/ })).toBeVisible();
   await expect(page.getByTestId('review-list')).toContainText('술술 읽혀요');
   await expect(page.getByTestId('review-list')).toContainText('리뷰어');
 });

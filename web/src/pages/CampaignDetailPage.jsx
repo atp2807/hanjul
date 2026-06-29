@@ -6,6 +6,7 @@ import { useIsMobile } from '../hooks/useIsMobile';
 import { applyCampaign, getCampaign, getMyApplications } from '../services/api/campaigns';
 import { getStoreDetail } from '../services/api/books';
 import { coverGradient, T } from '../theme';
+import { Icon } from '../components/Icon';
 
 function Cond({ label, value }) {
   return (
@@ -83,7 +84,7 @@ export function CampaignDetailPage() {
               <Cond label="공개 의무" value="서평단 라벨 표기" />
             </div>
             <div style={{ background: T.tint, border: `1px solid #cfe7df`, borderRadius: 14, padding: '18px 20px', display: 'flex', gap: 12 }}>
-              <span style={{ fontSize: 18 }}>ℹ️</span>
+              <span style={{ flexShrink: 0, marginTop: 1 }}><Icon name="info" size={18} stroke="#2f8a6f" /></span>
               <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.7, color: T.text }}>
                 서평단 증정본으로 작성한 리뷰에는 <b style={{ color: T.ink }}>‘서평단’ 라벨</b>이 자동으로 붙습니다. 대가성 표기는 법적 공개 의무이며, 솔직한 평가를 권장해요.
               </p>
@@ -104,7 +105,7 @@ export function CampaignDetailPage() {
             </div>
 
             {applied ? (
-              <div style={{ textAlign: 'center', padding: 15, background: T.tint, color: '#2f8a6f', borderRadius: 13, fontSize: 15, fontWeight: 700, border: `1px solid #cfe7df` }}>✓ 신청 완료</div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: 15, background: T.tint, color: '#2f8a6f', borderRadius: 13, fontSize: 15, fontWeight: 700, border: `1px solid #cfe7df` }}><Icon name="check" size={18} stroke="#2f8a6f" /> 신청 완료</div>
             ) : (
               <button onClick={onApply} disabled={busy || c.statusCd !== 'OPEN'} style={{ width: '100%', padding: 15, background: c.statusCd === 'OPEN' ? T.ink : '#9bb4bc', color: T.inkText, border: 'none', borderRadius: 13, fontSize: 15, fontWeight: 700, cursor: c.statusCd === 'OPEN' ? 'pointer' : 'default' }}>
                 {c.statusCd === 'OPEN' ? (busy ? '신청 중…' : '리뷰어 신청하기') : '마감된 모집'}
@@ -116,9 +117,9 @@ export function CampaignDetailPage() {
             <div style={{ height: 1, background: T.borderSoft, margin: '20px 0' }} />
             <div style={{ fontSize: 13, fontWeight: 700, color: T.textStrong, marginBottom: 12 }}>신청하면 지켜야 해요</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13, color: T.textSoft }}>
-              <div style={{ display: 'flex', gap: 9 }}><span style={{ color: '#2f8a6f' }}>✓</span> {c.reviewDays}일 안에 리뷰 작성</div>
-              <div style={{ display: 'flex', gap: 9 }}><span style={{ color: '#2f8a6f' }}>✓</span> {c.minChars > 0 ? `${c.minChars}자 이상 ` : ''}솔직한 평가</div>
-              <div style={{ display: 'flex', gap: 9 }}><span style={{ color: '#2f8a6f' }}>✓</span> 서평단 라벨 유지</div>
+              <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}><Icon name="check" size={15} stroke="#2f8a6f" /> {c.reviewDays}일 안에 리뷰 작성</div>
+              <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}><Icon name="check" size={15} stroke="#2f8a6f" /> {c.minChars > 0 ? `${c.minChars}자 이상 ` : ''}솔직한 평가</div>
+              <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}><Icon name="check" size={15} stroke="#2f8a6f" /> 서평단 라벨 유지</div>
             </div>
           </div>
         </div>

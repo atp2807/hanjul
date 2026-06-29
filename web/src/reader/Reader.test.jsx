@@ -37,7 +37,7 @@ describe('Reader 설정 영속', () => {
 
   it('다음 페이지 → 책별 위치 저장(이어보기)', () => {
     render(<Reader blocks={BLOCKS} bookId="bk1" />);
-    fireEvent.click(screen.getByText('다음 →'));
+    fireEvent.click(screen.getByRole('button', { name: /다음/ }));
     expect(localStorage.getItem('hanjul-reader-pos-bk1')).toBe('1');
   });
 

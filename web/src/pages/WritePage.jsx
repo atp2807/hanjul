@@ -15,6 +15,7 @@ import { neutralToPmDoc, pmToNeutral } from '../writer/editor/pm_doc';
 import { WriterEditor } from '../writer/editor/WriterEditor';
 import { OnboardingTips } from '../writer/OnboardingTips';
 import { listSnapshots, observeSnapshots, takeSnapshot } from '../writer/snapshots';
+import { Icon } from '../components/Icon';
 import { T } from '../theme';
 
 export function WritePage() {
@@ -368,12 +369,12 @@ export function WritePage() {
                 { label: '소개', ok: !!meta.description },
                 { label: 'ISBN', ok: !!meta.isbn, optional: true },
               ].map((c) => (
-                <span key={c.label} style={{ color: c.ok ? '#16a34a' : c.optional ? '#9ca3af' : '#d97706' }}>
-                  {c.ok ? '✓' : '✗'} {c.label}
+                <span key={c.label} data-check={c.label} data-ok={String(c.ok)} style={{ color: c.ok ? '#16a34a' : c.optional ? '#9ca3af' : '#d97706', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <Icon name={c.ok ? 'check' : 'close'} size={13} stroke="currentColor" /> {c.label}
                   {c.optional && !c.ok ? '(선택)' : ''}
                 </span>
               ))}
-              <Link to={`/studio/${id}`} style={{ color: T.ink, marginLeft: 4 }}>책 정보 설정 →</Link>
+              <Link to={`/studio/${id}`} style={{ color: T.ink, marginLeft: 4, display: 'inline-flex', alignItems: 'center', gap: 3 }}>책 정보 설정 <Icon name="chevron" size={13} stroke="currentColor" /></Link>
             </div>
           )}
 

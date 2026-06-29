@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 
 import { useIsMobile } from '../hooks/useIsMobile';
+import { Icon } from '../components/Icon';
 import { T } from '../theme';
 
 const PLANS = [
@@ -31,9 +32,16 @@ function PlanCard({ p }) {
       <div style={{ margin: '14px 0 4px', fontSize: 34, fontWeight: 800, color: p.dark ? '#fff' : T.ink, letterSpacing: '-0.02em' }}>{p.price}</div>
       <div style={{ fontSize: 13, color: p.dark ? '#84a89e' : T.muted, marginBottom: 24 }}>{p.desc}</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 14, color: p.dark ? '#d6ebe4' : T.textSoft }}>
-        {p.feats.map((f, i) => (
-          <div key={i} style={f.startsWith('★') ? { color: 'oklch(0.82 0.1 184)', fontWeight: 700 } : undefined}>{f.startsWith('★') ? f : `✓ ${f}`}</div>
-        ))}
+        {p.feats.map((f, i) => {
+          const hi = f.startsWith('★');
+          const text = hi ? f.slice(1).trim() : f;
+          const hiColor = 'oklch(0.82 0.1 184)';
+          return (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, ...(hi ? { color: hiColor, fontWeight: 700 } : {}) }}>
+              <Icon name={hi ? 'star' : 'check'} size={15} fill={hi ? hiColor : 'none'} stroke={hi ? hiColor : (p.dark ? '#9fd3c9' : '#2f8a6f')} strokeWidth={1.7} /> {text}
+            </div>
+          );
+        })}
       </div>
       <span style={{ display: 'block', textAlign: 'center', padding: 13, background: p.dark ? 'oklch(0.74 0.1 188)' : T.tint, color: p.dark ? '#06342c' : T.ink, borderRadius: 12, fontSize: 14, fontWeight: p.dark ? 800 : 700, marginTop: 28 }}>{p.cta}</span>
     </div>
@@ -55,7 +63,7 @@ export function B2BPlanPage() {
           {PLANS.map((p) => <PlanCard key={p.name} p={p} />)}
         </div>
         <div style={{ marginTop: 36, fontSize: 14, color: T.muted }}>
-          개인 작가세요? <span onClick={() => navigate('/studio/campaigns')} style={{ color: T.ink, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}>무료로 서평단 열기 →</span>
+          개인 작가세요? <span onClick={() => navigate('/studio/campaigns')} style={{ color: T.ink, fontWeight: 700, cursor: 'pointer', textDecoration: 'underline', display: 'inline-flex', alignItems: 'center', gap: 3 }}>무료로 서평단 열기 <Icon name="chevron" size={13} stroke="currentColor" /></span>
         </div>
       </div>
     </div>

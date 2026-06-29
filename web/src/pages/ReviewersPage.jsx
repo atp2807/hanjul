@@ -6,6 +6,7 @@ import { useIsMobile } from '../hooks/useIsMobile';
 import { dday, listOpenCampaigns } from '../services/api/campaigns';
 import { coverGradient, T } from '../theme';
 import { EmptyState } from '../components/EmptyState';
+import { Icon } from '../components/Icon';
 
 function Stat({ value, label }) {
   return (
@@ -83,12 +84,12 @@ export function ReviewersPage() {
           <div style={{ display: 'flex', gap: 12, marginTop: 30 }}>
             <a href="#feed" style={{ padding: '14px 26px', background: T.ink, color: T.inkText, borderRadius: 13, fontSize: 15, fontWeight: 700, textDecoration: 'none' }}>서평단 둘러보기</a>
             <button onClick={() => navigate(user ? '/studio/campaigns' : '/login')} style={{ padding: '14px 26px', background: T.surface, color: T.ink, border: `1px solid #d6e4de`, borderRadius: 13, fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>작가라면 · 모집하기</button>
-            <button onClick={() => navigate('/reviewers/business')} style={{ padding: '14px 20px', background: 'transparent', color: T.text, border: 'none', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}>출판사세요? →</button>
+            <button onClick={() => navigate('/reviewers/business')} style={{ padding: '14px 20px', background: 'transparent', color: T.text, border: 'none', fontSize: 15, fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}>출판사세요? <Icon name="chevron" size={14} stroke="currentColor" /></button>
           </div>
           <div style={{ display: 'flex', gap: 34, marginTop: 36 }}>
             <Stat value={items ? items.length : '—'} label="모집중 캠페인" />
             <Stat value={items ? `${remaining}부` : '—'} label="남은 증정본" />
-            {user && <button onClick={() => navigate('/reviewer/activity')} style={{ alignSelf: 'flex-end', background: 'none', border: 'none', color: T.ink, fontWeight: 700, fontSize: 14, cursor: 'pointer', textDecoration: 'underline' }}>내 서평단 활동 →</button>}
+            {user && <button onClick={() => navigate('/reviewer/activity')} style={{ alignSelf: 'flex-end', background: 'none', border: 'none', color: T.ink, fontWeight: 700, fontSize: 14, cursor: 'pointer', textDecoration: 'underline', display: 'inline-flex', alignItems: 'center', gap: 3 }}>내 서평단 활동 <Icon name="chevron" size={13} stroke="currentColor" /></button>}
           </div>
         </div>
       </section>
