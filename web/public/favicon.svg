@@ -6,6 +6,8 @@
     </linearGradient>
   </defs>
   <rect width="100" height="100" rx="23" fill="url(#hanjul)"/>
-  <!-- 초소형(파비콘)에선 강조된 '한 줄'만 — 디자인 29px 단순화 변형 -->
-  <rect x="22" y="43.5" width="56" height="13" rx="6.5" fill="#ffffff"/>
+  <!-- 한줄 마크 그대로 — 옅은 줄 사이 강조된 한 줄(3줄) -->
+  <rect x="22" y="19" width="26" height="8" rx="4" fill="#ffffff" opacity="0.42"/>
+  <rect x="22" y="39" width="56" height="10" rx="5" fill="#ffffff" transform="rotate(-5 50 44)"/>
+  <circle cx="50" cy="71" r="7" fill="#ffffff" opacity="0.42"/>
 </svg>
