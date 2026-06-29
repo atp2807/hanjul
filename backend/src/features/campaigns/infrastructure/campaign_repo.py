@@ -94,7 +94,8 @@ class SqlCampaignRepository:
                 select(ReviewCampaign).where(ReviewCampaign.id == campaign_id).with_for_update()
             )
         ).scalar_one_or_none()
-        if camp is None or camp.filled >= camp.slots or camp.status_cd != "OPEN":
+        # 슬롯만 게이트 — 수동 마감(CLOSED·슬롯 남음)된 캠페인도 기존 신청자는 배정 가능
+        if camp is None or camp.filled >= camp.slots:
             await self.session.rollback()
             return False
         app = (
@@ -135,6 +136,15 @@ class SqlCampaignRepository:
             )
             for a, book_id, title in rows
         ]
+
+    async def close(self, campaign_id) -> None:
+        """모집 수동 마감 — status CLOSED (피드 제외 + 새 신청 차단)."""
+        camp = (
+            await self.session.execute(select(ReviewCampaign).where(ReviewCampaign.id == campaign_id))
+        ).scalar_one_or_none()
+        if camp is not None:
+            camp.status_cd = "CLOSED"
+            await self.session.commit()
 
     async def cancel(self, campaign_id, applicant_id) -> bool:
         app = (

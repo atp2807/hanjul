@@ -65,6 +65,10 @@ class CampaignService:
         """신청 취소 — PENDING 만. 이미 배정됐으면 False."""
         return await self.repo.cancel(campaign_id, applicant_id)
 
+    async def close(self, campaign_id: UUID) -> None:
+        """모집 수동 마감."""
+        await self.repo.close(campaign_id)
+
     async def list_for_author(self, author_id: UUID) -> list[AuthorCampaignView]:
         return await self.repo.list_for_author(author_id)
 

@@ -135,6 +135,34 @@ async def test_open_campaigns_filter_by_category(app_db):
         assert [x["bookTitle"] for x in only] == ["소설책"]
 
 
+async def test_author_can_close_campaign(app_db):
+    """작가가 모집을 수동 마감 — 피드에서 빠지고 새 신청 막힘. 기존 신청자는 여전히 배정 가능."""
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
+        a_auth = {"Authorization": f"Bearer {(await login_account(c, 'google', 'a'))[0]}"}
+        reader_token, reader = await login_account(c, "naver", "r")
+        r_auth = {"Authorization": f"Bearer {reader_token}"}
+        other_token, _ = await login_account(c, "kakao", "o")
+        o_auth = {"Authorization": f"Bearer {other_token}"}
+
+        book = (await c.post("/api/books", json={"title": "마감책"}, headers=a_auth)).json()["bookId"]
+        await c.put(f"/api/books/{book}/price", json={"amount": 1000}, headers=a_auth)
+        await c.post(f"/api/books/{book}/publish-now", headers=a_auth)
+        cid = (await c.post("/api/campaigns", json={"bookId": book, "slots": 2}, headers=a_auth)).json()["campaignId"]
+        await c.post(f"/api/campaigns/{cid}/apply", headers=r_auth)  # 미리 신청
+
+        # 작가 아닌 사람은 마감 불가
+        assert (await c.post(f"/api/campaigns/{cid}/close", headers=r_auth)).status_code == 403
+        # 작가 마감
+        assert (await c.post(f"/api/campaigns/{cid}/close", headers=a_auth)).status_code == 204
+
+        # 모집 피드에서 빠짐
+        assert all(x["id"] != cid for x in (await c.get("/api/campaigns/open")).json()["items"])
+        # 새 신청 차단(마감)
+        assert (await c.post(f"/api/campaigns/{cid}/apply", headers=o_auth)).status_code == 409
+        # 기존 신청자는 여전히 배정 가능(슬롯 남음)
+        assert (await c.post(f"/api/campaigns/{cid}/assign", json={"applicantId": reader["id"]}, headers=a_auth)).status_code == 204
+
+
 async def test_cancel_application(app_db):
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
         author_token, _ = await login_account(c, "google", "a")

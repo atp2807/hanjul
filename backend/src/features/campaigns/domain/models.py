@@ -120,6 +120,10 @@ class CampaignRepository(Protocol):
         """신청 취소 — PENDING 신청만 삭제. 성공 True."""
         ...
 
+    async def close(self, campaign_id: UUID) -> None:
+        """모집 수동 마감(status CLOSED)."""
+        ...
+
     async def list_for_author(self, author_id: UUID) -> list["AuthorCampaignView"]:
         """작가 본인 캠페인 + 집계."""
         ...

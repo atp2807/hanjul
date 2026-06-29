@@ -40,6 +40,10 @@ export function getApplicants(id) {
 export function assignReviewer(id, applicantId) {
   return apiClient.post(`/campaigns/${id}/assign`, { applicantId });
 }
+// 작가 — 모집 수동 마감 (피드 제외 + 새 신청 차단)
+export function closeCampaign(id) {
+  return apiClient.post(`/campaigns/${id}/close`);
+}
 
 // 마감일(ISO) → "D-2" / "마감" / "D-day"
 export function dday(deadlineAt) {

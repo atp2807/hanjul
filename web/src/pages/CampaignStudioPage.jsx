@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../auth/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
-import { assignReviewer, createCampaign, getApplicants, getMyCampaigns } from '../services/api/campaigns';
+import { assignReviewer, closeCampaign, createCampaign, getApplicants, getMyCampaigns } from '../services/api/campaigns';
 import { getMyBooks } from '../services/api/studio';
 import { coverGradient, T } from '../theme';
 
@@ -152,7 +152,7 @@ export function CampaignStudioPage() {
         ) : (
           <div style={{ background: T.surface, borderRadius: 18, padding: isMobile ? '4px 14px 12px' : '8px 26px 16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', padding: '16px 0', borderBottom: `1px solid ${T.borderSoft}`, fontSize: 12, color: '#9bb4bc', fontWeight: 700 }}>
-              <span style={{ flex: 1 }}>캠페인</span><span style={{ width: 80 }}>상태</span><span style={{ width: isMobile ? 64 : 110, textAlign: 'center' }}>신청/배정</span>{!isMobile && <span style={{ width: 140 }}>리뷰 완료율</span>}<span style={{ width: 64, textAlign: 'right' }}> </span>
+              <span style={{ flex: 1 }}>캠페인</span><span style={{ width: 80 }}>상태</span><span style={{ width: isMobile ? 64 : 110, textAlign: 'center' }}>신청/배정</span>{!isMobile && <span style={{ width: 140 }}>리뷰 완료율</span>}<span style={{ width: 96, textAlign: 'right' }}> </span>
             </div>
             {camps.map((c) => {
               const st = STATUS[c.statusCd] || STATUS.OPEN;
@@ -175,8 +175,11 @@ export function CampaignStudioPage() {
                         <span style={{ fontSize: 12, color: T.text, fontWeight: 600 }}>{rate}%</span>
                       </span>
                     )}
-                    <span style={{ width: 64, textAlign: 'right' }}>
+                    <span style={{ width: 96, textAlign: 'right', display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
                       <button onClick={() => setOpenRow(open ? null : c.id)} style={{ background: 'none', border: 'none', color: T.ink, fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>{open ? '닫기' : '신청자'}</button>
+                      {c.statusCd === 'OPEN' && (
+                        <button onClick={() => closeCampaign(c.id).then(load).catch(() => {})} style={{ background: 'none', border: 'none', color: T.muted, fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>마감</button>
+                      )}
                     </span>
                   </div>
                   {open && <Applicants campaignId={c.id} onAssigned={load} />}

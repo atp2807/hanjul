@@ -102,6 +102,22 @@ async def campaign_applicants(
     return ApplicantListResponse(items=[ApplicantItem.model_validate(a) for a in items])
 
 
+@router.post("/campaigns/{campaign_id}/close", status_code=204)
+async def close_campaign(
+    campaign_id: UUID,
+    principal: AccountPrincipal = Depends(get_current_account),
+    svc: CampaignService = Depends(get_campaign_service),
+) -> None:
+    """모집 수동 마감 — 캠페인 작가만. 피드 제외 + 새 신청 차단(기존 신청자는 배정 가능)."""
+    try:
+        camp = await svc.get(campaign_id)
+    except CampaignNotFound:
+        raise HTTPException(404, "campaign not found")
+    if camp.author_id != principal.id:
+        raise HTTPException(403, "이 캠페인의 작가만 마감할 수 있어요")
+    await svc.close(campaign_id)
+
+
 @router.delete("/campaigns/{campaign_id}/apply", status_code=204)
 async def cancel_application(
     campaign_id: UUID,

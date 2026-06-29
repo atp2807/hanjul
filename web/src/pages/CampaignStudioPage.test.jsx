@@ -12,6 +12,7 @@ vi.mock('../services/api/campaigns', async (o) => ({
   getApplicants: vi.fn(),
   assignReviewer: vi.fn(),
   createCampaign: vi.fn(),
+  closeCampaign: vi.fn(),
 }));
 vi.mock('../services/api/studio');
 vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ user: { id: 'u1' } }) }));
@@ -41,6 +42,18 @@ describe('CampaignStudioPage', () => {
     expect(await screen.findByText('리뷰어A')).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '배정' }));
     await waitFor(() => expect(campaigns.assignReviewer).toHaveBeenCalledWith('c1', 'u9'));
+  });
+
+  it('진행중(OPEN) 캠페인을 작가가 마감한다', async () => {
+    campaigns.getMyCampaigns.mockResolvedValue({ items: [
+      { id: 'c1', bookId: 'b1', bookTitle: '마감대상', slots: 10, filled: 1, remaining: 9, statusCd: 'OPEN', applicants: 3, reviewed: 0 },
+    ] });
+    studio.getMyBooks.mockResolvedValue({ items: [] });
+    campaigns.closeCampaign.mockResolvedValue(null);
+    renderPage();
+
+    fireEvent.click(await screen.findByRole('button', { name: '마감' }));
+    await waitFor(() => expect(campaigns.closeCampaign).toHaveBeenCalledWith('c1'));
   });
 
   it('캠페인 없으면 빈 상태 안내', async () => {
