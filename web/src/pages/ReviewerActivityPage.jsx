@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { cancelApplication, dday, getMyApplications, getReviewerStatus } from '../services/api/campaigns';
 import { coverGradient, T } from '../theme';
+import { EmptyState } from '../components/EmptyState';
 
 const STATUS = {
   PENDING: { label: '신청 대기', fg: '#c79318', bg: '#fff3da' },
@@ -92,12 +93,7 @@ export function ReviewerActivityPage() {
         </div>
 
         {shown.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '56px 16px', background: T.surface, borderRadius: 16, border: `1px solid ${T.borderSoft}` }}>
-            <div style={{ width: 52, height: 52, borderRadius: 15, background: '#e9f7f1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, margin: '0 auto 14px' }}>📭</div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: T.textStrong }}>아직 활동이 없어요</div>
-            <div style={{ fontSize: 13, color: T.muted, marginTop: 6 }}>관심 있는 책의 서평단에 신청해 보세요.</div>
-            <button onClick={() => navigate('/reviewers')} style={{ marginTop: 14, padding: '9px 18px', background: T.ink, color: T.inkText, border: 'none', borderRadius: 10, fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>둘러보기</button>
-          </div>
+          <EmptyState icon="bookmark" title="아직 활동이 없어요" desc="관심 있는 책의 서평단에 신청해 보세요." action={{ label: '둘러보기', onClick: () => navigate('/reviewers') }} />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {shown.map((a) => {

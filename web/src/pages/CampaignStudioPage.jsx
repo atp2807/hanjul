@@ -6,6 +6,7 @@ import { useIsMobile } from '../hooks/useIsMobile';
 import { assignReviewer, closeCampaign, createCampaign, getApplicants, getMyCampaigns } from '../services/api/campaigns';
 import { getMyBooks } from '../services/api/studio';
 import { coverGradient, T } from '../theme';
+import { EmptyState } from '../components/EmptyState';
 
 function Stat({ label, value, sub }) {
   return (
@@ -145,10 +146,7 @@ export function CampaignStudioPage() {
         </div>
 
         {camps.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '56px 16px', background: T.surface, borderRadius: 16, border: `1px solid ${T.borderSoft}` }}>
-            <div style={{ fontSize: 15, fontWeight: 700, color: T.textStrong }}>아직 캠페인이 없어요</div>
-            <div style={{ fontSize: 13, color: T.muted, marginTop: 6 }}>출판한 책으로 서평단을 열어 출간 첫 주에 리뷰를 쌓아보세요.</div>
-          </div>
+          <EmptyState icon="edit" title="아직 캠페인이 없어요" desc="출판한 책으로 서평단을 열어 출간 첫 주에 리뷰를 쌓아보세요." />
         ) : (
           <div style={{ background: T.surface, borderRadius: 18, padding: isMobile ? '4px 14px 12px' : '8px 26px 16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', padding: '16px 0', borderBottom: `1px solid ${T.borderSoft}`, fontSize: 12, color: '#9bb4bc', fontWeight: 700 }}>

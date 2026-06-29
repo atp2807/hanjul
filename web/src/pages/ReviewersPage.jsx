@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { dday, listOpenCampaigns } from '../services/api/campaigns';
 import { coverGradient, T } from '../theme';
+import { EmptyState } from '../components/EmptyState';
 
 function Stat({ value, label }) {
   return (
@@ -109,11 +110,7 @@ export function ReviewersPage() {
         {items === null ? (
           <div style={{ color: T.muted, padding: '40px 0' }}>불러오는 중…</div>
         ) : items.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '56px 16px', background: T.surface, borderRadius: 16, border: `1px solid ${T.borderSoft}` }}>
-            <div style={{ width: 52, height: 52, borderRadius: 15, background: '#e9f7f1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, margin: '0 auto 14px' }}>🔍</div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: T.textStrong }}>모집 중인 캠페인이 없어요</div>
-            <div style={{ fontSize: 13, color: T.muted, marginTop: 6 }}>새 서평단이 열리면 곧 여기에 표시돼요.</div>
-          </div>
+          <EmptyState icon="search" title="모집 중인 캠페인이 없어요" desc="새 서평단이 열리면 곧 여기에 표시돼요." />
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4, 1fr)', gap: isMobile ? 12 : 20 }}>
             {items.map((c) => (

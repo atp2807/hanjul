@@ -6,6 +6,7 @@ import { useIsMobile } from '../hooks/useIsMobile';
 import { KIND_ICON, KIND_ICON_BG, KIND_LABEL, KIND_SUFFIX } from '../notificationKinds';
 import { getNotifications, markAllRead, markRead } from '../services/api/notifications';
 import { T } from '../theme';
+import { EmptyState } from '../components/EmptyState';
 
 export function NotificationsPage() {
   const { user } = useAuth();
@@ -52,11 +53,7 @@ export function NotificationsPage() {
         </div>
 
         {shown.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '56px 16px', background: T.surface, borderRadius: 16, border: `1px solid ${T.borderSoft}` }}>
-            <div style={{ width: 52, height: 52, borderRadius: 15, background: '#e9f7f1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, margin: '0 auto 14px' }}>🔔</div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: T.textStrong }}>알림이 없어요</div>
-            <div style={{ fontSize: 13, color: T.muted, marginTop: 6 }}>새 소식이 오면 여기에 모여요.</div>
-          </div>
+          <EmptyState icon="bell" title="알림이 없어요" desc="새 소식이 오면 여기에 모여요." />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {shown.map((n) => (
