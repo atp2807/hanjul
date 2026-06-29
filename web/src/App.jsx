@@ -12,6 +12,7 @@ import { CampaignStudioPage } from './pages/CampaignStudioPage';
 import { ReviewCopyReviewPage } from './pages/ReviewCopyReviewPage';
 import { LibraryPage } from './pages/LibraryPage';
 import { LoginPage } from './pages/LoginPage';
+import { NotificationsPage } from './pages/NotificationsPage';
 import { PaymentResultPage } from './pages/PaymentResultPage';
 import { PricingPage } from './pages/PricingPage';
 import { ReaderPage } from './pages/ReaderPage';
@@ -43,6 +44,7 @@ export default function App() {
         <Route path="/authors/:id" element={<AuthorPage />} />
         <Route path="/read/:id" element={<ReaderPage />} />
         <Route path="/library" element={<LibraryPage />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/studio" element={<StudioPage />} />
         <Route path="/studio/campaigns" element={<CampaignStudioPage />} />
         <Route path="/studio/:id" element={<StudioEditorPage />} />
