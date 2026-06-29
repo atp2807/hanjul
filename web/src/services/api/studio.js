@@ -30,6 +30,10 @@ export function publishBook(bookId) {
 export function publishNow(bookId) {
   return apiClient.post(`/books/${bookId}/publish-now`);
 }
+// 책 삭제 — 판매 이력 없을 때만(있으면 409). 장·블록 함께 삭제.
+export function deleteBook(bookId) {
+  return apiClient.del(`/books/${bookId}`);
+}
 // 출판 취소 (비공개로 내림)
 export function unpublishBook(bookId) {
   return apiClient.post(`/books/${bookId}/unpublish`);

@@ -17,6 +17,7 @@ from src.features.billing.presentation.dependencies import get_order_service
 from src.features.catalog.application.catalog_service import CatalogService
 from src.features.catalog.domain.models import (
     PUBLISHED,
+    BookHasOrders,
     BookNotFound,
     InvalidTransition,
     PriceRequired,
@@ -168,6 +169,25 @@ async def unpublish(book_id: UUID, svc: CatalogService = Depends(get_catalog_ser
         await svc.unpublish(book_id)
     except BookNotFound:
         raise HTTPException(404, "book not found")
+
+
+@router.delete("/books/{book_id}", status_code=204)
+async def delete_book(
+    book_id: UUID,
+    svc: CatalogService = Depends(get_catalog_service),
+    orders: OrderService = Depends(get_order_service),
+    _owner: None = Depends(require_book_owner),
+) -> None:
+    """책 삭제 — 소유 작가만. 판매(주문) 이력 있으면 409(출판 취소만 가능)."""
+    # 주문 유무는 billing 포트로 확인(스키마 경계 유지). FK RESTRICT는 운영 DB 안전망.
+    if await orders.has_any_order(book_id):
+        raise HTTPException(409, "판매 이력이 있어 삭제할 수 없어요. 출판 취소만 가능해요.")
+    try:
+        await svc.delete_book(book_id)
+    except BookNotFound:
+        raise HTTPException(404, "book not found")
+    except BookHasOrders:
+        raise HTTPException(409, "판매 이력이 있어 삭제할 수 없어요. 출판 취소만 가능해요.")
 
 
 @router.post("/books/{book_id}/publish-now", status_code=204)

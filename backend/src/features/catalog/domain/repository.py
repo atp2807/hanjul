@@ -13,6 +13,10 @@ class CatalogRepository(Protocol):
     async def set_status(self, book_id: UUID, status: str, published_at: datetime | None = None) -> None:
         ...
 
+    async def delete(self, book_id: UUID) -> None:
+        """책 삭제 (장·블록 등 CASCADE). 주문 있으면 FK RESTRICT → BookHasOrders."""
+        ...
+
     async def set_price(self, book_id: UUID, amount: int) -> None:
         ...
 

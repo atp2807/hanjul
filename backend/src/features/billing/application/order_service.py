@@ -81,6 +81,10 @@ class OrderService:
     async def owns(self, account_id: UUID, book_id: UUID) -> bool:
         return await self.repo.owns(account_id, book_id)
 
+    async def has_any_order(self, book_id: UUID) -> bool:
+        """이 책에 주문이 하나라도 있나 — 책 삭제 가능 판정용."""
+        return await self.repo.has_any_order(book_id)
+
     async def grant_review_copy(self, book_id: UUID, account_id: UUID) -> None:
         """서평단 증정본 지급 — 0원 권한(분배·매출 없음). 리뷰 작성 가능해짐."""
         await self.repo.grant_review_copy(book_id, account_id)

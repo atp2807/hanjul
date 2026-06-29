@@ -61,6 +61,11 @@ class CatalogService:
         await self._require(book_id)
         await self.repo.set_status(book_id, DRAFT)
 
+    async def delete_book(self, book_id: UUID) -> None:
+        """책 삭제 — 주문 이력 있으면 BookHasOrders(차단). 장·블록 등은 CASCADE."""
+        await self._require(book_id)
+        await self.repo.delete(book_id)
+
     async def publish(self, book_id: UUID, now: datetime | None = None) -> None:
         s = await self._require(book_id)
         if s.status != REVIEW:

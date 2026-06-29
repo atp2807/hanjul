@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { getBookContent } from '../services/api/books';
 import {
@@ -13,6 +13,7 @@ import {
   importText,
   publishBook,
   publishNow,
+  deleteBook,
   schedulePublish,
   setBookPrice,
   setDiscount,
@@ -38,6 +39,7 @@ const CATEGORIES = ['소설', '에세이', '시', '자기계발', '경제경영'
 
 export function StudioEditorPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [book, setBook] = useState(null);
   const [text, setText] = useState('');
   const [price, setPrice] = useState('');
@@ -143,6 +145,15 @@ export function StudioEditorPage() {
       await load();
     } catch (e) {
       setError(e.message);
+    }
+  }
+  async function doDelete() {
+    if (!window.confirm('이 책을 삭제할까요? 장·블록까지 모두 지워지고 되돌릴 수 없어요.')) return;
+    try {
+      await deleteBook(id);
+      navigate('/studio');
+    } catch (e) {
+      setError(e.status === 409 ? '판매 이력이 있어 삭제할 수 없어요. 출판 취소만 가능해요.' : e.message);
     }
   }
   async function doDistribute() {
@@ -355,6 +366,11 @@ export function StudioEditorPage() {
           )}
         </Section>
       )}
+
+      <Section title="책 삭제">
+        <button onClick={doDelete} style={{ ...btn, marginLeft: 0, color: '#c2410c', borderColor: '#f3cfc6' }}>이 책 삭제</button>
+        <span style={{ color: '#aaa', fontSize: 13, marginLeft: 8 }}>되돌릴 수 없어요. 판매 이력이 있으면 출판 취소만 가능합니다.</span>
+      </Section>
     </div>
   );
 }

@@ -46,3 +46,9 @@ class InvalidTransition(CatalogError):
 class PriceRequired(CatalogError):
     def __init__(self):
         super().__init__("price must be set before publishing")
+
+
+class BookHasOrders(CatalogError):
+    """주문/판매 이력이 있어 삭제 불가 (구매자 권리 보호)."""
+    def __init__(self):
+        super().__init__("book has orders; cannot delete")

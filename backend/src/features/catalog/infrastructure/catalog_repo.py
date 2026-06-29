@@ -3,9 +3,10 @@ from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.features.catalog.domain.models import PUBLISHED, BookSummary
+from src.features.catalog.domain.models import PUBLISHED, BookHasOrders, BookSummary
 from src.infrastructure.db.models.book import Book
 
 
@@ -43,6 +44,17 @@ class SqlCatalogRepository:
         if published_at is not None:
             b.published_at = published_at
         await self.session.commit()
+
+    async def delete(self, book_id: UUID) -> None:
+        b = await self.session.get(Book, book_id)
+        if b is None:
+            return
+        await self.session.delete(b)
+        try:
+            await self.session.commit()  # 주문(RESTRICT) 있으면 IntegrityError
+        except IntegrityError:
+            await self.session.rollback()
+            raise BookHasOrders()
 
     async def set_price(self, book_id: UUID, amount: int) -> None:
         b = await self.session.get(Book, book_id)

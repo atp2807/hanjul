@@ -49,20 +49,6 @@ export function LoginPage() {
             {busy ? '이동 중…' : 'Google로 계속하기'}
           </button>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, margin: '22px 0' }}>
-            <div style={{ flex: 1, height: 1, background: '#e7efeb' }} />
-            <span style={{ fontSize: 12, color: '#a8b5af' }}>또는</span>
-            <div style={{ flex: 1, height: 1, background: '#e7efeb' }} />
-          </div>
-
-          <button
-            disabled
-            title="준비 중"
-            style={{ padding: 13, background: '#fee500', opacity: 0.5, border: 'none', borderRadius: 12, fontSize: 13, fontWeight: 700, color: '#3c1e1e', cursor: 'not-allowed' }}
-          >
-            카카오 (준비 중)
-          </button>
-
           <div style={{ textAlign: 'center', fontSize: 13, color: T.muted, marginTop: 24, lineHeight: 1.6 }}>
             가입 즉시 독자로 시작해요. <br />책을 만들면 자동으로 작가가 됩니다.
           </div>

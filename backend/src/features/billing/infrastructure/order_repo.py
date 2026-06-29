@@ -130,6 +130,13 @@ class SqlOrderRepository:
         )
         return (await self.session.execute(stmt)).scalar_one_or_none() is not None
 
+    async def has_any_order(self, book_id) -> bool:
+        """이 책에 주문이 하나라도 있나(상태 무관) — 삭제 가능 판정. FK RESTRICT 기준과 동일."""
+        row = (
+            await self.session.execute(select(Order.id).where(Order.book_id == book_id).limit(1))
+        ).first()
+        return row is not None
+
     async def buyer_ids(self, book_id) -> list:
         """이 책을 구매(PAID)한 계정 id 목록 — 개정판 알림 대상."""
         rows = (
