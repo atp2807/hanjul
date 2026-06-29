@@ -10,8 +10,9 @@ const NAV = [
   { to: '/accounts', label: '계정' },
 ];
 
-// 개발자(DEVELOPER) 전용 메뉴 — 일반 운영자에겐 숨김 (해드림 devOnly 패턴)
-const DEV_NAV = [{ to: '/system', label: '시스템', dev: true }];
+// 개발자(DEVELOPER) 전용 메뉴 — 일반 운영자에겐 숨김 (해드림 devOnly 패턴).
+// Phase1엔 dev 전용 화면 없음. 시스템/엔진 메뉴 생기면 여기 추가 + dev:true.
+const DEV_NAV = [];
 
 export default function Layout() {
   const { operator, logout } = useOps();
