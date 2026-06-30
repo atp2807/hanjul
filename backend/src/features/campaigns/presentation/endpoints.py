@@ -6,6 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import get_session
 from src.features.auth.domain.models import AccountPrincipal
+from src.features.accounts.application.account_service import AccountService
+from src.features.accounts.presentation.dependencies import get_account_service
 from src.features.auth.presentation.dependencies import get_current_account
 from src.features.billing.application.order_service import OrderService
 from src.features.billing.presentation.dependencies import get_order_service
@@ -90,6 +92,7 @@ async def campaign_applicants(
     campaign_id: UUID,
     principal: AccountPrincipal = Depends(get_current_account),
     svc: CampaignService = Depends(get_campaign_service),
+    acct: AccountService = Depends(get_account_service),
 ) -> ApplicantListResponse:
     """캠페인 신청자 목록 — 캠페인 작가만 (배정 UI)."""
     try:
@@ -99,7 +102,16 @@ async def campaign_applicants(
     if camp.author_id != principal.id:
         raise HTTPException(403, "이 캠페인의 작가만 볼 수 있어요")
     items = await svc.list_applicants(campaign_id)
-    return ApplicantListResponse(items=[ApplicantItem.model_validate(a) for a in items])
+    names = await acct.names_for([a.applicant_id for a in items])  # 직접 JOIN 대체
+    return ApplicantListResponse(
+        items=[
+            ApplicantItem(
+                id=a.id, applicant_id=a.applicant_id, applicant_name=names.get(a.applicant_id),
+                status_cd=a.status_cd, deadline_at=a.deadline_at, created_at=a.created_at,
+            )
+            for a in items
+        ]
+    )
 
 
 @router.post("/campaigns/{campaign_id}/close", status_code=204)

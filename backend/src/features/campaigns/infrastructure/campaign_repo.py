@@ -192,20 +192,20 @@ class SqlCampaignRepository:
         ]
 
     async def list_applicants(self, campaign_id) -> list[ApplicantView]:
+        # 이름은 합성루트(엔드포인트)가 accounts.names_for로 해석 — usr.account 직접 JOIN 안 함.
         rows = (
             await self.session.execute(
-                select(ReviewApplication, Account.display_name)
-                .outerjoin(Account, Account.id == ReviewApplication.applicant_id)
+                select(ReviewApplication)
                 .where(ReviewApplication.campaign_id == campaign_id)
                 .order_by(ReviewApplication.created_at.asc())
             )
-        ).all()
+        ).scalars().all()
         return [
             ApplicantView(
-                id=a.id, applicant_id=a.applicant_id, applicant_name=name,
+                id=a.id, applicant_id=a.applicant_id, applicant_name=None,
                 status_cd=a.status_cd, deadline_at=a.deadline_at, created_at=a.created_at,
             )
-            for a, name in rows
+            for a in rows
         ]
 
     async def due_soon(self, now, within_days) -> list[tuple]:

@@ -21,8 +21,8 @@ class FakeReviewRepository:
 
     async def list_for_book(self, book_id):
         return [
-            ReviewView(id=uuid.uuid4(), rating=r, body=b, author="독자", created_at=datetime.now(timezone.utc), source_cd=s)
-            for (bk, _ac), (r, b, s) in self.reviews.items()
+            ReviewView(id=uuid.uuid4(), rating=r, body=b, account_id=ac, created_at=datetime.now(timezone.utc), source_cd=s)
+            for (bk, ac), (r, b, s) in self.reviews.items()
             if bk == book_id
         ]
 

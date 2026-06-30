@@ -5,6 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import get_session
+from src.features.accounts.application.account_service import AccountService
+from src.features.accounts.presentation.dependencies import get_account_service
 from src.features.auth.domain.models import AccountPrincipal
 from src.features.auth.presentation.dependencies import get_current_account
 from src.features.billing.application.order_service import OrderService
@@ -55,11 +57,20 @@ async def add_review(
 
 @router.get("/books/{book_id}/reviews", response_model=ReviewListResponse)
 async def list_reviews(
-    book_id: UUID, session: AsyncSession = Depends(get_session)
+    book_id: UUID,
+    session: AsyncSession = Depends(get_session),
+    acct: AccountService = Depends(get_account_service),
 ) -> ReviewListResponse:
     summary, items = await _svc(session).list(book_id)
+    names = await acct.names_for([r.account_id for r in items])  # 직접 JOIN 대체
     return ReviewListResponse(
         average=summary.average,
         count=summary.count,
-        items=[ReviewItem.model_validate(r) for r in items],
+        items=[
+            ReviewItem(
+                id=r.id, rating=r.rating, body=r.body, author=names.get(r.account_id),
+                created_at=r.created_at, updated_at=r.updated_at, source_cd=r.source_cd,
+            )
+            for r in items
+        ],
     )

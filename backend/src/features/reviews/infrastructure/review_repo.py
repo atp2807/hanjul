@@ -6,7 +6,6 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.features.reviews.domain.models import ReviewSummary, ReviewView
-from src.infrastructure.db.models.account import Account
 from src.infrastructure.db.models.book import Book
 from src.infrastructure.db.models.review import Review
 
@@ -46,18 +45,17 @@ class SqlReviewRepository:
 
     async def list_for_book(self, book_id: UUID) -> list[ReviewView]:
         stmt = (
-            select(Review, Account.display_name)
-            .join(Account, Account.id == Review.account_id)
+            select(Review)
             .where(Review.book_id == book_id)
             .order_by(Review.created_at.desc())
         )
-        rows = (await self.session.execute(stmt)).all()
+        rows = (await self.session.execute(stmt)).scalars().all()
         return [
             ReviewView(
-                id=r.id, rating=r.rating, body=r.body, author=name,
+                id=r.id, rating=r.rating, body=r.body, account_id=r.account_id,
                 created_at=r.created_at, updated_at=r.updated_at, source_cd=r.source_cd,
             )
-            for r, name in rows
+            for r in rows
         ]
 
     async def summary(self, book_id: UUID) -> ReviewSummary:

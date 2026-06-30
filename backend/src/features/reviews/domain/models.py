@@ -10,7 +10,7 @@ class ReviewView:
     id: UUID
     rating: int
     body: str | None
-    author: str | None
+    account_id: UUID  # 작성자 — 이름은 합성루트(엔드포인트)가 accounts.names_for로 해석
     created_at: datetime
     updated_at: datetime | None = None
     source_cd: str = "PURCHASE"  # PURCHASE | REVIEW_COPY(서평단)
