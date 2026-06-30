@@ -1,5 +1,4 @@
 """AccountRepository(accounts) 의 SQLAlchemy 구현 — usr.account 프로필/디렉토리."""
-from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import select
@@ -17,7 +16,6 @@ def _to_profile(acc: Account) -> AccountProfile:
         role_cd=acc.role_cd,
         bio=acc.bio,
         status_cd=acc.status_cd,
-        review_blocked_at=acc.review_blocked_at,
     )
 
 
@@ -42,12 +40,6 @@ class SqlAccountRepository:
         acc = await self.session.get(Account, account_id)
         if acc is not None:
             acc.status_cd = status
-            await self.session.commit()
-
-    async def set_review_blocked(self, account_id: UUID, blocked_at: datetime | None) -> None:
-        acc = await self.session.get(Account, account_id)
-        if acc is not None:
-            acc.review_blocked_at = blocked_at
             await self.session.commit()
 
     async def names_for(self, account_ids: list[UUID]) -> dict[UUID, str | None]:

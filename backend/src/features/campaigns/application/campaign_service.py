@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
 from src.features.campaigns.domain.models import (
+    OPERATOR_BLOCK_DAYS,
     ApplicantView,
     ApplicationView,
     AuthorCampaignView,
@@ -60,6 +61,23 @@ class CampaignService:
 
     async def reviewer_status(self, applicant_id: UUID, now: datetime | None = None) -> ReviewerStatus:
         return await self.repo.reviewer_status(applicant_id, now or datetime.now(timezone.utc))
+
+    # ── 운영자 자격회수(서평단) ───────────────────────
+    async def block_reviewer(self, account_id: UUID, now: datetime | None = None) -> None:
+        """운영자 수동 자격회수 — 해제 전까지 사실상 무기한(far-future)."""
+        now = now or datetime.now(timezone.utc)
+        await self.repo.block_reviewer(account_id, now + timedelta(days=OPERATOR_BLOCK_DAYS))
+
+    async def unblock_reviewer(self, account_id: UUID) -> None:
+        await self.repo.unblock_reviewer(account_id)
+
+    async def reviewer_blocked_until(
+        self, account_id: UUID, now: datetime | None = None
+    ) -> datetime | None:
+        """현재 유효한 차단 만료 시각(만료됐으면 None)."""
+        now = now or datetime.now(timezone.utc)
+        until = await self.repo.blocked_until(account_id)
+        return until if (until is not None and until > now) else None
 
     async def cancel(self, campaign_id: UUID, applicant_id: UUID) -> bool:
         """신청 취소 — PENDING 만. 이미 배정됐으면 False."""

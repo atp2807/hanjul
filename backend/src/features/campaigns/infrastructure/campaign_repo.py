@@ -23,9 +23,8 @@ from src.features.campaigns.domain.models import (
     CampaignView,
     ReviewerStatus,
 )
-from src.infrastructure.db.models.account import Account
 from src.infrastructure.db.models.book import Book
-from src.infrastructure.db.models.campaign import ReviewApplication, ReviewCampaign
+from src.infrastructure.db.models.campaign import ReviewApplication, ReviewCampaign, ReviewerBlock
 
 
 def _campaign_view(c: ReviewCampaign, title: str | None, category: str | None = None) -> CampaignView:
@@ -244,6 +243,36 @@ class SqlCampaignRepository:
         app.status_cd = "COMPLETED"
         await self.session.commit()
 
+    async def _block_until(self, account_id) -> datetime | None:
+        """commu.reviewer_block 의 차단 만료 시각 (없으면 None)."""
+        return (
+            await self.session.execute(
+                select(ReviewerBlock.blocked_until).where(ReviewerBlock.account_id == account_id)
+            )
+        ).scalar_one_or_none()
+
+    async def _upsert_block(self, account_id, until) -> None:
+        """차단 행 upsert (커밋 안 함 — 호출 트랜잭션에 합류)."""
+        row = await self.session.get(ReviewerBlock, account_id)
+        if row is None:
+            self.session.add(ReviewerBlock(account_id=account_id, blocked_until=until))
+        else:
+            row.blocked_until = until
+
+    async def block_reviewer(self, account_id, until) -> None:
+        """운영자 수동 자격회수 (커밋)."""
+        await self._upsert_block(account_id, until)
+        await self.session.commit()
+
+    async def unblock_reviewer(self, account_id) -> None:
+        row = await self.session.get(ReviewerBlock, account_id)
+        if row is not None:
+            await self.session.delete(row)
+            await self.session.commit()
+
+    async def blocked_until(self, account_id) -> datetime | None:
+        return _aware(await self._block_until(account_id))
+
     async def sweep_overdue(self, applicant_id, now) -> None:
         # 기한 초과 ASSIGNED → EXPIRED
         overdue = (
@@ -261,10 +290,9 @@ class SqlCampaignRepository:
         for a in overdue:
             a.status_cd = "EXPIRED"
         await self.session.flush()  # EXPIRED 반영 후 집계
-        acc = (await self.session.execute(select(Account).where(Account.id == applicant_id))).scalar_one_or_none()
-        blocked_at = _aware(acc.review_blocked_at) if (acc is not None and acc.review_blocked_at is not None) else None
+        blocked_at = _aware(await self._block_until(applicant_id))
         # 차단 중이면 그대로 두고, 비차단일 때만 '이번 사이클' 미작성으로 재판정.
-        if acc is not None and (blocked_at is None or blocked_at <= now):
+        if blocked_at is None or blocked_at <= now:
             # 직전 차단 이후(=차단설정시각 = blocked_at - BLOCK_DAYS) 발생한 미작성만 카운트 → 회복 후 리셋
             cond = [
                 ReviewApplication.applicant_id == applicant_id,
@@ -276,7 +304,7 @@ class SqlCampaignRepository:
                 await self.session.execute(select(func.count()).select_from(ReviewApplication).where(*cond))
             ).scalar_one()
             if cycle_missed >= MISS_LIMIT:
-                acc.review_blocked_at = now + timedelta(days=BLOCK_DAYS)
+                await self._upsert_block(applicant_id, now + timedelta(days=BLOCK_DAYS))
         await self.session.commit()
 
     async def reviewer_status(self, applicant_id, now) -> ReviewerStatus:
@@ -293,9 +321,8 @@ class SqlCampaignRepository:
         active, pending = by.get("ASSIGNED", 0), by.get("PENDING", 0)
         done = completed + missed
         rate = round(completed / done * 100) if done else None
-        acc = (await self.session.execute(select(Account.review_blocked_at).where(Account.id == applicant_id))).scalar_one_or_none()
-        acc = _aware(acc)
-        blocked = acc if (acc is not None and acc > now) else None
+        until = _aware(await self._block_until(applicant_id))
+        blocked = until if (until is not None and until > now) else None
         return ReviewerStatus(
             completed=completed, missed=missed, active=active, pending=pending,
             received=completed + missed + active, completion_rate=rate, blocked_until=blocked,

@@ -76,6 +76,8 @@ class ReviewerStatus:
 # 자격회수 룰: 미작성(EXPIRED) 2회 누적 시 14일 신청 제한.
 MISS_LIMIT = 2
 BLOCK_DAYS = 14
+# 운영자 수동 자격회수 = 해제 전까지 사실상 무기한.
+OPERATOR_BLOCK_DAYS = 3650
 
 
 class CampaignNotFound(Exception):
@@ -142,4 +144,16 @@ class CampaignRepository(Protocol):
 
     async def reviewer_status(self, applicant_id: UUID, now: datetime) -> "ReviewerStatus":
         """리뷰어 신뢰도·자격 집계(sweep 후)."""
+        ...
+
+    async def block_reviewer(self, account_id: UUID, until: datetime) -> None:
+        """운영자 수동 자격회수 — commu.reviewer_block upsert."""
+        ...
+
+    async def unblock_reviewer(self, account_id: UUID) -> None:
+        """자격회수 해제 — 차단 행 삭제."""
+        ...
+
+    async def blocked_until(self, account_id: UUID) -> datetime | None:
+        """현재 차단 만료 시각(없으면 None) — 만료 필터는 호출 측."""
         ...

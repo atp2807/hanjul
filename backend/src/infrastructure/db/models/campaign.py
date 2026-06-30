@@ -45,3 +45,20 @@ class ReviewApplication(Base):
     assigned_at = Column("assigned_ts", DateTime(timezone=True))
     deadline_at = Column("deadline_ts", DateTime(timezone=True))
     created_at = Column("created_ts", DateTime(timezone=True), default=_now, nullable=False)
+
+
+class ReviewerBlock(Base):
+    """서평단 자격회수 — 이 시각까지 신청 제한. (자동: 미작성 누적 / 수동: 운영자)
+
+    이전엔 usr.account.review_blocked_ts 였으나 서평단(commu) 개념이라 이리로 이전(0021).
+    행 존재 + blocked_until > now 이면 차단. 해제 = 행 삭제.
+    """
+    __tablename__ = "reviewer_block"
+    __table_args__ = {"schema": "commu"}
+
+    account_id = Column(
+        UUID(as_uuid=True), ForeignKey("usr.account.id", ondelete="CASCADE"), primary_key=True
+    )
+    blocked_until = Column("blocked_until_ts", DateTime(timezone=True), nullable=False)
+    created_at = Column("created_ts", DateTime(timezone=True), default=_now, nullable=False)
+    updated_at = Column("updated_ts", DateTime(timezone=True), default=_now, onupdate=_now, nullable=False)
