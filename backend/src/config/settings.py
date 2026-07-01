@@ -24,6 +24,11 @@ class Settings(BaseSettings):
     JWT_ALG: str = "HS256"
     JWT_TTL_HOURS: int = 72
 
+    # 운영자(potato) 전용 DB 접속 — potato.operator/audit_log 접근용 별도 저권한 유저.
+    # 비면 메인 DATABASE_URL 재사용(dev/test). 운영은 potato 스키마만 권한 있는 유저 주입 →
+    # 고객 유저에서 potato REVOKE 시 고객 경로가 운영자 비번해시·감사로그를 물리적으로 못 읽음.
+    POTATO_DATABASE_URL: str = ""
+
     # ── 정산/출금 ───────────────────────────────────────
     # 작가 출금계좌번호 암호화 키(Fernet, base64 32B). 비면 dev 임시키 파생(운영 필수 주입).
     SETTLEMENT_ENC_KEY: str = ""

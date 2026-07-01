@@ -49,6 +49,36 @@ def get_session_factory() -> async_sessionmaker[AsyncSession]:
 
 
 async def get_session() -> AsyncGenerator[AsyncSession, None]:
-    """FastAPI 의존성 — 요청 단위 세션."""
+    """FastAPI 의존성 — 요청 단위 세션 (고객 DB 유저)."""
     async with get_session_factory()() as session:
+        yield session
+
+
+# ── 운영자(potato) 전용 세션 — potato.operator/audit_log 접근 ──────────
+_potato_engine: AsyncEngine | None = None
+_potato_session_factory: async_sessionmaker[AsyncSession] | None = None
+
+
+def get_potato_session_factory() -> async_sessionmaker[AsyncSession]:
+    """POTATO_DATABASE_URL 있으면 별도(저권한) 엔진, 없으면 메인 재사용(dev/test)."""
+    if not settings.POTATO_DATABASE_URL:
+        return get_session_factory()
+    global _potato_engine, _potato_session_factory
+    if _potato_session_factory is None:
+        _potato_engine = create_async_engine(
+            settings.POTATO_DATABASE_URL,
+            pool_size=2,
+            max_overflow=3,
+            pool_pre_ping=True,
+            echo=settings.DEBUG,
+        )
+        _potato_session_factory = async_sessionmaker(
+            _potato_engine, class_=AsyncSession, expire_on_commit=False
+        )
+    return _potato_session_factory
+
+
+async def get_potato_session() -> AsyncGenerator[AsyncSession, None]:
+    """FastAPI 의존성 — 운영자 전용 세션 (potato 스키마 접근)."""
+    async with get_potato_session_factory()() as session:
         yield session

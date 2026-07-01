@@ -13,7 +13,7 @@ from src.config.settings import settings
 settings.DEBUG = False
 
 from main import app  # noqa: E402
-from src.config.database import get_session  # noqa: E402
+from src.config.database import get_potato_session, get_session  # noqa: E402
 from src.features.auth.application.auth_service import AuthService  # noqa: E402
 from src.features.auth.domain.models import SocialProfile  # noqa: E402
 from src.features.auth.infrastructure.account_repo import SqlAccountRepository  # noqa: E402
@@ -43,6 +43,7 @@ def app_db(sessionmaker):
         )
 
     app.dependency_overrides[get_session] = _session
+    app.dependency_overrides[get_potato_session] = _session
     app.dependency_overrides[get_auth_service] = _auth
     yield sessionmaker
     app.dependency_overrides.clear()

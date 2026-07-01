@@ -14,7 +14,7 @@ from src.config.settings import settings
 settings.DEBUG = False
 
 from main import app  # noqa: E402
-from src.config.database import get_session  # noqa: E402
+from src.config.database import get_potato_session, get_session  # noqa: E402
 from src.features.auth.presentation.dependencies import token_issuer as customer_token_issuer  # noqa: E402
 from src.features.potato.application.password import hash_password  # noqa: E402
 from src.features.potato.domain.models import DEVELOPER  # noqa: E402
@@ -31,6 +31,7 @@ def app_db(sessionmaker):
             yield s
 
     app.dependency_overrides[get_session] = _session
+    app.dependency_overrides[get_potato_session] = _session
     yield sessionmaker
     app.dependency_overrides.clear()
 

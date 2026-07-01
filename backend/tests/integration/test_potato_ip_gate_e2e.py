@@ -10,7 +10,7 @@ from src.config.settings import settings
 settings.DEBUG = False
 
 from main import app  # noqa: E402
-from src.config.database import get_session  # noqa: E402
+from src.config.database import get_potato_session, get_session  # noqa: E402
 
 
 @pytest.fixture
@@ -20,6 +20,7 @@ def app_db(sessionmaker):
             yield s
 
     app.dependency_overrides[get_session] = _session
+    app.dependency_overrides[get_potato_session] = _session
     yield sessionmaker
     app.dependency_overrides.clear()
 

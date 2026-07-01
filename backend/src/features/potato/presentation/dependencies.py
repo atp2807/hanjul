@@ -5,7 +5,7 @@ from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.config.database import get_session
+from src.config.database import get_potato_session, get_session
 from src.config.settings import settings
 from src.features.potato.application.audit import AuditService
 from src.features.potato.application.auth_service import PotatoAuthService
@@ -23,14 +23,18 @@ def potato_token_issuer() -> PotatoTokenIssuer:
     )
 
 
-def get_potato_auth_service(session: AsyncSession = Depends(get_session)) -> PotatoAuthService:
+# potato.operator / potato.audit_log 접근 → 운영자 전용 세션(권한분리)
+def get_potato_auth_service(
+    session: AsyncSession = Depends(get_potato_session),
+) -> PotatoAuthService:
     return PotatoAuthService(SqlOperatorRepository(session), potato_token_issuer())
 
 
-def get_audit_service(session: AsyncSession = Depends(get_session)) -> AuditService:
+def get_audit_service(session: AsyncSession = Depends(get_potato_session)) -> AuditService:
     return AuditService(SqlAuditRepository(session))
 
 
+# 대시보드는 고객 스키마(usr/pub/commu) 카운트만 → 메인 세션 유지
 def get_dashboard_service(session: AsyncSession = Depends(get_session)) -> DashboardService:
     return DashboardService(SqlStatsRepository(session))
 
