@@ -1,12 +1,13 @@
-"""주문/정산 모델 — 스키마 `bill` (billing).
+"""주문/정산 모델 — 스키마 `bill` (billing 피처 소유).
 
 book_order = 독자의 단권 구매. settlement = 그 주문의 작가 정산 내역(1:1).
 ('order' 는 SQL 예약어라 테이블명은 book_order.)
+출금 관련(bank_account·payout)은 payouts 피처 소유 → models/payout.py.
 """
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import Boolean, Column, String, Numeric, ForeignKey, DateTime
+from sqlalchemy import Column, String, Numeric, ForeignKey, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -54,41 +55,3 @@ class Settlement(Base):
     created_at = Column("created_ts", DateTime(timezone=True), default=_now, nullable=False)
 
     order = relationship("Order", back_populates="settlement")
-
-
-class BankAccount(Base):
-    """작가 출금계좌. 계좌번호는 암호화 저장(account_no_enc), 노출은 마스킹."""
-    __tablename__ = "bank_account"
-    __table_args__ = {"schema": "bill"}
-
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    account_id = Column(UUID(as_uuid=True), ForeignKey("usr.account.id", ondelete="CASCADE"), nullable=False)
-    holder_name = Column(String(100), nullable=False)   # 예금주
-    bank_cd = Column(String(20), nullable=False)         # 은행 코드/명
-    account_no_enc = Column(String(255), nullable=False)  # Fernet 암호문
-    account_no_masked = Column(String(50), nullable=False)  # 조회용 마스킹
-    primary_yn = Column("primary_yn", Boolean, nullable=False, default=True)
-    created_at = Column("created_ts", DateTime(timezone=True), default=_now, nullable=False)
-    updated_at = Column("updated_ts", DateTime(timezone=True), default=_now, onupdate=_now, nullable=False)
-
-
-class Payout(Base):
-    """출금 배치 — 작가의 미지급 정산분을 묶어 지급. 상태기계로 승인·지급 추적."""
-    __tablename__ = "payout"
-    __table_args__ = {"schema": "bill"}
-
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    author_id = Column(UUID(as_uuid=True), ForeignKey("usr.account.id", ondelete="RESTRICT"), nullable=False)
-    status_cd = Column(String(20), nullable=False, default="REQUESTED")  # REQUESTED | APPROVED | PAID | REJECTED
-    gross_amt = Column(Numeric(15, 0), nullable=False)         # 작가 몫 합계(원천징수 전)
-    withholding_amt = Column(Numeric(15, 0), nullable=False)   # 원천징수 합계
-    net_amt = Column(Numeric(15, 0), nullable=False)           # 실지급액 = gross - withholding
-    # 신청 시점 계좌 스냅샷(이후 계좌 변경/삭제와 무관하게 지급 증빙)
-    holder_name = Column(String(100))
-    bank_cd = Column(String(20))
-    account_no_masked = Column(String(50))
-    requested_at = Column("requested_ts", DateTime(timezone=True), default=_now, nullable=False)
-    approved_at = Column("approved_ts", DateTime(timezone=True))
-    paid_at = Column("paid_ts", DateTime(timezone=True))
-    approved_by = Column(UUID(as_uuid=True), ForeignKey("potato.operator.id", ondelete="SET NULL"))
-    memo = Column(String(500))

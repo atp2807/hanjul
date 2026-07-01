@@ -12,7 +12,8 @@ from src.features.payouts.domain.models import (
     PayoutView,
 )
 from src.infrastructure.db.models.book import Book
-from src.infrastructure.db.models.order import BankAccount, Order, Payout, Settlement
+from src.infrastructure.db.models.order import Order, Settlement
+from src.infrastructure.db.models.payout import BankAccount, Payout
 
 
 def _acct_view(a: BankAccount) -> BankAccountView:

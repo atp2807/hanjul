@@ -23,7 +23,8 @@ from src.features.potato.application.password import hash_password  # noqa: E402
 from src.features.potato.domain.models import OPERATOR  # noqa: E402
 from src.features.potato.infrastructure.operator_repo import SqlOperatorRepository  # noqa: E402
 from src.infrastructure.db.models.book import Book  # noqa: E402
-from src.infrastructure.db.models.order import BankAccount, Order, Payout, Settlement  # noqa: E402
+from src.infrastructure.db.models.order import Order, Settlement  # noqa: E402
+from src.infrastructure.db.models.payout import BankAccount, Payout  # noqa: E402
 from tests.fixtures.fake_account_repo import FakeProvider  # noqa: E402
 from tests.integration.auth_helpers import login_account  # noqa: E402
 
