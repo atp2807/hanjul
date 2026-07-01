@@ -41,3 +41,34 @@ async def update_profile(
 ) -> None:
     """작가 소개(bio) 수정."""
     await svc.update_bio(principal.id, body.bio)
+
+
+@router.get("/me/export")
+async def export_my_data(
+    principal: AccountPrincipal = Depends(get_current_account),
+    svc: AccountService = Depends(get_account_service),
+) -> dict:
+    """개인정보 열람/다운로드 (개인정보보호법 §35 열람권).
+
+    구매·정산 내역은 각각 /me/library, /me/sales 로 조회.
+    """
+    try:
+        acc = await svc.get_profile(principal.id)
+    except AccountNotFound:
+        raise HTTPException(status_code=404, detail="account not found")
+    return {"account": AccountResponse.model_validate(acc).model_dump(by_alias=True)}
+
+
+@router.delete("/me", status_code=204)
+async def withdraw(
+    principal: AccountPrincipal = Depends(get_current_account),
+    svc: AccountService = Depends(get_account_service),
+) -> None:
+    """회원탈퇴 — 개인정보 익명화 + 소셜 연결 삭제.
+
+    주문·정산 기록은 관련 법령(전자상거래법 5년)에 따라 계정 행을 익명 상태로 보존.
+    """
+    try:
+        await svc.withdraw(principal.id)
+    except AccountNotFound:
+        raise HTTPException(status_code=404, detail="account not found")

@@ -35,3 +35,8 @@ class AccountService:
     async def unsuspend(self, account_id: UUID) -> None:
         await self._require(account_id)
         await self.repo.set_status(account_id, "ACTIVE")
+
+    async def withdraw(self, account_id: UUID) -> None:
+        """회원탈퇴(익명화). 없는 계정이면 AccountNotFound."""
+        if not await self.repo.withdraw(account_id):
+            raise AccountNotFound(account_id)

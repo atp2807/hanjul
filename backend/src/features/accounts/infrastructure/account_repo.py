@@ -1,11 +1,13 @@
 """AccountRepository(accounts) 의 SQLAlchemy 구현 — usr.account 프로필/디렉토리."""
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.features.accounts.domain.models import AccountProfile
-from src.infrastructure.db.models.account import Account
+from src.infrastructure.db.models.account import Account, Credential
+
+WITHDRAWN_NAME = "탈퇴한 사용자"
 
 
 def _to_profile(acc: Account) -> AccountProfile:
@@ -41,6 +43,20 @@ class SqlAccountRepository:
         if acc is not None:
             acc.status_cd = status
             await self.session.commit()
+
+    async def withdraw(self, account_id: UUID) -> bool:
+        acc = await self.session.get(Account, account_id)
+        if acc is None:
+            return False
+        # 개인정보 익명화 (계정 행은 유지 — 주문/정산 RESTRICT 법정보존)
+        acc.email = None
+        acc.display_name = WITHDRAWN_NAME
+        acc.bio = None
+        acc.status_cd = "DELETED"
+        # 소셜 연결 삭제 → 재로그인 시 이 계정으로 못 돌아옴(새 계정 생성)
+        await self.session.execute(delete(Credential).where(Credential.account_id == account_id))
+        await self.session.commit()
+        return True
 
     async def names_for(self, account_ids: list[UUID]) -> dict[UUID, str | None]:
         if not account_ids:

@@ -41,3 +41,8 @@ class AccountRepository(Protocol):
     async def set_status(self, account_id: UUID, status: str) -> None:
         """운영자 계정 정지/해제 (ACTIVE | SUSPENDED)."""
         ...
+
+    async def withdraw(self, account_id: UUID) -> bool:
+        """회원탈퇴 = 익명화 — 개인정보 제거 + status=DELETED + 소셜 연결 삭제.
+        주문/정산 기록(RESTRICT)은 계정 행 유지로 법정 보존. 성공 True."""
+        ...

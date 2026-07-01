@@ -72,6 +72,11 @@ export function Header() {
                 내 서재
               </Link>
             )}
+            {!isMobile && (
+              <Link to="/settings" style={{ fontSize: 14, color: T.textMid, textDecoration: 'none', fontWeight: 600 }}>
+                설정
+              </Link>
+            )}
             <NotificationBell />
             {!isMobile && <span style={{ fontSize: 14, color: T.textMid }}>{user.displayName || user.email}</span>}
             <button
