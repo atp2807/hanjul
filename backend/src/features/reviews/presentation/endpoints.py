@@ -12,7 +12,6 @@ from src.features.auth.presentation.dependencies import get_current_account
 from src.features.billing.application.order_service import OrderService
 from src.features.billing.presentation.dependencies import get_order_service
 from src.features.reviews.application.review_service import ReviewService
-from src.features.reviews.domain.models import BookNotFound
 from src.features.reviews.infrastructure.review_repo import SqlReviewRepository
 from src.features.reviews.presentation.schemas import (
     AddReviewRequest,
@@ -43,10 +42,8 @@ async def add_review(
         raise HTTPException(403, "구매한 독자만 리뷰할 수 있어요")
     # 증정본 권한이면 '서평단' 리뷰로 표시(법적 공개·배지)
     source = "REVIEW_COPY" if await orders.is_review_copy(principal.id, book_id) else "PURCHASE"
-    try:
-        await ReviewService(repo).add(book_id, principal.id, body.rating, body.body, source)
-    except ValueError as e:
-        raise HTTPException(422, str(e))
+    # 평점 검증 실패는 ValidationError(422) → 중앙 핸들러가 매핑.
+    await ReviewService(repo).add(book_id, principal.id, body.rating, body.body, source)
     if source == "REVIEW_COPY":
         # 서평단 배정 신청을 완료 처리(완료율·자격 집계용)
         from src.features.campaigns.infrastructure.campaign_repo import SqlCampaignRepository

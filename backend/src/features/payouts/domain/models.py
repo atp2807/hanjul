@@ -8,6 +8,8 @@ from datetime import datetime
 from typing import Protocol
 from uuid import UUID
 
+from src.shared.errors import ConflictError, NotFoundError, ValidationError
+
 # payout 상태기계
 REQUESTED = "REQUESTED"
 APPROVED = "APPROVED"
@@ -49,20 +51,23 @@ class PayableSummary:
     order_count: int
 
 
-class NoBankAccount(Exception):
-    """출금계좌 미등록 상태에서 출금 신청."""
+class NoBankAccount(ValidationError):
+    """출금계좌 미등록 상태에서 출금 신청 (422)."""
+    default_detail = "출금계좌를 먼저 등록해 주세요."
 
 
-class NothingToPayout(Exception):
-    """출금 가능 잔액 없음."""
+class NothingToPayout(ValidationError):
+    """출금 가능 잔액 없음 (422)."""
+    default_detail = "출금 가능한 정산 잔액이 없어요."
 
 
-class PayoutNotFound(Exception):
-    ...
+class PayoutNotFound(NotFoundError):
+    default_detail = "출금 신청을 찾을 수 없어요."
 
 
-class InvalidPayoutState(Exception):
-    """상태기계 위반 (예: 이미 지급된 건 재승인)."""
+class InvalidPayoutState(ConflictError):
+    """상태기계 위반 (예: 이미 지급된 건 재승인) (409)."""
+    default_detail = "처리할 수 없는 상태예요."
 
 
 class PayoutRepository(Protocol):

@@ -6,13 +6,15 @@ from datetime import datetime, timezone
 
 import os
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from src.config.database import Base, get_engine
 from src.config.settings import settings
 from src.presentation.api import router as api_router
+from src.shared.errors import DomainError
 
 # 모든 ORM 모델을 metadata에 등록 (create_all/Alembic 인식용)
 import src.infrastructure.db.models  # noqa: F401
@@ -105,6 +107,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.exception_handler(DomainError)
+async def _domain_error_handler(request: Request, exc: DomainError) -> JSONResponse:
+    """도메인 예외 → HTTP. 표현층의 수동 try/except 매핑을 대체한다."""
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+
 
 app.include_router(api_router)
 

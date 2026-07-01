@@ -63,16 +63,10 @@ async def create_order(
     svc: OrderService = Depends(get_order_service),
 ) -> OrderResponse:
     # 구매자 = 인증된 사용자, 금액 = 서버가 책 가격에서 도출 (클라 입력 안 받음)
-    try:
-        order_id = await svc.create_order(
-            body.book_id, principal.id, body.channel, withdrawal_consent=body.withdrawal_consent
-        )
-    except ConsentRequired:
-        raise HTTPException(422, "청약철회 제한 동의가 필요해요")
-    except NotPurchasable:
-        raise HTTPException(404, "book not purchasable")
-    except AlreadyOwned:
-        raise HTTPException(409, "already owned")
+    # 도메인 예외(ConsentRequired 422·NotPurchasable 404·AlreadyOwned 409)는 중앙 핸들러가 매핑.
+    order_id = await svc.create_order(
+        body.book_id, principal.id, body.channel, withdrawal_consent=body.withdrawal_consent
+    )
     order = await svc.get_order(order_id)
     return OrderResponse.model_validate(order)
 
@@ -84,14 +78,8 @@ async def confirm_payment(
     principal: AccountPrincipal = Depends(get_current_account),
     svc: OrderService = Depends(get_order_service),
 ) -> SettlementResponse:
-    try:
-        settlement = await svc.confirm_payment(order_id, body.pg_tx_id, buyer_id=principal.id)
-    except OrderNotFound:
-        raise HTTPException(404, "order not found")
-    except AlreadyPaid:
-        raise HTTPException(409, "order already paid")
-    except PaymentFailed:
-        raise HTTPException(402, "payment verification failed")
+    # OrderNotFound 404·AlreadyPaid 409·PaymentFailed 402 → 중앙 핸들러
+    settlement = await svc.confirm_payment(order_id, body.pg_tx_id, buyer_id=principal.id)
     return SettlementResponse.model_validate(settlement)
 
 
@@ -102,14 +90,8 @@ async def refund_order(
     svc: OrderService = Depends(get_order_service),
 ) -> None:
     """구매자 본인 환불 — PG 취소 + 서재 권한 회수. 미결제/이미환불 409, PG 거절 402."""
-    try:
-        await svc.refund(order_id, buyer_id=principal.id)
-    except OrderNotFound:
-        raise HTTPException(404, "order not found")
-    except NotRefundable:
-        raise HTTPException(409, "order not refundable")
-    except RefundFailed:
-        raise HTTPException(402, "refund failed")
+    # OrderNotFound 404·NotRefundable 409·RefundFailed 402 → 중앙 핸들러
+    await svc.refund(order_id, buyer_id=principal.id)
 
 
 @router.get("/{order_id}", response_model=OrderResponse)
@@ -118,11 +100,8 @@ async def get_order(
     principal: AccountPrincipal = Depends(get_current_account),
     svc: OrderService = Depends(get_order_service),
 ) -> OrderResponse:
-    try:
-        order = await svc.get_order(order_id)
-    except OrderNotFound:
-        raise HTTPException(404, "order not found")
-    # 본인 주문만 — 타인 주문은 존재 노출 없이 404
+    order = await svc.get_order(order_id)  # OrderNotFound → 404 (중앙 핸들러)
+    # 본인 주문만 — 타인 주문은 존재 노출 없이 404 (인가는 표현층 판단)
     if order.buyer_account_id != principal.id:
         raise HTTPException(404, "order not found")
     return OrderResponse.model_validate(order)

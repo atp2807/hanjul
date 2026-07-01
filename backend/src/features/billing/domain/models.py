@@ -2,6 +2,8 @@
 from dataclasses import dataclass
 from uuid import UUID
 
+from src.shared.errors import DomainError
+
 PENDING = "PENDING"
 PAID = "PAID"
 CANCELLED = "CANCELLED"
@@ -61,50 +63,52 @@ class SalesSummary:
     books: list[BookSales]
 
 
-class BillingError(Exception):
-    pass
+class BillingError(DomainError):
+    """billing 도메인 예외 베이스."""
 
 
 class OrderNotFound(BillingError):
-    def __init__(self, order_id: UUID):
-        super().__init__(f"order not found: {order_id}")
+    status_code = 404
+    def __init__(self, order_id: UUID | None = None):
+        super().__init__("주문을 찾을 수 없어요.")
 
 
 class AlreadyPaid(BillingError):
-    def __init__(self):
-        super().__init__("order already paid")
+    status_code = 409
+    default_detail = "이미 결제된 주문이에요."
 
 
 class PaymentFailed(BillingError):
-    def __init__(self):
-        super().__init__("payment verification failed")
+    status_code = 402
+    default_detail = "결제 확인에 실패했어요."
 
 
 class NotPurchasable(BillingError):
     """책이 구매 불가 (미출판이거나 가격 미설정)."""
-    def __init__(self, book_id):
-        super().__init__(f"book not purchasable: {book_id}")
+    status_code = 404
+    def __init__(self, book_id=None):
+        super().__init__("구매할 수 없는 책이에요.")
 
 
 class AlreadyOwned(BillingError):
     """이미 구매한 책 (중복 구매 방지)."""
-    def __init__(self):
-        super().__init__("already owned")
+    status_code = 409
+    default_detail = "이미 보유한 책이에요."
 
 
 class ConsentRequired(BillingError):
     """청약철회 제한 동의 없이 주문 시도 (전자상거래법 §17⑥)."""
-    def __init__(self):
-        super().__init__("withdrawal consent required")
+    status_code = 422
+    default_detail = "청약철회 제한 동의가 필요해요."
 
 
 class NotRefundable(BillingError):
     """환불 불가 (미결제이거나 이미 환불됨)."""
-    def __init__(self):
-        super().__init__("order not refundable")
+    status_code = 409
+    default_detail = "환불할 수 없는 주문이에요."
 
 
 class RefundFailed(BillingError):
     """PG 환불 거절."""
-    def __init__(self):
-        super().__init__("refund failed at gateway")
+    status_code = 402
+    default_detail = "환불 처리에 실패했어요."

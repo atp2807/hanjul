@@ -14,6 +14,7 @@ from src.features.campaigns.domain.models import (
     ReviewerBlocked,
     ReviewerStatus,
 )
+from src.shared.errors import ValidationError
 
 
 class CampaignService:
@@ -22,7 +23,7 @@ class CampaignService:
 
     async def create(self, book_id: UUID, author_id: UUID, slots: int, review_days: int = 7, min_chars: int = 0) -> UUID:
         if slots < 1:
-            raise ValueError("증정본은 1부 이상")
+            raise ValidationError("증정본은 1부 이상")
         return await self.repo.create(book_id, author_id, slots, review_days, min_chars)
 
     async def list_open(self, category: str | None = None) -> list[CampaignView]:

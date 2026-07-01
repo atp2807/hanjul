@@ -14,7 +14,6 @@ from src.features.billing.presentation.dependencies import get_order_service
 from src.features.notifications.application.notification_service import NotificationService
 from src.features.notifications.presentation.dependencies import get_notification_service
 from src.features.campaigns.application.campaign_service import CampaignService
-from src.features.campaigns.domain.models import CampaignNotFound, NoSlotsLeft, ReviewerBlocked
 from src.features.campaigns.infrastructure.campaign_repo import SqlCampaignRepository
 from src.features.campaigns.presentation.dependencies import get_campaign_service
 from src.features.campaigns.presentation.schemas import (
@@ -47,10 +46,7 @@ async def create_campaign(
         raise HTTPException(404, "book not found")
     if author != principal.id:
         raise HTTPException(403, "이 책의 작가만 서평단을 열 수 있어요")
-    try:
-        cid = await svc.create(body.book_id, principal.id, body.slots, body.review_days, body.min_chars)
-    except ValueError as e:
-        raise HTTPException(422, str(e))
+    cid = await svc.create(body.book_id, principal.id, body.slots, body.review_days, body.min_chars)
     return {"campaignId": str(cid)}
 
 
@@ -80,10 +76,7 @@ async def campaign_detail(
     svc: CampaignService = Depends(get_campaign_service),
 ) -> CampaignItem:
     """캠페인 상세 (공개)."""
-    try:
-        camp = await svc.get(campaign_id)
-    except CampaignNotFound:
-        raise HTTPException(404, "campaign not found")
+    camp = await svc.get(campaign_id)
     return CampaignItem.model_validate(camp)
 
 
@@ -95,10 +88,7 @@ async def campaign_applicants(
     acct: AccountService = Depends(get_account_service),
 ) -> ApplicantListResponse:
     """캠페인 신청자 목록 — 캠페인 작가만 (배정 UI)."""
-    try:
-        camp = await svc.get(campaign_id)
-    except CampaignNotFound:
-        raise HTTPException(404, "campaign not found")
+    camp = await svc.get(campaign_id)
     if camp.author_id != principal.id:
         raise HTTPException(403, "이 캠페인의 작가만 볼 수 있어요")
     items = await svc.list_applicants(campaign_id)
@@ -121,10 +111,7 @@ async def close_campaign(
     svc: CampaignService = Depends(get_campaign_service),
 ) -> None:
     """모집 수동 마감 — 캠페인 작가만. 피드 제외 + 새 신청 차단(기존 신청자는 배정 가능)."""
-    try:
-        camp = await svc.get(campaign_id)
-    except CampaignNotFound:
-        raise HTTPException(404, "campaign not found")
+    camp = await svc.get(campaign_id)
     if camp.author_id != principal.id:
         raise HTTPException(403, "이 캠페인의 작가만 마감할 수 있어요")
     await svc.close(campaign_id)
@@ -149,14 +136,7 @@ async def apply(
     svc: CampaignService = Depends(get_campaign_service),
 ) -> None:
     """리뷰어 신청 (모집중인 캠페인)."""
-    try:
-        await svc.apply(campaign_id, principal.id)
-    except ReviewerBlocked as e:
-        raise HTTPException(403, f"서평단 참여 제한 기간이에요(해제 {e.until:%Y-%m-%d}).")
-    except CampaignNotFound:
-        raise HTTPException(404, "campaign not found")
-    except NoSlotsLeft:
-        raise HTTPException(409, "마감된 모집이에요")
+    await svc.apply(campaign_id, principal.id)
 
 
 @router.post("/campaigns/{campaign_id}/assign", status_code=204)
@@ -169,16 +149,10 @@ async def assign(
     notifs: NotificationService = Depends(get_notification_service),
 ) -> None:
     """리뷰어 배정 — 캠페인 작가만. 배정 성공 시 증정본 지급 + 리뷰어 알림."""
-    try:
-        camp = await svc.get(campaign_id)
-    except CampaignNotFound:
-        raise HTTPException(404, "campaign not found")
+    camp = await svc.get(campaign_id)
     if camp.author_id != principal.id:
         raise HTTPException(403, "이 캠페인의 작가만 배정할 수 있어요")
-    try:
-        await svc.assign(campaign_id, body.applicant_id)
-    except NoSlotsLeft:
-        raise HTTPException(409, "슬롯이 없거나 신청자가 아니에요")
+    await svc.assign(campaign_id, body.applicant_id)
     await orders.grant_review_copy(camp.book_id, body.applicant_id)  # 증정본 지급
     await notifs.notify_assigned(body.applicant_id, camp.book_id, camp.book_title)  # 배정 알림
 

@@ -17,13 +17,7 @@ from src.features.auth.presentation.dependencies import get_current_account
 from src.features.billing.application.order_service import OrderService
 from src.features.billing.presentation.dependencies import get_order_service
 from src.features.catalog.application.catalog_service import CatalogService
-from src.features.catalog.domain.models import (
-    PUBLISHED,
-    BookHasOrders,
-    BookNotFound,
-    InvalidTransition,
-    PriceRequired,
-)
+from src.features.catalog.domain.models import PUBLISHED
 from src.features.catalog.presentation.dependencies import get_catalog_service
 from src.features.notifications.application.notification_service import NotificationService
 from src.features.notifications.presentation.dependencies import get_notification_service
@@ -78,11 +72,8 @@ async def require_book_owner(
     principal: AccountPrincipal = Depends(get_current_account),
     svc: CatalogService = Depends(get_catalog_service),
 ) -> None:
-    """책 변경 권한 = 소유 작가만. 없는 책 404 / 타인 403 (fail-closed)."""
-    try:
-        meta = await svc.get_meta(book_id)
-    except BookNotFound:
-        raise HTTPException(404, "book not found")
+    """책 변경 권한 = 소유 작가만. 없는 책 404(중앙 핸들러) / 타인 403 (fail-closed)."""
+    meta = await svc.get_meta(book_id)  # BookNotFound → 404 (중앙 핸들러)
     if meta.author_id != principal.id:
         raise HTTPException(403, "not the owner")
 
@@ -92,22 +83,14 @@ async def require_book_owner(
 async def assign_author(
     book_id: UUID, body: AssignAuthorRequest, svc: CatalogService = Depends(get_catalog_service)
 ) -> None:
-    try:
-        await svc.assign_author(book_id, body.author_id)
-    except BookNotFound:
-        raise HTTPException(404, "book not found")
+    await svc.assign_author(book_id, body.author_id)
 
 
 @router.put("/books/{book_id}/price", status_code=204)
 async def set_price(
     book_id: UUID, body: SetPriceRequest, svc: CatalogService = Depends(get_catalog_service), _owner: None = Depends(require_book_owner)
 ) -> None:
-    try:
-        await svc.set_price(book_id, body.amount)
-    except BookNotFound:
-        raise HTTPException(404, "book not found")
-    except ValueError as e:
-        raise HTTPException(422, str(e))
+    await svc.set_price(book_id, body.amount)
 
 
 @router.put("/books/{book_id}/meta", status_code=204)
@@ -115,10 +98,7 @@ async def update_meta(
     book_id: UUID, body: UpdateMetaRequest, svc: CatalogService = Depends(get_catalog_service), _owner: None = Depends(require_book_owner)
 ) -> None:
     """부제·소개·분류 편집 (스토어 노출·검색 품질)."""
-    try:
-        await svc.update_meta(book_id, body.subtitle, body.description, body.category)
-    except BookNotFound:
-        raise HTTPException(404, "book not found")
+    await svc.update_meta(book_id, body.subtitle, body.description, body.category)
 
 
 @router.put("/books/{book_id}/discount", status_code=204)
@@ -126,24 +106,14 @@ async def set_discount(
     book_id: UUID, body: SetDiscountRequest, svc: CatalogService = Depends(get_catalog_service), _owner: None = Depends(require_book_owner)
 ) -> None:
     """기간 할인 설정 (종료시각까지 할인가 적용)."""
-    try:
-        await svc.set_discount(book_id, body.amount, body.until)
-    except BookNotFound:
-        raise HTTPException(404, "book not found")
-    except ValueError as e:
-        raise HTTPException(422, str(e))
+    await svc.set_discount(book_id, body.amount, body.until)
 
 
 @router.post("/books/{book_id}/submit", status_code=204)
 async def submit_for_review(
     book_id: UUID, svc: CatalogService = Depends(get_catalog_service), _owner: None = Depends(require_book_owner)
 ) -> None:
-    try:
-        await svc.submit_for_review(book_id)
-    except BookNotFound:
-        raise HTTPException(404, "book not found")
-    except InvalidTransition as e:
-        raise HTTPException(409, str(e))
+    await svc.submit_for_review(book_id)
 
 
 @router.post("/books/{book_id}/publish", status_code=204)
@@ -153,24 +123,14 @@ async def publish(
     notif: NotificationService = Depends(get_notification_service),
     _owner: None = Depends(require_book_owner),
 ) -> None:
-    try:
-        await svc.publish(book_id)
-    except BookNotFound:
-        raise HTTPException(404, "book not found")
-    except InvalidTransition as e:
-        raise HTTPException(409, str(e))
-    except PriceRequired as e:
-        raise HTTPException(422, str(e))
+    await svc.publish(book_id)
     await _notify_followers_new_book(svc, notif, book_id)
 
 
 @router.post("/books/{book_id}/unpublish", status_code=204)
 async def unpublish(book_id: UUID, svc: CatalogService = Depends(get_catalog_service), _owner: None = Depends(require_book_owner)) -> None:
     """출판 취소 — 스토어에서 비공개로 내림."""
-    try:
-        await svc.unpublish(book_id)
-    except BookNotFound:
-        raise HTTPException(404, "book not found")
+    await svc.unpublish(book_id)
 
 
 @router.delete("/books/{book_id}", status_code=204)
@@ -184,12 +144,8 @@ async def delete_book(
     # 주문 유무는 billing 포트로 확인(스키마 경계 유지). FK RESTRICT는 운영 DB 안전망.
     if await orders.has_any_order(book_id):
         raise HTTPException(409, "판매 이력이 있어 삭제할 수 없어요. 출판 취소만 가능해요.")
-    try:
-        await svc.delete_book(book_id)
-    except BookNotFound:
-        raise HTTPException(404, "book not found")
-    except BookHasOrders:
-        raise HTTPException(409, "판매 이력이 있어 삭제할 수 없어요. 출판 취소만 가능해요.")
+    # BookHasOrders(409)는 FK RESTRICT 안전망 — 중앙 핸들러가 매핑.
+    await svc.delete_book(book_id)
 
 
 @router.post("/books/{book_id}/publish-now", status_code=204)
@@ -202,12 +158,7 @@ async def publish_now(
 ) -> None:
     """즉시 출간 (심사 생략). 이미 출판된 책 재발행 = 개정판 → 구매자 알림."""
     was_published = (await svc.get_meta(book_id)).status == PUBLISHED
-    try:
-        await svc.auto_publish(book_id)
-    except BookNotFound:
-        raise HTTPException(404, "book not found")
-    except PriceRequired as e:
-        raise HTTPException(422, str(e))
+    await svc.auto_publish(book_id)
     if was_published:
         await _notify_buyers_revision(svc, notif, orders, book_id)
     else:
@@ -219,24 +170,14 @@ async def schedule_publish(
     book_id: UUID, body: SchedulePublishRequest, svc: CatalogService = Depends(get_catalog_service), _owner: None = Depends(require_book_owner)
 ) -> None:
     """예약 발행 — 지정 시각에 자동 게시."""
-    try:
-        await svc.schedule_publish(book_id, body.publish_at)
-    except BookNotFound:
-        raise HTTPException(404, "book not found")
-    except PriceRequired as e:
-        raise HTTPException(422, str(e))
+    await svc.schedule_publish(book_id, body.publish_at)
 
 
 @router.put("/books/{book_id}/isbn", status_code=204)
 async def set_isbn(
     book_id: UUID, body: SetIsbnRequest, svc: CatalogService = Depends(get_catalog_service), _owner: None = Depends(require_book_owner)
 ) -> None:
-    try:
-        await svc.set_isbn(book_id, body.isbn)
-    except BookNotFound:
-        raise HTTPException(404, "book not found")
-    except ValueError as e:
-        raise HTTPException(422, str(e))
+    await svc.set_isbn(book_id, body.isbn)
 
 
 @router.get("/books/{book_id}/onix")
@@ -247,10 +188,7 @@ async def book_onix(
     session: AsyncSession = Depends(get_session),
 ) -> Response:
     """책 메타 → ONIX 3.0 XML (서점 유통 표준 피드)."""
-    try:
-        meta = await svc.get_meta(book_id)
-    except BookNotFound:
-        raise HTTPException(404, "book not found")
+    meta = await svc.get_meta(book_id)  # BookNotFound → 404 (중앙 핸들러)
     author = None
     if meta.author_id:
         names = await acct.names_for([meta.author_id])
@@ -315,8 +253,5 @@ async def store_list(
 async def store_detail(
     book_id: UUID, svc: CatalogService = Depends(get_catalog_service)
 ) -> BookSummaryResponse:
-    try:
-        s = await svc.get_store_detail(book_id)
-    except BookNotFound:
-        raise HTTPException(404, "book not found")
+    s = await svc.get_store_detail(book_id)  # BookNotFound → 404 (중앙 핸들러)
     return _summary_response(s)

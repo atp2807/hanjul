@@ -18,7 +18,6 @@ from src.features.catalog.application.catalog_service import CatalogService
 from src.features.catalog.domain.models import BookNotFound as CatalogBookNotFound
 from src.features.catalog.presentation.dependencies import get_catalog_service
 from src.features.distribution.application.distribution_service import DistributionService
-from src.features.distribution.domain.models import UnknownChannel
 from src.features.distribution.infrastructure.channels import build_channel
 from src.features.distribution.infrastructure.distribution_repo import SqlDistributionRepository
 from src.features.distribution.presentation.schemas import DistributeRequest, DistributionResponse
@@ -67,10 +66,8 @@ async def distribute(
         modified.strftime("%Y%m%d"),
     )
 
-    try:
-        channel = build_channel(body.channel.upper(), settings)
-    except UnknownChannel:
-        raise HTTPException(400, "배포 채널 미설정 (DISTRIBUTION_DEMO 또는 SFTP 설정 필요)")
+    # UnknownChannel 400 → 중앙 핸들러 (book/catalog 404·미출판 409 는 표현층 판단이라 유지)
+    channel = build_channel(body.channel.upper(), settings)
 
     svc = DistributionService(SqlDistributionRepository(session), channel)
     result = await svc.distribute(book_id, epub, onix, filename=str(book_id))

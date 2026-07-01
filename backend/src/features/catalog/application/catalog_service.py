@@ -12,6 +12,7 @@ from src.features.catalog.domain.models import (
     REVIEW,
 )
 from src.features.catalog.domain.repository import CatalogRepository
+from src.shared.errors import ValidationError
 
 
 class CatalogService:
@@ -31,7 +32,7 @@ class CatalogService:
     async def set_price(self, book_id: UUID, amount: int) -> None:
         await self._require(book_id)
         if amount < 0:
-            raise ValueError("price must be >= 0")
+            raise ValidationError("가격은 0원 이상이어야 해요.")
         await self.repo.set_price(book_id, amount)
 
     async def update_meta(
@@ -117,14 +118,14 @@ class CatalogService:
         await self._require(book_id)
         digits = isbn.replace("-", "").replace(" ", "")
         if not (digits.isdigit() and len(digits) in (10, 13)):
-            raise ValueError("ISBN은 10 또는 13자리 숫자여야 합니다")
+            raise ValidationError("ISBN은 10 또는 13자리 숫자여야 해요.")
         await self.repo.set_isbn(book_id, isbn)
 
     async def set_discount(self, book_id: UUID, amount: int, until) -> None:
         """기간 할인가 설정. 음수 금지. (할인 적용은 주문 시 서버가 도출)"""
         await self._require(book_id)
         if amount < 0:
-            raise ValueError("할인가는 0 이상")
+            raise ValidationError("할인가는 0원 이상이어야 해요.")
         await self.repo.set_discount(book_id, amount, until)
 
     async def get_meta(self, book_id: UUID) -> BookSummary:

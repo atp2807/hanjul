@@ -13,6 +13,7 @@ from src.features.catalog.domain.models import (
     PUBLISHED,
     REVIEW,
 )
+from src.shared.errors import ValidationError
 from tests.fixtures.fake_catalog_repo import FakeCatalogRepository
 
 
@@ -76,7 +77,7 @@ async def test_unpublish_moves_published_to_draft():
 async def test_set_price_negative_rejected():
     book = mkbook(DRAFT)
     svc, _ = svc_with(book)
-    with pytest.raises(ValueError):
+    with pytest.raises(ValidationError):
         await svc.set_price(book.id, -100)
 
 

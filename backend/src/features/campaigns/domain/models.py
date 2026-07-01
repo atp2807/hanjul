@@ -4,6 +4,8 @@ from datetime import datetime
 from typing import Protocol
 from uuid import UUID
 
+from src.shared.errors import ConflictError, ForbiddenError, NotFoundError
+
 
 @dataclass
 class CampaignView:
@@ -80,18 +82,20 @@ BLOCK_DAYS = 14
 OPERATOR_BLOCK_DAYS = 3650
 
 
-class CampaignNotFound(Exception):
-    ...
+class CampaignNotFound(NotFoundError):
+    def __init__(self, campaign_id=None):
+        super().__init__("캠페인을 찾을 수 없어요.")
 
 
-class NoSlotsLeft(Exception):
-    ...
+class NoSlotsLeft(ConflictError):
+    default_detail = "마감됐거나 신청할 수 없는 모집이에요."
 
 
-class ReviewerBlocked(Exception):
-    """자격회수 기간 중 신청 시도."""
+class ReviewerBlocked(ForbiddenError):
+    """자격회수 기간 중 신청 시도 — 해제 기한을 detail에 담아 표현층 특별처리 불필요."""
     def __init__(self, until):
         self.until = until
+        super().__init__(f"서평단 참여 제한 기간이에요(해제 {until:%Y-%m-%d}).")
 
 
 class CampaignRepository(Protocol):

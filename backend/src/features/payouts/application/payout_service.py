@@ -17,6 +17,7 @@ from src.features.payouts.domain.models import (
     PayoutRepository,
     PayoutView,
 )
+from src.shared.errors import ValidationError
 
 
 class PayoutService:
@@ -34,9 +35,9 @@ class PayoutService:
         bank_cd = (bank_cd or "").strip()
         digits = (account_no or "").replace("-", "").replace(" ", "")
         if not holder_name or not bank_cd:
-            raise ValueError("예금주·은행은 필수예요")
+            raise ValidationError("예금주·은행은 필수예요")
         if not digits.isdigit() or not (6 <= len(digits) <= 20):
-            raise ValueError("계좌번호를 확인해 주세요")
+            raise ValidationError("계좌번호를 확인해 주세요")
         return await self.repo.upsert_bank_account(
             account_id, holder_name, bank_cd, encrypt(digits), mask_account(digits)
         )

@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from typing import Protocol
 from uuid import UUID
 
+from src.shared.errors import NotFoundError
+
 
 @dataclass
 class AccountProfile:
@@ -19,9 +21,9 @@ class AccountProfile:
     # 서평단 자격회수는 더 이상 여기 없음 — commu.reviewer_block (campaigns 소유)
 
 
-class AccountNotFound(Exception):
+class AccountNotFound(NotFoundError):
     def __init__(self, account_id: UUID):
-        super().__init__(f"account not found: {account_id}")
+        super().__init__("계정을 찾을 수 없어요.")
 
 
 class AccountRepository(Protocol):

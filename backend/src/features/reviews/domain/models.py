@@ -4,6 +4,8 @@ from datetime import datetime
 from typing import Protocol
 from uuid import UUID
 
+from src.shared.errors import NotFoundError
+
 
 @dataclass
 class ReviewView:
@@ -22,8 +24,12 @@ class ReviewSummary:
     count: int
 
 
-class BookNotFound(Exception):
+class BookNotFound(NotFoundError):
     """리뷰 대상 책 없음 → 404."""
+
+    def __init__(self, book_id: UUID | None = None):
+        self.book_id = book_id
+        super().__init__("책을 찾을 수 없어요.")
 
 
 class ReviewRepository(Protocol):

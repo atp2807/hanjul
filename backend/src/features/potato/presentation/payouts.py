@@ -1,10 +1,9 @@
 """potato API — 출금 관리 (승인·지급완료·반려). 실이체는 운영자 수동 + 감사."""
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Request
 
 from src.features.payouts.application.payout_service import PayoutService
-from src.features.payouts.domain.models import InvalidPayoutState, PayoutNotFound
 from src.features.payouts.presentation.dependencies import get_payout_service
 from src.features.payouts.presentation.schemas import PayoutResponse
 from src.features.potato.application.audit import AuditService
@@ -30,12 +29,9 @@ async def list_payouts(
 
 
 async def _transition(request, op, audit, coro, action, payout_id, memo=None):
-    try:
-        await coro
-    except PayoutNotFound:
-        raise HTTPException(404, "payout not found")
-    except InvalidPayoutState:
-        raise HTTPException(409, "처리할 수 없는 상태예요")
+    # 도메인 예외(PayoutNotFound 404·InvalidPayoutState 409)는 중앙 핸들러가 매핑.
+    # 예외 시 여기서 반환되므로 audit는 정상 전이(성공)에서만 기록된다(기존 동작 유지).
+    await coro
     await audit.record(op.id, action, "PAYOUT", payout_id, {"memo": memo}, client_ip(request))
 
 

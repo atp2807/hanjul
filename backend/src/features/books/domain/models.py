@@ -6,6 +6,8 @@ SQLAlchemy 에 의존하지 않고, 인메모리 Fake 로 테스트 가능.
 from dataclasses import dataclass, field
 from uuid import UUID
 
+from src.shared.errors import ForbiddenError, NotFoundError
+
 
 @dataclass
 class BlockView:
@@ -76,17 +78,17 @@ class ImportResult:
     block_count: int
 
 
-class BookNotFound(Exception):
-    """요청한 책이 존재하지 않음 → 표현 레이어에서 404."""
+class BookNotFound(NotFoundError):
+    """요청한 책이 존재하지 않음 → 404."""
 
-    def __init__(self, book_id: UUID):
+    def __init__(self, book_id: UUID | None = None):
         self.book_id = book_id
-        super().__init__(f"book not found: {book_id}")
+        super().__init__("책을 찾을 수 없어요.")
 
 
-class NotOwner(Exception):
-    """책의 작가가 아닌 사용자의 변경 시도 → 표현 레이어에서 403."""
+class NotOwner(ForbiddenError):
+    """책의 작가가 아닌 사용자의 변경 시도 → 403."""
 
-    def __init__(self, book_id: UUID):
+    def __init__(self, book_id: UUID | None = None):
         self.book_id = book_id
-        super().__init__(f"not the owner of book: {book_id}")
+        super().__init__("이 책의 작가만 변경할 수 있어요.")

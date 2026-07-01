@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from typing import Protocol
 from uuid import UUID
 
+from src.shared.errors import ForbiddenError, NotFoundError, UnauthorizedError
+
 OPERATOR = "OPERATOR"
 DEVELOPER = "DEVELOPER"
 ROLES = {OPERATOR, DEVELOPER}
@@ -33,16 +35,18 @@ class OperatorPrincipal:
         return self.role_cd == DEVELOPER
 
 
-class OperatorNotFound(Exception):
-    ...
+class OperatorNotFound(NotFoundError):
+    default_detail = "운영자를 찾을 수 없어요."
 
 
-class InvalidCredentials(Exception):
+class InvalidCredentials(UnauthorizedError):
     """이메일 없음 또는 비밀번호 불일치 — 어느 쪽인지 드러내지 않음(401)."""
+    default_detail = "이메일 또는 비밀번호가 올바르지 않아요."
 
 
-class OperatorInactive(Exception):
+class OperatorInactive(ForbiddenError):
     """비활성화된 운영자 (403)."""
+    default_detail = "비활성화된 운영자예요."
 
 
 class OperatorRepository(Protocol):

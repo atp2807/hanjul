@@ -4,6 +4,8 @@ from datetime import datetime
 from typing import Protocol
 from uuid import UUID
 
+from src.shared.errors import DomainError
+
 
 @dataclass
 class DistributionView:
@@ -15,9 +17,13 @@ class DistributionView:
     created_at: datetime
 
 
-class UnknownChannel(Exception):
+class UnknownChannel(DomainError):
+    """배포 채널 미설정/미지원 (400). 표현층 매핑 없이 중앙 핸들러가 처리."""
+    status_code = 400
+
     def __init__(self, channel_cd: str):
-        super().__init__(f"unknown distribution channel: {channel_cd}")
+        self.channel_cd = channel_cd
+        super().__init__("배포 채널을 찾을 수 없어요. (DISTRIBUTION_DEMO 또는 SFTP 설정이 필요해요.)")
 
 
 class DistributionChannel(Protocol):

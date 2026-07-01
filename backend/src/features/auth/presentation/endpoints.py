@@ -6,7 +6,7 @@ from fastapi.responses import RedirectResponse
 
 from src.config.settings import settings
 from src.features.auth.application.auth_service import AuthService
-from src.features.auth.domain.models import OAuthExchangeError, SocialProfile, UnknownProvider
+from src.features.auth.domain.models import OAuthExchangeError, SocialProfile
 from src.features.auth.presentation.dependencies import get_auth_service
 from src.features.auth.presentation.schemas import LoginUrlResponse
 
@@ -22,10 +22,8 @@ def _front_redirect(fragment: str) -> RedirectResponse:
 async def login(
     provider: str, state: str = "", service: AuthService = Depends(get_auth_service)
 ) -> LoginUrlResponse:
-    try:
-        url = service.login_url(provider, state)
-    except UnknownProvider:
-        raise HTTPException(status_code=400, detail="unknown provider")
+    # UnknownProvider 400 → 중앙 핸들러
+    url = service.login_url(provider, state)
     return LoginUrlResponse(authorization_url=url)
 
 
@@ -62,9 +60,9 @@ async def callback(
         return _front_redirect(f"error={error or 'no_code'}")
     try:
         result = await service.complete_login(provider, code)
-    except UnknownProvider:
-        raise HTTPException(status_code=400, detail="unknown provider")
     except OAuthExchangeError as e:
+        # OAuth 교환 실패는 HTTP 에러가 아니라 프론트 안내 리다이렉트(#error=)로 변환 — 표현층 유지.
         logger.warning("OAuth 교환 실패 provider=%s: %s", provider, e.detail)  # redirect_uri_mismatch 등
         return _front_redirect("error=auth_failed")
+    # UnknownProvider 400 은 도메인 예외 → 중앙 핸들러가 매핑.
     return _front_redirect(f"token={result.token}&isNew={'1' if result.is_new else '0'}")

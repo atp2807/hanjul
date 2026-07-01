@@ -5,6 +5,7 @@ import pytest
 
 from src.features.reviews.application.review_service import ReviewService
 from src.features.reviews.domain.models import BookNotFound
+from src.shared.errors import ValidationError
 from tests.fixtures.fake_review_repo import FakeReviewRepository
 
 
@@ -14,7 +15,7 @@ async def test_add_validates_rating_range():
     repo.seed_book(book)
     svc = ReviewService(repo)
     for bad in (0, 6, -1):
-        with pytest.raises(ValueError):
+        with pytest.raises(ValidationError):
             await svc.add(book, uuid.uuid4(), bad, None)
 
 
