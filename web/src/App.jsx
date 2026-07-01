@@ -8,6 +8,7 @@ import { AuthCallbackPage } from './pages/AuthCallbackPage';
 import { LegalPage } from './pages/LegalPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { SettlementPage } from './pages/SettlementPage';
 import { AuthorPage } from './pages/AuthorPage';
 import { B2BPlanPage } from './pages/B2BPlanPage';
 import { BookDetailPage } from './pages/BookDetailPage';
@@ -64,6 +65,7 @@ export default function App() {
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route path="/legal/:slug" element={<LegalPage />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/settlement" element={<SettlementPage />} />
         <Route path="*" element={<NotFoundPage />} />
         </Routes>
         {/* 사업자정보·법률 푸터 — 몰입화면(리더·에디터) 제외 */}

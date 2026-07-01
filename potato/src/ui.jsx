@@ -36,6 +36,13 @@ const ICONS = {
       <path d="M21 21l-4.3-4.3" />
     </>
   ),
+  payout: (
+    <>
+      <rect x="3" y="6" width="18" height="12" rx="2" />
+      <circle cx="12" cy="12" r="2.5" />
+      <path d="M6 9v6M18 9v6" />
+    </>
+  ),
 };
 
 export function Icon({ name, size = 18, color = 'currentColor', style }) {

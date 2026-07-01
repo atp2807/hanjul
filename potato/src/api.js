@@ -54,4 +54,9 @@ export const api = {
   unsuspend: (id) => post(`/potato/accounts/${id}/unsuspend`),
   blockReview: (id, reason) => post(`/potato/accounts/${id}/block-review`, { reason }),
   unblockReview: (id) => post(`/potato/accounts/${id}/unblock-review`),
+
+  payouts: (status = 'REQUESTED') => request(`/potato/payouts?status=${status}`),
+  approvePayout: (id) => post(`/potato/payouts/${id}/approve`),
+  payPayout: (id, reason) => post(`/potato/payouts/${id}/pay`, { reason }),
+  rejectPayout: (id, reason) => post(`/potato/payouts/${id}/reject`, { reason }),
 };

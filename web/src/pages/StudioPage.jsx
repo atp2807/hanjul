@@ -76,7 +76,9 @@ export function StudioPage() {
 
       {sales && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 24 }}>
-          <Stat label="내 수익 (정산)" value={`${sales.totalPayout.toLocaleString()}원`} />
+          <Link to="/settlement" style={{ textDecoration: 'none' }}>
+            <Stat label="내 수익 (정산·출금 ›)" value={`${sales.totalPayout.toLocaleString()}원`} />
+          </Link>
           <Stat label="판매 부수" value={`${sales.totalOrders.toLocaleString()}권`} />
           <Stat label="총 매출" value={`${sales.totalRevenue.toLocaleString()}원`} />
         </div>

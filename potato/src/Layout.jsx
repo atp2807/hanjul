@@ -11,6 +11,7 @@ const NAV = [
   { to: '/moderation', label: '모더레이션', icon: 'moderation', badge: 'booksBlocked', tone: T.danger },
   { to: '/reports', label: '신고', icon: 'reports', badge: 'reportsOpen', tone: T.danger },
   { to: '/accounts', label: '계정', icon: 'accounts' },
+  { to: '/payouts', label: '출금', icon: 'payout' },
 ];
 
 export default function Layout() {
