@@ -5,12 +5,12 @@ from src.infrastructure.db.models.campaign import ReviewApplication, ReviewCampa
 from src.infrastructure.db.models.distribution import Distribution
 from src.infrastructure.db.models.notification import Follow, Notification
 from src.infrastructure.db.models.operator import AuditLog, Operator
-from src.infrastructure.db.models.order import Order, Settlement
+from src.infrastructure.db.models.order import BankAccount, Order, Payout, Settlement
 from src.infrastructure.db.models.report import Report
 from src.infrastructure.db.models.review import Review
 
 __all__ = [
     "Book", "Chapter", "Block", "Account", "Credential", "Order", "Settlement", "Distribution", "Review",
     "Follow", "Notification", "ReviewCampaign", "ReviewApplication", "ReviewerBlock",
-    "Operator", "AuditLog", "Report",
+    "Operator", "AuditLog", "Report", "BankAccount", "Payout",
 ]

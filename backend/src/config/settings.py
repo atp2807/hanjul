@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     JWT_ALG: str = "HS256"
     JWT_TTL_HOURS: int = 72
 
+    # ── 정산/출금 ───────────────────────────────────────
+    # 작가 출금계좌번호 암호화 키(Fernet, base64 32B). 비면 dev 임시키 파생(운영 필수 주입).
+    SETTLEMENT_ENC_KEY: str = ""
+
     # ── 운영자(potato) 별도 인증 영역 ───────────────────
     # 고객 JWT와 분리된 시크릿 — 키 자체가 방화벽(고객 토큰은 potato 서명검증 실패).
     POTATO_JWT_SECRET_KEY: str = "dev-insecure-potato-change-me"
