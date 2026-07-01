@@ -62,8 +62,8 @@ async def test_campaign_full_flow(app_db):
         await c.post(f"/api/books/{book}/publish-now", headers=a_auth)
 
         # 작가만 캠페인 생성 — 타인 403
-        assert (await c.post("/api/campaigns", json={"bookId": book, "slots": 1}, headers=r_auth)).status_code == 403
-        cid = (await c.post("/api/campaigns", json={"bookId": book, "slots": 1}, headers=a_auth)).json()["campaignId"]
+        assert (await c.post("/api/campaigns", json={"bookId": book, "slots": 1, "withdrawalConsent": True}, headers=r_auth)).status_code == 403
+        cid = (await c.post("/api/campaigns", json={"bookId": book, "slots": 1, "withdrawalConsent": True}, headers=a_auth)).json()["campaignId"]
 
         # 모집 목록에 노출 + remaining 1
         open_list = (await c.get("/api/campaigns/open")).json()["items"]
@@ -120,7 +120,7 @@ async def test_open_campaigns_filter_by_category(app_db):
             await c.put(f"/api/books/{bid}/meta", json={"category": category}, headers=a_auth)
             await c.put(f"/api/books/{bid}/price", json={"amount": 1000}, headers=a_auth)
             await c.post(f"/api/books/{bid}/publish-now", headers=a_auth)
-            await c.post("/api/campaigns", json={"bookId": bid, "slots": 2}, headers=a_auth)
+            await c.post("/api/campaigns", json={"bookId": bid, "slots": 2, "withdrawalConsent": True}, headers=a_auth)
 
         await make("소설책", "소설")
         await make("에세이책", "에세이")
@@ -147,7 +147,7 @@ async def test_author_can_close_campaign(app_db):
         book = (await c.post("/api/books", json={"title": "마감책"}, headers=a_auth)).json()["bookId"]
         await c.put(f"/api/books/{book}/price", json={"amount": 1000}, headers=a_auth)
         await c.post(f"/api/books/{book}/publish-now", headers=a_auth)
-        cid = (await c.post("/api/campaigns", json={"bookId": book, "slots": 2}, headers=a_auth)).json()["campaignId"]
+        cid = (await c.post("/api/campaigns", json={"bookId": book, "slots": 2, "withdrawalConsent": True}, headers=a_auth)).json()["campaignId"]
         await c.post(f"/api/campaigns/{cid}/apply", headers=r_auth)  # 미리 신청
 
         # 작가 아닌 사람은 마감 불가
@@ -173,7 +173,7 @@ async def test_cancel_application(app_db):
         book = (await c.post("/api/books", json={"title": "취소책"}, headers=a_auth)).json()["bookId"]
         await c.put(f"/api/books/{book}/price", json={"amount": 1000}, headers=a_auth)
         await c.post(f"/api/books/{book}/publish-now", headers=a_auth)
-        cid = (await c.post("/api/campaigns", json={"bookId": book, "slots": 1}, headers=a_auth)).json()["campaignId"]
+        cid = (await c.post("/api/campaigns", json={"bookId": book, "slots": 1, "withdrawalConsent": True}, headers=a_auth)).json()["campaignId"]
 
         await c.post(f"/api/campaigns/{cid}/apply", headers=r_auth)
         assert len((await c.get("/api/me/applications", headers=r_auth)).json()["items"]) == 1
@@ -195,7 +195,7 @@ async def test_assign_notifies_reviewer(app_db):
         book = (await c.post("/api/books", json={"title": "알림책"}, headers=a_auth)).json()["bookId"]
         await c.put(f"/api/books/{book}/price", json={"amount": 1000}, headers=a_auth)
         await c.post(f"/api/books/{book}/publish-now", headers=a_auth)
-        cid = (await c.post("/api/campaigns", json={"bookId": book, "slots": 1}, headers=a_auth)).json()["campaignId"]
+        cid = (await c.post("/api/campaigns", json={"bookId": book, "slots": 1, "withdrawalConsent": True}, headers=a_auth)).json()["campaignId"]
         await c.post(f"/api/campaigns/{cid}/apply", headers=r_auth)
 
         # 배정 전: 알림 없음
@@ -224,7 +224,7 @@ async def test_assign_only_by_campaign_author(app_db):
         book = (await c.post("/api/books", json={"title": "캠책2"}, headers=a_auth)).json()["bookId"]
         await c.put(f"/api/books/{book}/price", json={"amount": 1000}, headers=a_auth)
         await c.post(f"/api/books/{book}/publish-now", headers=a_auth)
-        cid = (await c.post("/api/campaigns", json={"bookId": book, "slots": 1}, headers=a_auth)).json()["campaignId"]
+        cid = (await c.post("/api/campaigns", json={"bookId": book, "slots": 1, "withdrawalConsent": True}, headers=a_auth)).json()["campaignId"]
         await c.post(f"/api/campaigns/{cid}/apply", headers=r_auth)
 
         # 남이 배정 시도 → 403

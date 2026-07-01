@@ -35,7 +35,7 @@ class FakeOrderRepository:
         self.orders: dict[UUID, OrderView] = {}
         self.settlements: dict[UUID, SettlementBreakdown] = {}
 
-    async def create_order(self, book_id, buyer_account_id, amount, channel) -> UUID:
+    async def create_order(self, book_id, buyer_account_id, amount, channel, consent_at=None) -> UUID:
         oid = uuid.uuid4()
         self.orders[oid] = OrderView(
             id=oid, book_id=book_id, buyer_account_id=buyer_account_id,

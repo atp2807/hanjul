@@ -66,7 +66,7 @@ async def test_author_sales_summary(app_db):
         # 독자: 구매
         buyer_token, _ = await login_account(c, "naver", "b")
         b_auth = {"Authorization": f"Bearer {buyer_token}"}
-        oid = (await c.post("/api/orders", json={"bookId": book_id}, headers=b_auth)).json()["id"]
+        oid = (await c.post("/api/orders", json={"bookId": book_id, "withdrawalConsent": True}, headers=b_auth)).json()["id"]
         await c.post(f"/api/orders/{oid}/confirm", json={"pgTxId": "tx"}, headers=b_auth)
 
         # 작가 매출 요약
@@ -99,7 +99,7 @@ async def test_refund_revokes_access_and_sales(app_db):
 
         buyer_token, _ = await login_account(c, "naver", "b")
         b_auth = {"Authorization": f"Bearer {buyer_token}"}
-        oid = (await c.post("/api/orders", json={"bookId": book}, headers=b_auth)).json()["id"]
+        oid = (await c.post("/api/orders", json={"bookId": book, "withdrawalConsent": True}, headers=b_auth)).json()["id"]
         await c.post(f"/api/orders/{oid}/confirm", json={"pgTxId": "tx"}, headers=b_auth)
 
         # 구매 직후: 전체 열람 + 작가 매출 1건
@@ -128,7 +128,7 @@ async def test_order_visible_only_to_buyer(app_db):
 
         buyer_token, _ = await login_account(c, "naver", "b")
         b_auth = {"Authorization": f"Bearer {buyer_token}"}
-        oid = (await c.post("/api/orders", json={"bookId": book}, headers=b_auth)).json()["id"]
+        oid = (await c.post("/api/orders", json={"bookId": book, "withdrawalConsent": True}, headers=b_auth)).json()["id"]
 
         assert (await c.get(f"/api/orders/{oid}", headers=b_auth)).status_code == 200  # 본인
         assert (await c.get(f"/api/orders/{oid}", headers=a_auth)).status_code == 404  # 타인

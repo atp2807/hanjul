@@ -90,7 +90,7 @@ async def test_author_publishes_reader_buys_and_reads(journey):
         # 4) 독자: 주문 → 결제확인 → 정산 (자체 70% + 3.3% 원천)
         # 금액은 안 보냄 — 서버가 책 가격(10000)에서 도출
         order_id = (
-            await c.post("/api/orders", json={"bookId": book_id, "channel": "SELF"}, headers=buyer_auth)
+            await c.post("/api/orders", json={"bookId": book_id, "channel": "SELF", "withdrawalConsent": True}, headers=buyer_auth)
         ).json()["id"]
         settle = (
             await c.post(f"/api/orders/{order_id}/confirm", json={"pgTxId": "tx-1"}, headers=buyer_auth)

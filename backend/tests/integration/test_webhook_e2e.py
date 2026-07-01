@@ -61,7 +61,7 @@ async def _paid_order(c):
     await c.post(f"/api/books/{book}/publish-now", headers=a_auth)
     buyer_token, _ = await login_account(c, "naver", "b")
     b_auth = {"Authorization": f"Bearer {buyer_token}"}
-    oid = (await c.post("/api/orders", json={"bookId": book}, headers=b_auth)).json()["id"]
+    oid = (await c.post("/api/orders", json={"bookId": book, "withdrawalConsent": True}, headers=b_auth)).json()["id"]
     await c.post(f"/api/orders/{oid}/confirm", json={"pgTxId": "tx"}, headers=b_auth)
     return oid, b_auth
 

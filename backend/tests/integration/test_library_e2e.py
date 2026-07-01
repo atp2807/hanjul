@@ -63,7 +63,7 @@ async def test_purchased_book_appears_in_library(app_db):
         await c.post(f"/api/books/{book_id}/submit", headers=auth)
         await c.post(f"/api/books/{book_id}/publish", headers=auth)
         order_id = (
-            await c.post("/api/orders", json={"bookId": book_id}, headers=auth)
+            await c.post("/api/orders", json={"bookId": book_id, "withdrawalConsent": True}, headers=auth)
         ).json()["id"]
         await c.post(f"/api/orders/{order_id}/confirm", json={"pgTxId": "tx"}, headers=auth)
 

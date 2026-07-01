@@ -85,7 +85,7 @@ async def test_billing_http_errors(app_db):
 
         # 미출판 책 구매 → 404 (NotPurchasable)
         book = (await c.post("/api/books", json={"title": "x"}, headers=auth)).json()["bookId"]
-        assert (await c.post("/api/orders", json={"bookId": book}, headers=auth)).status_code == 404
+        assert (await c.post("/api/orders", json={"bookId": book, "withdrawalConsent": True}, headers=auth)).status_code == 404
         # 없는 주문 confirm / 조회 → 404
         assert (await c.post(f"/api/orders/{rnd}/confirm", json={"pgTxId": "x"}, headers=auth)).status_code == 404
         assert (await c.get(f"/api/orders/{rnd}", headers=auth)).status_code == 404
@@ -94,10 +94,10 @@ async def test_billing_http_errors(app_db):
         await c.put(f"/api/books/{book}/price", json={"amount": 1000}, headers=auth)
         await c.post(f"/api/books/{book}/submit", headers=auth)
         await c.post(f"/api/books/{book}/publish", headers=auth)
-        oid = (await c.post("/api/orders", json={"bookId": book}, headers=auth)).json()["id"]
+        oid = (await c.post("/api/orders", json={"bookId": book, "withdrawalConsent": True}, headers=auth)).json()["id"]
         await c.post(f"/api/orders/{oid}/confirm", json={"pgTxId": "x"}, headers=auth)
         assert (await c.post(f"/api/orders/{oid}/confirm", json={"pgTxId": "x"}, headers=auth)).status_code == 409
-        assert (await c.post("/api/orders", json={"bookId": book}, headers=auth)).status_code == 409
+        assert (await c.post("/api/orders", json={"bookId": book, "withdrawalConsent": True}, headers=auth)).status_code == 409
 
 
 async def test_cover_missing_book_404(app_db):

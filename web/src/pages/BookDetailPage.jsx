@@ -22,6 +22,7 @@ export function BookDetailPage() {
   const [book, setBook] = useState(null);
   const [error, setError] = useState(null);
   const [buying, setBuying] = useState(false);
+  const [consent, setConsent] = useState(false);
   const [reviews, setReviews] = useState(null);
   const [rating, setRating] = useState(5);
   const [reviewBody, setReviewBody] = useState('');
@@ -49,11 +50,15 @@ export function BookDetailPage() {
       window.location.href = authorizationUrl;
       return;
     }
+    if (!consent) {
+      setError('전자책 청약철회 제한에 동의해 주세요.');
+      return;
+    }
     setBuying(true);
     setError(null);
     try {
       const cfg = await getPaymentConfig();
-      const order = await createOrder(book.id); // 금액은 서버가 책 가격에서 도출
+      const order = await createOrder(book.id, 'SELF', true); // 금액은 서버가 책 가격에서 도출
       if (cfg.demo || !cfg.tossClientKey) {
         await confirmPayment(order.id, 'demo'); // 데모 모드 — PG 우회
         navigate(`/read/${book.id}`);
@@ -115,9 +120,28 @@ export function BookDetailPage() {
               {onSale && <span style={{ fontSize: 13, color: '#dc2626', fontWeight: 600 }}>기간 할인</span>}
             </p>
             <div style={{ fontSize: 13, color: '#2f8a6f', fontWeight: 600, marginTop: 4 }}>전자책 · 즉시 다운로드</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 18 }}>
+            {isPaid && user && (
+              <label
+                data-testid="withdrawal-consent"
+                style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginTop: 16, fontSize: 12.5, color: T.textMid, lineHeight: 1.55, cursor: 'pointer' }}
+              >
+                <input
+                  type="checkbox"
+                  checked={consent}
+                  onChange={(e) => setConsent(e.target.checked)}
+                  style={{ marginTop: 2, flexShrink: 0 }}
+                />
+                <span>
+                  전자책은 열람·다운로드가 시작되면 청약철회가 제한됩니다. 이에 동의합니다.{' '}
+                  <Link to="/legal/refund" style={{ color: T.ink, fontWeight: 600 }}>
+                    환불 정책
+                  </Link>
+                </span>
+              </label>
+            )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: isPaid && user ? 12 : 18 }}>
               {isPaid ? (
-                <button onClick={handleBuy} disabled={buying} style={primaryBtn}>
+                <button onClick={handleBuy} disabled={buying || (!!user && !consent)} style={primaryBtn}>
                   {buying ? '구매 중…' : user ? '바로 구매' : '로그인하고 구매'}
                 </button>
               ) : (

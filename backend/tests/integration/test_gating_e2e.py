@@ -75,7 +75,7 @@ async def test_preview_for_non_owner_full_for_owner(app_db):
 
         # 구매 후 → 전체 (금액은 서버 도출)
         order_id = (
-            await c.post("/api/orders", json={"bookId": book_id}, headers=auth)
+            await c.post("/api/orders", json={"bookId": book_id, "withdrawalConsent": True}, headers=auth)
         ).json()["id"]
         await c.post(f"/api/orders/{order_id}/confirm", json={"pgTxId": "tx"}, headers=auth)
 

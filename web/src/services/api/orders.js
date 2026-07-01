@@ -1,8 +1,9 @@
 import { apiClient } from './api_client';
 
-// 주문 생성 — 금액·구매자는 서버가 결정 (bookId만 보냄)
-export function createOrder(bookId, channel = 'SELF') {
-  return apiClient.post('/orders', { bookId, channel });
+// 주문 생성 — 금액·구매자는 서버가 결정 (bookId만 보냄).
+// withdrawalConsent = 전자책 청약철회 제한 동의(전자상거래법 §17⑥) — 없으면 서버가 422.
+export function createOrder(bookId, channel = 'SELF', withdrawalConsent = false) {
+  return apiClient.post('/orders', { bookId, channel, withdrawalConsent });
 }
 
 // 결제 확인 — pgTxId = 토스 paymentKey (데모 모드면 'demo' 무관 성공)

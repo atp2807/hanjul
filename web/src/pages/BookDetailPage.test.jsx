@@ -36,9 +36,12 @@ describe('BookDetailPage 결제', () => {
         <BookDetailPage />
       </MemoryRouter>,
     );
+    fireEvent.click(await screen.findByRole('checkbox')); // 청약철회 제한 동의
     fireEvent.click(await screen.findByText('바로 구매'));
 
     await waitFor(() => expect(requestPayment).toHaveBeenCalled());
+    // 서버에 동의 플래그 전달
+    expect(ordersApi.createOrder).toHaveBeenCalledWith('book-1', 'SELF', true);
     const [method, opts] = requestPayment.mock.calls[0];
     expect(method).toBe('카드');
     expect(opts.orderId).toBe('order-9');
@@ -57,9 +60,25 @@ describe('BookDetailPage 결제', () => {
         <BookDetailPage />
       </MemoryRouter>,
     );
+    fireEvent.click(await screen.findByRole('checkbox'));
     fireEvent.click(await screen.findByText('바로 구매'));
 
     await waitFor(() => expect(ordersApi.confirmPayment).toHaveBeenCalledWith('order-9', 'demo'));
     expect(requestPayment).not.toHaveBeenCalled();
+  });
+
+  it('청약철회 제한 미동의 시 구매가 차단된다(주문 생성 안 함)', async () => {
+    ordersApi.getPaymentConfig.mockResolvedValue({ demo: true, tossClientKey: '' });
+    render(
+      <MemoryRouter>
+        <BookDetailPage />
+      </MemoryRouter>,
+    );
+    // 체크 없이 구매 시도 — 버튼 disabled라 클릭돼도 주문 안 만들어짐
+    const buyBtn = await screen.findByText('바로 구매');
+    expect(buyBtn).toBeDisabled();
+    fireEvent.click(buyBtn);
+    await waitFor(() => {}); // flush
+    expect(ordersApi.createOrder).not.toHaveBeenCalled();
   });
 });

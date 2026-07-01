@@ -61,7 +61,7 @@ async def test_active_discount_applies_to_order(app_db):
         assert detail["priceAmt"] == 10000 and detail["discountAmt"] == 6000
 
         # 주문 금액 = 할인가 (서버 도출, 본문 금액 무시)
-        order = (await c.post("/api/orders", json={"bookId": book}, headers=auth)).json()
+        order = (await c.post("/api/orders", json={"bookId": book, "withdrawalConsent": True}, headers=auth)).json()
         assert order["amountAmt"] == 6000
 
 
@@ -73,5 +73,5 @@ async def test_expired_discount_uses_original(app_db):
         past = (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()
         await c.put(f"/api/books/{book}/discount", json={"amount": 6000, "until": past}, headers=auth)
 
-        order = (await c.post("/api/orders", json={"bookId": book}, headers=auth)).json()
+        order = (await c.post("/api/orders", json={"bookId": book, "withdrawalConsent": True}, headers=auth)).json()
         assert order["amountAmt"] == 10000  # 만료 → 정가

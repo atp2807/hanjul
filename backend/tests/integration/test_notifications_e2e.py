@@ -148,7 +148,7 @@ async def test_revision_notifies_buyers_and_relights(app_db):
         book = await _publish_book(c, author_auth, title="개정대상")  # 첫 출판(PUBLISHED)
 
         # 구매자 구매 + 확정
-        oid = (await c.post("/api/orders", json={"bookId": book}, headers=buyer_auth)).json()["id"]
+        oid = (await c.post("/api/orders", json={"bookId": book, "withdrawalConsent": True}, headers=buyer_auth)).json()["id"]
         await c.post(f"/api/orders/{oid}/confirm", json={"pgTxId": "tx"}, headers=buyer_auth)
         # 구매 자체로는 알림 없음
         assert (await c.get("/api/me/notifications", headers=buyer_auth)).json()["unreadCount"] == 0

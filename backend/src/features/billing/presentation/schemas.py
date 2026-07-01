@@ -12,6 +12,8 @@ class _Camel(BaseModel):
 class CreateOrderRequest(_Camel):
     book_id: UUID
     channel: str = "SELF"  # SELF | EXTERNAL
+    # 전자책 청약철회 제한 동의 (전자상거래법 §17⑥) — 미동의면 주문 거부(422)
+    withdrawal_consent: bool = False
     # 금액·구매자는 서버가 결정 (책 가격 + 인증된 사용자) — 클라가 못 보냄
 
 

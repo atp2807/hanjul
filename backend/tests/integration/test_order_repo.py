@@ -28,7 +28,7 @@ async def test_paid_order_persists_settlement(sessionmaker):
     # 구매 (금액은 서버가 가격에서 도출) + 결제확인
     async with sessionmaker() as s:
         svc = OrderService(SqlOrderRepository(s), FakeGateway(ok=True), SqlBookPricing(s))
-        order_id = await svc.create_order(book_id, buyer.id, "SELF")
+        order_id = await svc.create_order(book_id, buyer.id, "SELF", withdrawal_consent=True)
         result = await svc.confirm_payment(order_id, "tx-1")
         assert result.payout_amt == 6769
 

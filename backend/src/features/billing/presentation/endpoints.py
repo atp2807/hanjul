@@ -10,6 +10,7 @@ from src.features.billing.application.order_service import OrderService
 from src.features.billing.domain.models import (
     AlreadyOwned,
     AlreadyPaid,
+    ConsentRequired,
     NotPurchasable,
     NotRefundable,
     OrderNotFound,
@@ -63,7 +64,11 @@ async def create_order(
 ) -> OrderResponse:
     # 구매자 = 인증된 사용자, 금액 = 서버가 책 가격에서 도출 (클라 입력 안 받음)
     try:
-        order_id = await svc.create_order(body.book_id, principal.id, body.channel)
+        order_id = await svc.create_order(
+            body.book_id, principal.id, body.channel, withdrawal_consent=body.withdrawal_consent
+        )
+    except ConsentRequired:
+        raise HTTPException(422, "청약철회 제한 동의가 필요해요")
     except NotPurchasable:
         raise HTTPException(404, "book not purchasable")
     except AlreadyOwned:

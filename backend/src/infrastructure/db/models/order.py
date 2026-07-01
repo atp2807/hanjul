@@ -29,6 +29,8 @@ class Order(Base):
     status_cd = Column(String(20), nullable=False, default="PENDING")   # PENDING | PAID | CANCELLED
     pg_provider_cd = Column(String(20))                                 # PORTONE | ...
     pg_tx_id = Column(String(255))
+    # 청약철회 제한 동의 시각(전자책 제공 개시 후 철회 불가, 전자상거래법 §17⑥). NULL=미동의.
+    withdrawal_consent_at = Column("withdrawal_consent_ts", DateTime(timezone=True))
     created_at = Column("created_ts", DateTime(timezone=True), default=_now, nullable=False)
     paid_at = Column("paid_ts", DateTime(timezone=True))
     refunded_at = Column("refunded_ts", DateTime(timezone=True))         # 환불 시각

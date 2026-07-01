@@ -92,6 +92,12 @@ class AlreadyOwned(BillingError):
         super().__init__("already owned")
 
 
+class ConsentRequired(BillingError):
+    """청약철회 제한 동의 없이 주문 시도 (전자상거래법 §17⑥)."""
+    def __init__(self):
+        super().__init__("withdrawal consent required")
+
+
 class NotRefundable(BillingError):
     """환불 불가 (미결제이거나 이미 환불됨)."""
     def __init__(self):

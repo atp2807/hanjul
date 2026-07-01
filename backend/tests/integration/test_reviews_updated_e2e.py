@@ -60,7 +60,7 @@ async def test_rewrite_review_sets_updated_ts(app_db):
         book = (await c.post("/api/books", json={"title": "리뷰책"}, headers=author_auth)).json()["bookId"]
         await c.put(f"/api/books/{book}/price", json={"amount": 1000}, headers=author_auth)
         await c.post(f"/api/books/{book}/publish-now", headers=author_auth)
-        oid = (await c.post("/api/orders", json={"bookId": book}, headers=buyer_auth)).json()["id"]
+        oid = (await c.post("/api/orders", json={"bookId": book, "withdrawalConsent": True}, headers=buyer_auth)).json()["id"]
         await c.post(f"/api/orders/{oid}/confirm", json={"pgTxId": "tx"}, headers=buyer_auth)
 
         # 최초 리뷰 → updatedAt NULL

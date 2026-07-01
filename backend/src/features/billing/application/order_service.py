@@ -2,6 +2,7 @@
 
 결제 확인 시 정산 엔진(engine.settlement)으로 분배/원천징수를 계산해 기록.
 """
+from datetime import datetime, timezone
 from uuid import UUID
 
 from src.engine.settlement.calculate import calculate_settlement
@@ -10,6 +11,7 @@ from src.features.billing.domain.models import (
     PAID,
     AlreadyOwned,
     AlreadyPaid,
+    ConsentRequired,
     NotPurchasable,
     NotRefundable,
     OrderNotFound,
@@ -36,15 +38,24 @@ class OrderService:
         self.is_individual = is_individual
 
     async def create_order(
-        self, book_id: UUID, buyer_account_id: UUID, channel: str = "SELF"
+        self,
+        book_id: UUID,
+        buyer_account_id: UUID,
+        channel: str = "SELF",
+        withdrawal_consent: bool = False,
     ) -> UUID:
+        # 전자책 청약철회 제한 동의 필수 (전자상거래법 §17⑥ — 미동의면 주문 불가)
+        if not withdrawal_consent:
+            raise ConsentRequired()
         # 금액은 서버가 책 가격에서 도출 — 클라가 보낸 값 신뢰 금지 (client_always_transparent)
         price = await self.pricing.get_purchasable_price(book_id)
         if price is None:
             raise NotPurchasable(book_id)
         if await self.repo.owns(buyer_account_id, book_id):
             raise AlreadyOwned()
-        return await self.repo.create_order(book_id, buyer_account_id, price, channel)
+        return await self.repo.create_order(
+            book_id, buyer_account_id, price, channel, consent_at=datetime.now(timezone.utc)
+        )
 
     async def get_order(self, order_id: UUID) -> OrderView:
         order = await self.repo.get_order(order_id)

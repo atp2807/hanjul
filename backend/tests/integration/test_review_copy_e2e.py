@@ -88,7 +88,7 @@ async def test_normal_purchase_review_is_purchase_source(app_db):
         book = (await c.post("/api/books", json={"title": "구매책"}, headers=a_auth)).json()["bookId"]
         await c.put(f"/api/books/{book}/price", json={"amount": 5000}, headers=a_auth)
         await c.post(f"/api/books/{book}/publish-now", headers=a_auth)
-        oid = (await c.post("/api/orders", json={"bookId": book}, headers=b_auth)).json()["id"]
+        oid = (await c.post("/api/orders", json={"bookId": book, "withdrawalConsent": True}, headers=b_auth)).json()["id"]
         await c.post(f"/api/orders/{oid}/confirm", json={"pgTxId": "tx"}, headers=b_auth)
 
         await c.post(f"/api/books/{book}/reviews", json={"rating": 4, "body": "샀어요"}, headers=b_auth)

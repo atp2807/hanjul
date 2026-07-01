@@ -80,7 +80,7 @@ async def test_cannot_delete_sold_book(app_db):
         await c.put(f"/api/books/{book}/price", json={"amount": 5000}, headers=a_auth)
         await c.post(f"/api/books/{book}/publish-now", headers=a_auth)
         # 독자가 구매(주문 생성) → 판매 이력
-        await c.post("/api/orders", json={"bookId": book}, headers=b_auth)
+        await c.post("/api/orders", json={"bookId": book, "withdrawalConsent": True}, headers=b_auth)
 
         # 판매 이력 있으니 삭제 차단(409)
         assert (await c.delete(f"/api/books/{book}", headers=a_auth)).status_code == 409

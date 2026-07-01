@@ -8,7 +8,7 @@ from src.features.billing.domain.models import OrderView, PurchasedBook, SalesSu
 
 class OrderRepository(Protocol):
     async def create_order(
-        self, book_id: UUID, buyer_account_id: UUID, amount: int, channel: str
+        self, book_id: UUID, buyer_account_id: UUID, amount: int, channel: str, consent_at=None
     ) -> UUID:
         ...
 

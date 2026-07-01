@@ -15,13 +15,16 @@ class SqlOrderRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def create_order(self, book_id: UUID, buyer_account_id: UUID, amount: int, channel: str) -> UUID:
+    async def create_order(
+        self, book_id: UUID, buyer_account_id: UUID, amount: int, channel: str, consent_at=None
+    ) -> UUID:
         order = Order(
             book_id=book_id,
             buyer_account_id=buyer_account_id,
             amount_amt=amount,
             channel_cd=channel,
             status_cd="PENDING",
+            withdrawal_consent_at=consent_at,
         )
         self.session.add(order)
         await self.session.flush()
