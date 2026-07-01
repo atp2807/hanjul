@@ -2,20 +2,15 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
-from pydantic.alias_generators import to_camel
+from src.presentation.schema import CamelSchema
 
 
-class _Camel(BaseModel):
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True, from_attributes=True)
-
-
-class AddReviewRequest(_Camel):
+class AddReviewRequest(CamelSchema):
     rating: int           # 1~5
     body: str | None = None
 
 
-class ReviewItem(_Camel):
+class ReviewItem(CamelSchema):
     id: UUID
     rating: int
     body: str | None
@@ -25,7 +20,7 @@ class ReviewItem(_Camel):
     source_cd: str = "PURCHASE"
 
 
-class ReviewListResponse(_Camel):
+class ReviewListResponse(CamelSchema):
     average: float
     count: int
     items: list[ReviewItem]

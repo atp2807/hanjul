@@ -1,19 +1,14 @@
 """auth API 스키마 (camelCase)."""
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
-from pydantic.alias_generators import to_camel
+from src.presentation.schema import CamelSchema
 
 
-class _Camel(BaseModel):
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True, from_attributes=True)
-
-
-class LoginUrlResponse(_Camel):
+class LoginUrlResponse(CamelSchema):
     authorization_url: str
 
 
-class AccountResponse(_Camel):
+class AccountResponse(CamelSchema):
     id: UUID
     email: str | None
     display_name: str | None
@@ -21,7 +16,7 @@ class AccountResponse(_Camel):
     bio: str | None = None
 
 
-class AuthTokenResponse(_Camel):
+class AuthTokenResponse(CamelSchema):
     token: str
     is_new: bool
     account: AccountResponse

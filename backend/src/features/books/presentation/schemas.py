@@ -1,68 +1,63 @@
 """books API 스키마 (Pydantic). 외부 계약은 camelCase (네이밍룰: API 필드=camelCase)."""
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
-from pydantic.alias_generators import to_camel
+from src.presentation.schema import CamelSchema
 
 
-class _Camel(BaseModel):
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True, from_attributes=True)
-
-
-class CreateBookRequest(_Camel):
+class CreateBookRequest(CamelSchema):
     title: str
     kind: str = "BOOK"        # BOOK | WEBNOVEL
     language: str = "ko"
 
 
-class CreateBookResponse(_Camel):
+class CreateBookResponse(CamelSchema):
     book_id: UUID
 
 
-class ImportTextRequest(_Camel):
+class ImportTextRequest(CamelSchema):
     raw_text: str
     chapter_title: str | None = None
 
 
-class ImportTextResponse(_Camel):
+class ImportTextResponse(CamelSchema):
     chapter_id: UUID
     block_count: int
 
 
-class BlockInput(_Camel):
+class BlockInput(CamelSchema):
     type: str   # P | H1 | H2 | H3 | QUOTE | HR (정본 코드)
     html: str
 
 
-class ChapterInput(_Camel):
+class ChapterInput(CamelSchema):
     title: str | None = None
     blocks: list[BlockInput] = []
 
 
-class SetContentRequest(_Camel):
+class SetContentRequest(CamelSchema):
     """에디터 원클릭 출판 — 정본 전체 교체."""
     chapters: list[ChapterInput]
 
 
-class SetPreviewLimitRequest(_Camel):
+class SetPreviewLimitRequest(CamelSchema):
     limit: int  # 무료 공개 블록 수
 
 
-class BlockResponse(_Camel):
+class BlockResponse(CamelSchema):
     id: UUID
     order_no: int
     block_type: str
     html: str
 
 
-class ChapterResponse(_Camel):
+class ChapterResponse(CamelSchema):
     id: UUID
     title: str | None
     order_no: int
     blocks: list[BlockResponse]
 
 
-class BookContentResponse(_Camel):
+class BookContentResponse(CamelSchema):
     id: UUID
     title: str
     kind: str

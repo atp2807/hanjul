@@ -1,15 +1,10 @@
 """cover API 스키마 (camelCase)."""
-from pydantic import BaseModel, ConfigDict
-from pydantic.alias_generators import to_camel
+from src.presentation.schema import CamelSchema
 
 
-class _Camel(BaseModel):
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
-
-
-class GenerateCoverRequest(_Camel):
+class GenerateCoverRequest(CamelSchema):
     prompt: str
 
 
-class CoverResponse(_Camel):
+class CoverResponse(CamelSchema):
     cover_url: str

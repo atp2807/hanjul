@@ -2,19 +2,14 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
-from pydantic.alias_generators import to_camel
+from src.presentation.schema import CamelSchema
 
 
-class _Camel(BaseModel):
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True, from_attributes=True)
-
-
-class DistributeRequest(_Camel):
+class DistributeRequest(CamelSchema):
     channel: str  # KYOBO | YES24 | ALADIN ...
 
 
-class DistributionResponse(_Camel):
+class DistributionResponse(CamelSchema):
     id: UUID
     book_id: UUID
     channel_cd: str

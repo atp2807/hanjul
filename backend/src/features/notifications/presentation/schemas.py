@@ -2,15 +2,10 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
-from pydantic.alias_generators import to_camel
+from src.presentation.schema import CamelSchema
 
 
-class _Camel(BaseModel):
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True, from_attributes=True)
-
-
-class NotificationItem(_Camel):
+class NotificationItem(CamelSchema):
     id: UUID
     kind_cd: str
     book_id: UUID | None
@@ -19,10 +14,10 @@ class NotificationItem(_Camel):
     created_at: datetime
 
 
-class NotificationListResponse(_Camel):
+class NotificationListResponse(CamelSchema):
     items: list[NotificationItem]
     unread_count: int
 
 
-class FollowStatusResponse(_Camel):
+class FollowStatusResponse(CamelSchema):
     following: bool

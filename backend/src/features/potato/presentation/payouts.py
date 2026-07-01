@@ -9,14 +9,15 @@ from src.features.payouts.presentation.dependencies import get_payout_service
 from src.features.payouts.presentation.schemas import PayoutResponse
 from src.features.potato.application.audit import AuditService
 from src.features.potato.domain.models import OperatorPrincipal
-from src.features.potato.presentation.dependencies import get_audit_service, get_current_operator
+from src.features.potato.presentation.dependencies import (
+    client_ip,
+    get_audit_service,
+    get_current_operator,
+)
 from src.features.potato.presentation.schemas import ReasonRequest
 
 router = APIRouter(prefix="/potato", tags=["potato"])
 
-
-def _ip(request: Request) -> str | None:
-    return request.client.host if request.client else None
 
 
 @router.get("/payouts", response_model=list[PayoutResponse])
@@ -35,7 +36,7 @@ async def _transition(request, op, audit, coro, action, payout_id, memo=None):
         raise HTTPException(404, "payout not found")
     except InvalidPayoutState:
         raise HTTPException(409, "처리할 수 없는 상태예요")
-    await audit.record(op.id, action, "PAYOUT", payout_id, {"memo": memo}, _ip(request))
+    await audit.record(op.id, action, "PAYOUT", payout_id, {"memo": memo}, client_ip(request))
 
 
 @router.post("/payouts/{payout_id}/approve", status_code=204)

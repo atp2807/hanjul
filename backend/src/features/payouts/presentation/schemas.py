@@ -2,35 +2,31 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
-from pydantic.alias_generators import to_camel
+from pydantic import Field
+from src.presentation.schema import CamelSchema
 
 
-class _Camel(BaseModel):
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True, from_attributes=True)
-
-
-class BankAccountRequest(_Camel):
+class BankAccountRequest(CamelSchema):
     holder_name: str = Field(min_length=1, max_length=100)
     bank_cd: str = Field(min_length=1, max_length=20)
     account_no: str = Field(min_length=6, max_length=30)
 
 
-class BankAccountResponse(_Camel):
+class BankAccountResponse(CamelSchema):
     id: UUID
     holder_name: str
     bank_cd: str
     account_no_masked: str
 
 
-class PayableResponse(_Camel):
+class PayableResponse(CamelSchema):
     gross_amt: int
     withholding_amt: int
     net_amt: int
     order_count: int
 
 
-class PayoutResponse(_Camel):
+class PayoutResponse(CamelSchema):
     id: UUID
     status_cd: str
     gross_amt: int

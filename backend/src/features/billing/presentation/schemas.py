@@ -1,15 +1,10 @@
 """billing API 스키마 (camelCase)."""
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
-from pydantic.alias_generators import to_camel
+from src.presentation.schema import CamelSchema
 
 
-class _Camel(BaseModel):
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True, from_attributes=True)
-
-
-class CreateOrderRequest(_Camel):
+class CreateOrderRequest(CamelSchema):
     book_id: UUID
     channel: str = "SELF"  # SELF | EXTERNAL
     # 전자책 청약철회 제한 동의 (전자상거래법 §17⑥) — 미동의면 주문 거부(422)
@@ -17,7 +12,7 @@ class CreateOrderRequest(_Camel):
     # 금액·구매자는 서버가 결정 (책 가격 + 인증된 사용자) — 클라가 못 보냄
 
 
-class OrderResponse(_Camel):
+class OrderResponse(CamelSchema):
     id: UUID
     book_id: UUID
     buyer_account_id: UUID
@@ -26,11 +21,11 @@ class OrderResponse(_Camel):
     status_cd: str
 
 
-class ConfirmPaymentRequest(_Camel):
+class ConfirmPaymentRequest(CamelSchema):
     pg_tx_id: str
 
 
-class SettlementResponse(_Camel):
+class SettlementResponse(CamelSchema):
     channel_cd: str
     gross_amt: int
     platform_fee_amt: int
@@ -38,7 +33,7 @@ class SettlementResponse(_Camel):
     payout_amt: int
 
 
-class LibraryItemResponse(_Camel):
+class LibraryItemResponse(CamelSchema):
     book_id: UUID
     title: str
     kind: str
@@ -47,7 +42,7 @@ class LibraryItemResponse(_Camel):
     order_id: UUID
 
 
-class BookSalesResponse(_Camel):
+class BookSalesResponse(CamelSchema):
     book_id: UUID
     title: str
     order_count: int
@@ -55,7 +50,7 @@ class BookSalesResponse(_Camel):
     payout: int
 
 
-class SalesSummaryResponse(_Camel):
+class SalesSummaryResponse(CamelSchema):
     total_orders: int
     total_revenue: int
     total_payout: int

@@ -2,26 +2,21 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
-from pydantic.alias_generators import to_camel
+from src.presentation.schema import CamelSchema
 
 
-class _Camel(BaseModel):
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True, from_attributes=True)
-
-
-class CreateCampaignRequest(_Camel):
+class CreateCampaignRequest(CamelSchema):
     book_id: UUID
     slots: int
     review_days: int = 7
     min_chars: int = 0
 
 
-class AssignRequest(_Camel):
+class AssignRequest(CamelSchema):
     applicant_id: UUID
 
 
-class CampaignItem(_Camel):
+class CampaignItem(CamelSchema):
     id: UUID
     book_id: UUID
     book_title: str | None
@@ -36,11 +31,11 @@ class CampaignItem(_Camel):
     created_at: datetime
 
 
-class CampaignListResponse(_Camel):
+class CampaignListResponse(CamelSchema):
     items: list[CampaignItem]
 
 
-class ApplicationItem(_Camel):
+class ApplicationItem(CamelSchema):
     id: UUID
     campaign_id: UUID
     book_id: UUID
@@ -50,11 +45,11 @@ class ApplicationItem(_Camel):
     created_at: datetime
 
 
-class ApplicationListResponse(_Camel):
+class ApplicationListResponse(CamelSchema):
     items: list[ApplicationItem]
 
 
-class AuthorCampaignItem(_Camel):
+class AuthorCampaignItem(CamelSchema):
     id: UUID
     book_id: UUID
     book_title: str | None
@@ -69,11 +64,11 @@ class AuthorCampaignItem(_Camel):
     created_at: datetime
 
 
-class AuthorCampaignListResponse(_Camel):
+class AuthorCampaignListResponse(CamelSchema):
     items: list[AuthorCampaignItem]
 
 
-class ApplicantItem(_Camel):
+class ApplicantItem(CamelSchema):
     id: UUID
     applicant_id: UUID
     applicant_name: str | None
@@ -82,11 +77,11 @@ class ApplicantItem(_Camel):
     created_at: datetime
 
 
-class ApplicantListResponse(_Camel):
+class ApplicantListResponse(CamelSchema):
     items: list[ApplicantItem]
 
 
-class ReviewerStatusResponse(_Camel):
+class ReviewerStatusResponse(CamelSchema):
     completed: int
     missed: int
     active: int

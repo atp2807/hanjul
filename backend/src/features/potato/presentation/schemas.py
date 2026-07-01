@@ -2,28 +2,21 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
-from pydantic.alias_generators import to_camel
+from pydantic import Field
+from src.presentation.schema import CamelSchema
 
 
-class _Camel(BaseModel):
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
-
-
-class LoginRequest(_Camel):
+class LoginRequest(CamelSchema):
     email: str
     password: str
 
 
-class TokenResponse(_Camel):
+class TokenResponse(CamelSchema):
     token: str
     role_cd: str
 
 
-class OperatorResponse(_Camel):
-    model_config = ConfigDict(
-        alias_generator=to_camel, populate_by_name=True, from_attributes=True
-    )
+class OperatorResponse(CamelSchema):
     id: UUID
     email: str
     name: str
@@ -31,7 +24,7 @@ class OperatorResponse(_Camel):
 
 
 # ── 모더레이션 ────────────────────────────────────────
-class BookModerationItem(_Camel):
+class BookModerationItem(CamelSchema):
     id: UUID
     title: str
     author_id: UUID | None
@@ -41,12 +34,12 @@ class BookModerationItem(_Camel):
     published_at: datetime | None
 
 
-class TakedownRequest(_Camel):
+class TakedownRequest(CamelSchema):
     reason: str | None = Field(default=None, max_length=500)
 
 
 # ── 신고 큐 ───────────────────────────────────────────
-class ReportItem(_Camel):
+class ReportItem(CamelSchema):
     id: UUID
     reporter_id: UUID | None
     target_type: str
@@ -56,17 +49,17 @@ class ReportItem(_Camel):
     created_at: datetime
 
 
-class ResolveReportRequest(_Camel):
+class ResolveReportRequest(CamelSchema):
     action: str = Field(description="RESOLVE | DISMISS")
     resolution: str | None = Field(default=None, max_length=2000)
 
 
 # ── 계정 조치 ─────────────────────────────────────────
-class ReasonRequest(_Camel):
+class ReasonRequest(CamelSchema):
     reason: str | None = Field(default=None, max_length=500)
 
 
-class AccountModerationView(_Camel):
+class AccountModerationView(CamelSchema):
     id: UUID
     email: str | None
     display_name: str | None
@@ -77,7 +70,7 @@ class AccountModerationView(_Camel):
 
 
 # ── 대시보드 ──────────────────────────────────────────
-class DashboardStats(_Camel):
+class DashboardStats(CamelSchema):
     accounts: int
     books_total: int
     books_published: int

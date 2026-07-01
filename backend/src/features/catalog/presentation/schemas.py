@@ -2,37 +2,32 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
-from pydantic.alias_generators import to_camel
+from src.presentation.schema import CamelSchema
 
 
-class _Camel(BaseModel):
-    model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True, from_attributes=True)
-
-
-class AssignAuthorRequest(_Camel):
+class AssignAuthorRequest(CamelSchema):
     author_id: UUID
 
 
-class SetPriceRequest(_Camel):
+class SetPriceRequest(CamelSchema):
     amount: int  # 원 단위 정수
 
 
-class SetIsbnRequest(_Camel):
+class SetIsbnRequest(CamelSchema):
     isbn: str
 
 
-class UpdateMetaRequest(_Camel):
+class UpdateMetaRequest(CamelSchema):
     subtitle: str | None = None
     description: str | None = None
     category: str | None = None
 
 
-class SchedulePublishRequest(_Camel):
+class SchedulePublishRequest(CamelSchema):
     publish_at: datetime
 
 
-class BookSummaryResponse(_Camel):
+class BookSummaryResponse(CamelSchema):
     id: UUID
     title: str
     subtitle: str | None
@@ -50,17 +45,17 @@ class BookSummaryResponse(_Camel):
     discount_until: datetime | None = None
 
 
-class SetDiscountRequest(_Camel):
+class SetDiscountRequest(CamelSchema):
     amount: int          # 할인가(원)
     until: datetime      # 할인 종료시각
 
 
-class StoreListResponse(_Camel):
+class StoreListResponse(CamelSchema):
     items: list[BookSummaryResponse]
     count: int
 
 
-class AuthorProfileResponse(_Camel):
+class AuthorProfileResponse(CamelSchema):
     id: UUID
     display_name: str | None
     bio: str | None

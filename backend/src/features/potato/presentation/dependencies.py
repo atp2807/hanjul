@@ -38,8 +38,8 @@ def get_dashboard_service(session: AsyncSession = Depends(get_session)) -> Dashb
 _LOOPBACK = {"127.0.0.1", "::1"}
 
 
-def _effective_ip(request: Request) -> str:
-    """진짜 클라이언트 IP.
+def client_ip(request: Request) -> str:
+    """진짜 클라이언트 IP — IP 화이트리스트·감사 로그 공용(단일 소스).
 
     1순위 CF-Connecting-IP — Cloudflare가 세팅, CF 통과 시 위조 불가(권위).
     2순위 X-Forwarded-For의 **마지막** 항목 — nginx가 append한 실제 TCP peer.
@@ -66,7 +66,7 @@ def require_allowed_ip(request: Request) -> None:
     allowed = settings.potato_allowed_ip_list
     if not allowed:
         return
-    ip = _effective_ip(request)
+    ip = client_ip(request)
     if ip in _LOOPBACK:
         return
     if ip not in allowed:

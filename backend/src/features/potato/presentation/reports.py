@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from src.features.potato.application.audit import AuditService
 from src.features.potato.domain.models import OperatorPrincipal
 from src.features.potato.presentation.dependencies import (
+    client_ip,
     get_audit_service,
     get_current_operator,
 )
@@ -19,9 +20,6 @@ from src.features.reports.presentation.dependencies import get_report_service
 
 router = APIRouter(prefix="/potato", tags=["potato"])
 
-
-def _client_ip(request: Request) -> str | None:
-    return request.client.host if request.client else None
 
 
 @router.get("/reports", response_model=list[ReportItem])
@@ -69,5 +67,5 @@ async def resolve_report(
         "REPORT",
         report_id,
         {"action": body.action.upper(), "status": status, "resolution": body.resolution},
-        _client_ip(request),
+        client_ip(request),
     )

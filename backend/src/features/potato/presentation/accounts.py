@@ -11,6 +11,7 @@ from src.features.campaigns.presentation.dependencies import get_campaign_servic
 from src.features.potato.application.audit import AuditService
 from src.features.potato.domain.models import OperatorPrincipal
 from src.features.potato.presentation.dependencies import (
+    client_ip,
     get_audit_service,
     get_current_operator,
 )
@@ -18,9 +19,6 @@ from src.features.potato.presentation.schemas import AccountModerationView, Reas
 
 router = APIRouter(prefix="/potato", tags=["potato"])
 
-
-def _client_ip(request: Request) -> str | None:
-    return request.client.host if request.client else None
 
 
 @router.get("/accounts/{account_id}", response_model=AccountModerationView)
@@ -60,7 +58,7 @@ async def suspend(
         await accounts.suspend(account_id)
     except AccountNotFound:
         raise HTTPException(404, "account not found")
-    await audit.record(op.id, "SUSPEND", "ACCOUNT", account_id, {"reason": body.reason}, _client_ip(request))
+    await audit.record(op.id, "SUSPEND", "ACCOUNT", account_id, {"reason": body.reason}, client_ip(request))
 
 
 @router.post("/accounts/{account_id}/unsuspend", status_code=204)
@@ -75,7 +73,7 @@ async def unsuspend(
         await accounts.unsuspend(account_id)
     except AccountNotFound:
         raise HTTPException(404, "account not found")
-    await audit.record(op.id, "UNSUSPEND", "ACCOUNT", account_id, None, _client_ip(request))
+    await audit.record(op.id, "UNSUSPEND", "ACCOUNT", account_id, None, client_ip(request))
 
 
 @router.post("/accounts/{account_id}/block-review", status_code=204)
@@ -92,7 +90,7 @@ async def block_review(
     if not await accounts.exists(account_id):
         raise HTTPException(404, "account not found")
     await campaigns.block_reviewer(account_id)
-    await audit.record(op.id, "BLOCK_REVIEW", "ACCOUNT", account_id, {"reason": body.reason}, _client_ip(request))
+    await audit.record(op.id, "BLOCK_REVIEW", "ACCOUNT", account_id, {"reason": body.reason}, client_ip(request))
 
 
 @router.post("/accounts/{account_id}/unblock-review", status_code=204)
@@ -107,4 +105,4 @@ async def unblock_review(
     if not await accounts.exists(account_id):
         raise HTTPException(404, "account not found")
     await campaigns.unblock_reviewer(account_id)
-    await audit.record(op.id, "UNBLOCK_REVIEW", "ACCOUNT", account_id, None, _client_ip(request))
+    await audit.record(op.id, "UNBLOCK_REVIEW", "ACCOUNT", account_id, None, client_ip(request))

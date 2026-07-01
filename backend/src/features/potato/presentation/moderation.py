@@ -13,6 +13,7 @@ from src.features.catalog.presentation.dependencies import get_catalog_service
 from src.features.potato.application.audit import AuditService
 from src.features.potato.domain.models import OperatorPrincipal
 from src.features.potato.presentation.dependencies import (
+    client_ip,
     get_audit_service,
     get_current_operator,
 )
@@ -20,9 +21,6 @@ from src.features.potato.presentation.schemas import BookModerationItem, Takedow
 
 router = APIRouter(prefix="/potato", tags=["potato"])
 
-
-def _client_ip(request: Request) -> str | None:
-    return request.client.host if request.client else None
 
 
 @router.get("/books", response_model=list[BookModerationItem])
@@ -64,7 +62,7 @@ async def takedown(
         await catalog.takedown(book_id)
     except BookNotFound:
         raise HTTPException(404, "book not found")
-    await audit.record(op.id, "TAKEDOWN", "BOOK", book_id, {"reason": body.reason}, _client_ip(request))
+    await audit.record(op.id, "TAKEDOWN", "BOOK", book_id, {"reason": body.reason}, client_ip(request))
 
 
 @router.post("/books/{book_id}/restore", status_code=204)
@@ -80,4 +78,4 @@ async def restore(
         await catalog.restore(book_id)
     except BookNotFound:
         raise HTTPException(404, "book not found")
-    await audit.record(op.id, "RESTORE", "BOOK", book_id, None, _client_ip(request))
+    await audit.record(op.id, "RESTORE", "BOOK", book_id, None, client_ip(request))
