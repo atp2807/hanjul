@@ -1,7 +1,7 @@
 """notifications API — 작가 팔로우 + 인앱 알림함."""
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import get_session
@@ -16,6 +16,7 @@ from src.features.notifications.presentation.schemas import (
     NotificationItem,
     NotificationListResponse,
 )
+from src.shared.errors import DomainError, NotFoundError
 
 router = APIRouter(tags=["notifications"])
 
@@ -30,11 +31,11 @@ async def follow_author(
 ) -> None:
     """작가 팔로우 — 신간 출판 시 알림. 없는 작가 404 / 자기 자신 400."""
     if not await acct.exists(author_id):
-        raise HTTPException(404, "author not found")
+        raise NotFoundError("author not found")
     try:
         await svc.follow(principal.id, author_id)
     except ValueError as e:
-        raise HTTPException(400, str(e))
+        raise DomainError(str(e))
 
 
 @router.delete("/authors/{author_id}/follow", status_code=204)
@@ -74,7 +75,7 @@ async def read_notification(
     svc: NotificationService = Depends(get_notification_service),
 ) -> None:
     if not await svc.mark_read(principal.id, notification_id):
-        raise HTTPException(404, "notification not found")
+        raise NotFoundError("notification not found")
 
 
 @router.post("/me/notifications/read-all", status_code=204)

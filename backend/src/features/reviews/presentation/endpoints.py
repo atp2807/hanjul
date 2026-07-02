@@ -1,7 +1,7 @@
 """reviews API — 평점·리뷰 작성/조회."""
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import get_session
@@ -18,6 +18,7 @@ from src.features.reviews.presentation.schemas import (
     ReviewItem,
     ReviewListResponse,
 )
+from src.shared.errors import ForbiddenError, NotFoundError
 
 router = APIRouter(tags=["reviews"])
 
@@ -37,9 +38,9 @@ async def add_review(
     """리뷰·평점 작성 — 구매한 독자만. (책,계정)당 한 건(다시 쓰면 갱신)."""
     repo = SqlReviewRepository(session)
     if not await repo.book_exists(book_id):
-        raise HTTPException(404, "book not found")
+        raise NotFoundError("book not found")
     if not await orders.owns(principal.id, book_id):
-        raise HTTPException(403, "구매한 독자만 리뷰할 수 있어요")
+        raise ForbiddenError("구매한 독자만 리뷰할 수 있어요")
     # 증정본 권한이면 '서평단' 리뷰로 표시(법적 공개·배지)
     source = "REVIEW_COPY" if await orders.is_review_copy(principal.id, book_id) else "PURCHASE"
     # 평점 검증 실패는 ValidationError(422) → 중앙 핸들러가 매핑.

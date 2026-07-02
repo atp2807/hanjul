@@ -1,11 +1,12 @@
 """potato 표현 레이어 DI — 고객(auth)과 분리된 운영자 인증 합성 루트."""
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, Request
+from fastapi import Depends, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import get_potato_session, get_session
+from src.shared.errors import ForbiddenError, UnauthorizedError
 from src.config.settings import settings
 from src.features.potato.application.audit import AuditService
 from src.features.potato.application.auth_service import PotatoAuthService
@@ -74,7 +75,7 @@ def require_allowed_ip(request: Request) -> None:
     if ip in _LOOPBACK:
         return
     if ip not in allowed:
-        raise HTTPException(status_code=403, detail="forbidden")
+        raise ForbiddenError("forbidden")
 
 
 _bearer = HTTPBearer(auto_error=False)
@@ -85,12 +86,12 @@ def get_current_operator(
 ) -> OperatorPrincipal:
     """potato 토큰 필수. 고객 토큰(다른 시크릿·aud 없음)은 검증 실패 → 401."""
     if creds is None:
-        raise HTTPException(status_code=401, detail="operator authentication required")
+        raise UnauthorizedError("operator authentication required")
     try:
         payload = potato_token_issuer().verify(creds.credentials)
         return OperatorPrincipal(id=UUID(payload["sub"]), role_cd=payload.get("role", "OPERATOR"))
     except Exception:
-        raise HTTPException(status_code=401, detail="operator authentication required")
+        raise UnauthorizedError("operator authentication required")
 
 
 def require_developer(
@@ -98,5 +99,5 @@ def require_developer(
 ) -> OperatorPrincipal:
     """개발자 전용(시스템/엔진 메뉴). 일반 운영자는 403."""
     if principal.role_cd != DEVELOPER:
-        raise HTTPException(status_code=403, detail="developer only")
+        raise ForbiddenError("developer only")
     return principal

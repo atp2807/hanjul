@@ -1,7 +1,7 @@
 """campaigns API — 서평단 캠페인 생성·모집·신청·배정."""
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import get_session
@@ -29,6 +29,7 @@ from src.features.campaigns.presentation.schemas import (
     CreateCampaignRequest,
     ReviewerStatusResponse,
 )
+from src.shared.errors import ConflictError, ForbiddenError, NotFoundError
 
 router = APIRouter(tags=["campaigns"])
 
@@ -43,9 +44,9 @@ async def create_campaign(
     """서평단 캠페인 생성 — 책의 작가 본인만."""
     author = await SqlCampaignRepository(session).book_author(body.book_id)
     if author is None:
-        raise HTTPException(404, "book not found")
+        raise NotFoundError("book not found")
     if author != principal.id:
-        raise HTTPException(403, "이 책의 작가만 서평단을 열 수 있어요")
+        raise ForbiddenError("이 책의 작가만 서평단을 열 수 있어요")
     cid = await svc.create(body.book_id, principal.id, body.slots, body.review_days, body.min_chars)
     return {"campaignId": str(cid)}
 
@@ -90,7 +91,7 @@ async def campaign_applicants(
     """캠페인 신청자 목록 — 캠페인 작가만 (배정 UI)."""
     camp = await svc.get(campaign_id)
     if camp.author_id != principal.id:
-        raise HTTPException(403, "이 캠페인의 작가만 볼 수 있어요")
+        raise ForbiddenError("이 캠페인의 작가만 볼 수 있어요")
     items = await svc.list_applicants(campaign_id)
     names = await acct.names_for([a.applicant_id for a in items])  # 직접 JOIN 대체
     return ApplicantListResponse(
@@ -113,7 +114,7 @@ async def close_campaign(
     """모집 수동 마감 — 캠페인 작가만. 피드 제외 + 새 신청 차단(기존 신청자는 배정 가능)."""
     camp = await svc.get(campaign_id)
     if camp.author_id != principal.id:
-        raise HTTPException(403, "이 캠페인의 작가만 마감할 수 있어요")
+        raise ForbiddenError("이 캠페인의 작가만 마감할 수 있어요")
     await svc.close(campaign_id)
 
 
@@ -126,7 +127,7 @@ async def cancel_application(
     """리뷰어 신청 취소 — 아직 배정 전(PENDING)만."""
     ok = await svc.cancel(campaign_id, principal.id)
     if not ok:
-        raise HTTPException(409, "이미 배정됐거나 신청 내역이 없어요")
+        raise ConflictError("이미 배정됐거나 신청 내역이 없어요")
 
 
 @router.post("/campaigns/{campaign_id}/apply", status_code=204)
@@ -151,7 +152,7 @@ async def assign(
     """리뷰어 배정 — 캠페인 작가만. 배정 성공 시 증정본 지급 + 리뷰어 알림."""
     camp = await svc.get(campaign_id)
     if camp.author_id != principal.id:
-        raise HTTPException(403, "이 캠페인의 작가만 배정할 수 있어요")
+        raise ForbiddenError("이 캠페인의 작가만 배정할 수 있어요")
     await svc.assign(campaign_id, body.applicant_id)
     await orders.grant_review_copy(camp.book_id, body.applicant_id)  # 증정본 지급
     await notifs.notify_assigned(body.applicant_id, camp.book_id, camp.book_title)  # 배정 알림

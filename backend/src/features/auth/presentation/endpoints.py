@@ -1,10 +1,11 @@
 """auth API 엔드포인트 — 소셜 로그인 (브라우저 리다이렉트 플로우)."""
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from fastapi.responses import RedirectResponse
 
 from src.config.settings import settings
+from src.shared.errors import NotFoundError
 from src.features.auth.application.auth_service import AuthService
 from src.features.auth.domain.models import OAuthExchangeError, SocialProfile
 from src.features.auth.presentation.dependencies import get_auth_service
@@ -37,7 +38,7 @@ async def test_login(
     경로는 1세그먼트라 /{provider}/login·/{provider}/callback 과 충돌하지 않는다.
     """
     if not settings.E2E_LOGIN_ENABLED:
-        raise HTTPException(status_code=404, detail="not found")
+        raise NotFoundError("not found")
     profile = SocialProfile("GOOGLE", f"e2e:{email}", email, name)
     result = await service.login_with_profile(profile)
     return _front_redirect(f"token={result.token}&isNew={'1' if result.is_new else '0'}")

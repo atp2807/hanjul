@@ -3,7 +3,7 @@ import logging
 from datetime import datetime, timezone
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -32,6 +32,7 @@ from src.features.catalog.presentation.schemas import (
     StoreListResponse,
     UpdateMetaRequest,
 )
+from src.shared.errors import ConflictError, ForbiddenError, NotFoundError
 
 router = APIRouter(tags=["catalog"])
 logger = logging.getLogger("app")
@@ -75,7 +76,7 @@ async def require_book_owner(
     """책 변경 권한 = 소유 작가만. 없는 책 404(중앙 핸들러) / 타인 403 (fail-closed)."""
     meta = await svc.get_meta(book_id)  # BookNotFound → 404 (중앙 핸들러)
     if meta.author_id != principal.id:
-        raise HTTPException(403, "not the owner")
+        raise ForbiddenError("not the owner")
 
 
 # ── 출판 라이프사이클 ─────────────────────────────────
@@ -143,7 +144,7 @@ async def delete_book(
     """책 삭제 — 소유 작가만. 판매(주문) 이력 있으면 409(출판 취소만 가능)."""
     # 주문 유무는 billing 포트로 확인(스키마 경계 유지). FK RESTRICT는 운영 DB 안전망.
     if await orders.has_any_order(book_id):
-        raise HTTPException(409, "판매 이력이 있어 삭제할 수 없어요. 출판 취소만 가능해요.")
+        raise ConflictError("판매 이력이 있어 삭제할 수 없어요. 출판 취소만 가능해요.")
     # BookHasOrders(409)는 FK RESTRICT 안전망 — 중앙 핸들러가 매핑.
     await svc.delete_book(book_id)
 
@@ -225,7 +226,7 @@ async def author_profile(
     try:
         acc = await acct.get_profile(author_id)
     except AccountNotFound:
-        raise HTTPException(404, "author not found")
+        raise NotFoundError("author not found")
     books = await svc.list_published_by_author(author_id)
     return AuthorProfileResponse(
         id=acc.id,

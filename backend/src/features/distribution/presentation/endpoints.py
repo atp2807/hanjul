@@ -2,7 +2,7 @@
 from datetime import datetime, timezone
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import get_session
@@ -21,6 +21,7 @@ from src.features.distribution.application.distribution_service import Distribut
 from src.features.distribution.infrastructure.channels import build_channel
 from src.features.distribution.infrastructure.distribution_repo import SqlDistributionRepository
 from src.features.distribution.presentation.schemas import DistributeRequest, DistributionResponse
+from src.shared.errors import ConflictError, NotFoundError
 
 router = APIRouter(tags=["distribution"])
 
@@ -38,9 +39,9 @@ async def distribute(
         content = await book_svc.get_content(book_id)
         meta = await catalog_svc.get_meta(book_id)
     except (BookNotFound, CatalogBookNotFound):
-        raise HTTPException(404, "book not found")
+        raise NotFoundError("book not found")
     if meta.status != "PUBLISHED":
-        raise HTTPException(409, "출판본만 서점 배포 가능")
+        raise ConflictError("출판본만 서점 배포 가능")
 
     author = None
     if meta.author_id:

@@ -4,7 +4,7 @@ reports 서비스에 위임 + 처리 시 감사 기록.
 """
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Request
 
 from src.features.potato.application.audit import AuditService
 from src.features.potato.domain.models import OperatorPrincipal
@@ -17,6 +17,7 @@ from src.features.potato.presentation.schemas import ReportItem, ResolveReportRe
 from src.features.reports.application.report_service import ReportService
 from src.features.reports.domain.models import ReportNotFound
 from src.features.reports.presentation.dependencies import get_report_service
+from src.shared.errors import NotFoundError, ValidationError
 
 router = APIRouter(prefix="/potato", tags=["potato"])
 
@@ -58,9 +59,9 @@ async def resolve_report(
     try:
         status = await svc.resolve(report_id, op.id, body.action, body.resolution)
     except ReportNotFound:
-        raise HTTPException(404, "report not found")
+        raise NotFoundError("report not found")
     except ValueError as e:
-        raise HTTPException(422, str(e))
+        raise ValidationError(str(e))
     await audit.record(
         op.id,
         "RESOLVE_REPORT",

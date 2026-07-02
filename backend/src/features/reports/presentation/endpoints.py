@@ -2,7 +2,7 @@
 
 운영자측 목록/처리는 potato 영역(potato/presentation/reports.py)에 분리.
 """
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 
 from src.features.auth.domain.models import AccountPrincipal
 from src.features.auth.presentation.dependencies import get_current_account
@@ -10,6 +10,7 @@ from src.features.reports.application.report_service import ReportService
 from src.features.reports.domain.models import InvalidTarget
 from src.features.reports.presentation.dependencies import get_report_service
 from src.features.reports.presentation.schemas import SubmitReportRequest, SubmitReportResponse
+from src.shared.errors import ValidationError
 
 router = APIRouter(tags=["reports"])
 
@@ -24,7 +25,7 @@ async def submit_report(
     try:
         report = await svc.submit(principal.id, body.target_type, body.target_id, body.reason)
     except InvalidTarget:
-        raise HTTPException(422, "invalid target type")
+        raise ValidationError("invalid target type")
     except ValueError as e:
-        raise HTTPException(422, str(e))
+        raise ValidationError(str(e))
     return SubmitReportResponse(id=report.id)

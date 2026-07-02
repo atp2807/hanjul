@@ -1,11 +1,12 @@
 """auth 표현 레이어 DI 합성 루트."""
 from uuid import UUID
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import get_session
+from src.shared.errors import UnauthorizedError
 from src.config.settings import settings
 from src.features.auth.application.auth_service import AuthService
 from src.features.auth.application.token import JwtTokenIssuer
@@ -45,7 +46,7 @@ def get_current_account(
     """Authorization: Bearer 필수. 없거나 유효하지 않으면 401."""
     principal = _principal_from(creds)
     if principal is None:
-        raise HTTPException(status_code=401, detail="authentication required")
+        raise UnauthorizedError("authentication required")
     return principal
 
 

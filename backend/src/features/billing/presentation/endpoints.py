@@ -1,7 +1,7 @@
 """billing API — 주문 생성/결제확인/조회 + 결제 설정."""
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 
 from src.config.settings import settings
 from src.features.auth.domain.models import AccountPrincipal
@@ -24,6 +24,7 @@ from src.features.billing.presentation.schemas import (
     OrderResponse,
     SettlementResponse,
 )
+from src.shared.errors import NotFoundError
 
 router = APIRouter(prefix="/orders", tags=["billing"])
 payments_router = APIRouter(prefix="/payments", tags=["billing"])
@@ -103,5 +104,5 @@ async def get_order(
     order = await svc.get_order(order_id)  # OrderNotFound → 404 (중앙 핸들러)
     # 본인 주문만 — 타인 주문은 존재 노출 없이 404 (인가는 표현층 판단)
     if order.buyer_account_id != principal.id:
-        raise HTTPException(404, "order not found")
+        raise NotFoundError("order not found")
     return OrderResponse.model_validate(order)
