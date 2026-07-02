@@ -17,8 +17,8 @@ class OrderResponse(CamelSchema):
     book_id: UUID
     buyer_account_id: UUID
     amount_amt: int
-    channel_cd: str
-    status_cd: str
+    channel: str
+    status: str
 
 
 class ConfirmPaymentRequest(CamelSchema):
@@ -26,7 +26,7 @@ class ConfirmPaymentRequest(CamelSchema):
 
 
 class SettlementResponse(CamelSchema):
-    channel_cd: str
+    channel: str
     gross_amt: int
     platform_fee_amt: int
     withholding_amt: int

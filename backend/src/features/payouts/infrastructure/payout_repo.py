@@ -72,8 +72,8 @@ class SqlPayoutRepository:
             .join(Book, Book.id == Order.book_id)
             .where(
                 Book.author_id == author_id,
-                Order.status_cd == "PAID",
-                Order.channel_cd != "REVIEW",
+                Order.status == "PAID",
+                Order.channel != "REVIEW",
                 Settlement.payout_id.is_(None),
             )
         )
@@ -92,8 +92,8 @@ class SqlPayoutRepository:
                 .join(Book, Book.id == Order.book_id)
                 .where(
                     Book.author_id == author_id,
-                    Order.status_cd == "PAID",
-                    Order.channel_cd != "REVIEW",
+                    Order.status == "PAID",
+                    Order.channel != "REVIEW",
                     Settlement.payout_id.is_(None),
                 )
             )

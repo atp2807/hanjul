@@ -22,8 +22,8 @@ class SqlOrderRepository:
             book_id=book_id,
             buyer_account_id=buyer_account_id,
             amount_amt=amount,
-            channel_cd=channel,
-            status_cd="PENDING",
+            channel=channel,
+            status="PENDING",
             withdrawal_consent_at=consent_at,
         )
         self.session.add(order)
@@ -40,8 +40,8 @@ class SqlOrderRepository:
             book_id=o.book_id,
             buyer_account_id=o.buyer_account_id,
             amount_amt=int(o.amount_amt),
-            channel_cd=o.channel_cd,
-            status_cd=o.status_cd,
+            channel=o.channel,
+            status=o.status,
             pg_tx_id=o.pg_tx_id,
         )
 
@@ -58,17 +58,17 @@ class SqlOrderRepository:
                 .execution_options(populate_existing=True)  # 잠금 후 DB 최신값으로 갱신
             )
         ).scalar_one_or_none()
-        if o is None or o.status_cd == "PAID":
+        if o is None or o.status == "PAID":
             await self.session.rollback()
             return
-        o.status_cd = "PAID"
+        o.status = "PAID"
         o.pg_provider_cd = pg_provider_cd
         o.pg_tx_id = pg_tx_id
         o.paid_at = datetime.now(UTC)
         self.session.add(
             Settlement(
                 order_id=order_id,
-                channel_cd=breakdown.channel,
+                channel=breakdown.channel,
                 gross_amt=breakdown.author_gross,
                 platform_fee_amt=breakdown.platform_fee,
                 withholding_amt=breakdown.withholding,
@@ -87,10 +87,10 @@ class SqlOrderRepository:
                 .execution_options(populate_existing=True)
             )
         ).scalar_one_or_none()
-        if o is None or o.status_cd != "PAID":
+        if o is None or o.status != "PAID":
             await self.session.rollback()
             return False
-        o.status_cd = "REFUNDED"
+        o.status = "REFUNDED"
         o.refunded_at = datetime.now(UTC)
         await self.session.commit()
         return True
@@ -102,7 +102,7 @@ class SqlOrderRepository:
         self.session.add(
             Order(
                 book_id=book_id, buyer_account_id=account_id, amount_amt=0,
-                channel_cd="REVIEW", status_cd="PAID", paid_at=datetime.now(UTC),
+                channel="REVIEW", status="PAID", paid_at=datetime.now(UTC),
             )
         )
         await self.session.commit()
@@ -114,8 +114,8 @@ class SqlOrderRepository:
             .where(
                 Order.buyer_account_id == account_id,
                 Order.book_id == book_id,
-                Order.status_cd == "PAID",
-                Order.channel_cd == "REVIEW",
+                Order.status == "PAID",
+                Order.channel == "REVIEW",
             )
             .limit(1)
         )
@@ -127,7 +127,7 @@ class SqlOrderRepository:
             .where(
                 Order.buyer_account_id == account_id,
                 Order.book_id == book_id,
-                Order.status_cd == "PAID",
+                Order.status == "PAID",
             )
             .limit(1)
         )
@@ -145,7 +145,7 @@ class SqlOrderRepository:
         rows = (
             await self.session.execute(
                 select(Order.buyer_account_id)
-                .where(Order.book_id == book_id, Order.status_cd == "PAID")
+                .where(Order.book_id == book_id, Order.status == "PAID")
                 .distinct()
             )
         ).scalars().all()
@@ -163,7 +163,7 @@ class SqlOrderRepository:
             .select_from(Settlement)
             .join(Order, Order.id == Settlement.order_id)
             .join(Book, Book.id == Order.book_id)
-            .where(Book.author_id == author_id, Order.status_cd == "PAID", Order.channel_cd != "REVIEW")  # 환불·취소·서평단 증정본 제외
+            .where(Book.author_id == author_id, Order.status == "PAID", Order.channel != "REVIEW")  # 환불·취소·서평단 증정본 제외
             .group_by(Book.id, Book.title)
         )
         rows = (await self.session.execute(stmt)).all()
@@ -183,7 +183,7 @@ class SqlOrderRepository:
         stmt = (
             select(Book, Order.id)
             .join(Order, Order.book_id == Book.id)
-            .where(Order.buyer_account_id == account_id, Order.status_cd == "PAID")
+            .where(Order.buyer_account_id == account_id, Order.status == "PAID")
         )
         rows = (await self.session.execute(stmt)).all()
         return [

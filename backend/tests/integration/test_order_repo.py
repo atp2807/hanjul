@@ -35,7 +35,7 @@ async def test_paid_order_persists_settlement(sessionmaker):
     # 영속 확인
     async with sessionmaker() as s2:
         order = await SqlOrderRepository(s2).get_order(order_id)
-        assert order.status_cd == "PAID"
+        assert order.status == "PAID"
         assert order.amount_amt == 10000  # 서버 가격
         settlement = (
             await s2.execute(select(Settlement).where(Settlement.order_id == order_id))

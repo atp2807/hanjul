@@ -63,11 +63,11 @@ async def _seed_sale(sessionmaker, author_id, gross=7000, wh=231, payout=6769) -
         book = Book(title="책", kind="BOOK", language="ko", status="PUBLISHED", price_amt=10000, author_id=author_id)
         s.add(book)
         await s.flush()
-        order = Order(book_id=book.id, buyer_account_id=uuid4(), amount_amt=10000, channel_cd="SELF",
-                      status_cd="PAID", paid_at=datetime.now(timezone.utc))
+        order = Order(book_id=book.id, buyer_account_id=uuid4(), amount_amt=10000, channel="SELF",
+                      status="PAID", paid_at=datetime.now(timezone.utc))
         s.add(order)
         await s.flush()
-        s.add(Settlement(order_id=order.id, channel_cd="SELF", gross_amt=gross, platform_fee_amt=3000,
+        s.add(Settlement(order_id=order.id, channel="SELF", gross_amt=gross, platform_fee_amt=3000,
                          withholding_amt=wh, payout_amt=payout))
         await s.commit()
 

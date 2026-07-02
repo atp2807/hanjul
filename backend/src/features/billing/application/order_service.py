@@ -68,7 +68,7 @@ class OrderService:
         order = await self.get_order(order_id)
         if order.buyer_account_id != buyer_id:
             raise OrderNotFound(order_id)  # 타인 주문은 존재 노출 없이 404
-        if order.status_cd != PAID:
+        if order.status != PAID:
             raise NotRefundable()
         ok = await self.gateway.refund(order.pg_tx_id, reason or "구매자 환불", order_ref=str(order_id))
         if not ok:
@@ -82,7 +82,7 @@ class OrderService:
         주문의 '우리 DB에 저장된' pg_tx_id로만 조회 → 위조 바디로 남의 주문 못 건드림.
         """
         order = await self.repo.get_order(order_id)
-        if order is None or order.status_cd != PAID or not order.pg_tx_id:
+        if order is None or order.status != PAID or not order.pg_tx_id:
             return False
         status = await self.gateway.lookup_status(order.pg_tx_id)
         if status in ("CANCELED", "CANCELLED", "PARTIAL_CANCELED"):
@@ -120,7 +120,7 @@ class OrderService:
         # 남의 주문은 못 본 것처럼 처리 (존재 노출 최소화)
         if buyer_id is not None and order.buyer_account_id != buyer_id:
             raise OrderNotFound(order_id)
-        if order.status_cd == PAID:
+        if order.status == PAID:
             raise AlreadyPaid()
 
         # order_ref = 토스 orderId 등 PG가 결제 시 식별자로 쓴 값(우리 주문 UUID)
@@ -128,12 +128,12 @@ class OrderService:
         if not ok:
             raise PaymentFailed()
 
-        breakdown = calculate_settlement(order.amount_amt, order.channel_cd, self.is_individual)
+        breakdown = calculate_settlement(order.amount_amt, order.channel, self.is_individual)
         await self.repo.mark_paid_with_settlement(
             order_id, self.gateway.provider_cd, pg_tx_id, breakdown
         )
         return SettlementView(
-            channel_cd=breakdown.channel,
+            channel=breakdown.channel,
             gross_amt=breakdown.author_gross,
             platform_fee_amt=breakdown.platform_fee,
             withholding_amt=breakdown.withholding,

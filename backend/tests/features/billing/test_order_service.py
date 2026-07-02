@@ -28,7 +28,7 @@ async def test_confirm_creates_settlement_with_server_price():
     assert result.gross_amt == 7000
     assert result.withholding_amt == 231
     assert result.payout_amt == 6769
-    assert repo.orders[oid].status_cd == PAID
+    assert repo.orders[oid].status == PAID
     assert repo.orders[oid].amount_amt == 10000  # 서버 가격이 박힘
 
 
@@ -60,7 +60,7 @@ async def test_failed_verification_keeps_pending():
     oid = await svc.create_order(uuid.uuid4(), uuid.uuid4(), "SELF", withdrawal_consent=True)
     with pytest.raises(PaymentFailed):
         await svc.confirm_payment(oid, "tx-bad")
-    assert repo.orders[oid].status_cd == "PENDING"
+    assert repo.orders[oid].status == "PENDING"
 
 
 async def test_confirm_unknown_order_raises():

@@ -21,14 +21,14 @@ class OrderView:
     book_id: UUID
     buyer_account_id: UUID
     amount_amt: int
-    channel_cd: str
-    status_cd: str
+    channel: str
+    status: str
     pg_tx_id: str | None = None
 
 
 @dataclass
 class SettlementView:
-    channel_cd: str
+    channel: str
     gross_amt: int
     platform_fee_amt: int
     withholding_amt: int

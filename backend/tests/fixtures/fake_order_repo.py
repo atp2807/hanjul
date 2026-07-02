@@ -39,7 +39,7 @@ class FakeOrderRepository:
         oid = uuid.uuid4()
         self.orders[oid] = OrderView(
             id=oid, book_id=book_id, buyer_account_id=buyer_account_id,
-            amount_amt=amount, channel_cd=channel, status_cd=PENDING,
+            amount_amt=amount, channel=channel, status=PENDING,
         )
         return oid
 
@@ -47,12 +47,12 @@ class FakeOrderRepository:
         return self.orders.get(order_id)
 
     async def mark_paid_with_settlement(self, order_id, pg_provider_cd, pg_tx_id, breakdown) -> None:
-        self.orders[order_id].status_cd = PAID
+        self.orders[order_id].status = PAID
         self.settlements[order_id] = breakdown
 
     async def owns(self, account_id, book_id) -> bool:
         return any(
-            o.buyer_account_id == account_id and o.book_id == book_id and o.status_cd == PAID
+            o.buyer_account_id == account_id and o.book_id == book_id and o.status == PAID
             for o in self.orders.values()
         )
 
@@ -62,19 +62,19 @@ class FakeOrderRepository:
         oid = uuid.uuid4()
         self.orders[oid] = OrderView(
             id=oid, book_id=book_id, buyer_account_id=account_id,
-            amount_amt=0, channel_cd="REVIEW", status_cd=PAID,
+            amount_amt=0, channel="REVIEW", status=PAID,
         )
 
     async def is_review_copy(self, account_id, book_id) -> bool:
         return any(
             o.buyer_account_id == account_id and o.book_id == book_id
-            and o.status_cd == PAID and o.channel_cd == "REVIEW"
+            and o.status == PAID and o.channel == "REVIEW"
             for o in self.orders.values()
         )
 
     async def buyer_ids(self, book_id) -> list:
         return list(
-            {o.buyer_account_id for o in self.orders.values() if o.book_id == book_id and o.status_cd == PAID}
+            {o.buyer_account_id for o in self.orders.values() if o.book_id == book_id and o.status == PAID}
         )
 
     async def author_sales(self, author_id):
@@ -87,7 +87,7 @@ class FakeOrderRepository:
 
         seen = {}
         for o in self.orders.values():
-            if o.buyer_account_id == account_id and o.status_cd == PAID:
+            if o.buyer_account_id == account_id and o.status == PAID:
                 seen[o.book_id] = PurchasedBook(
                     book_id=o.book_id, title="", kind="", price_amt=o.amount_amt, cover_url=None, order_id=o.id
                 )

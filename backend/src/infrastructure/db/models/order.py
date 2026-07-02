@@ -26,8 +26,8 @@ class Order(Base):
     book_id = Column(UUID(as_uuid=True), ForeignKey("pub.book.id", ondelete="RESTRICT"), nullable=False)
     buyer_account_id = Column(UUID(as_uuid=True), ForeignKey("usr.account.id", ondelete="RESTRICT"), nullable=False)
     amount_amt = Column(Numeric(15, 0), nullable=False)
-    channel_cd = Column(String(20), nullable=False, default="SELF")     # SELF | EXTERNAL
-    status_cd = Column(String(20), nullable=False, default="PENDING")   # PENDING | PAID | CANCELLED
+    channel = Column("channel_cd", String(20), nullable=False, default="SELF")   # SELF | EXTERNAL
+    status = Column("status_cd", String(20), nullable=False, default="PENDING")  # PENDING | PAID | CANCELLED
     pg_provider_cd = Column(String(20))                                 # PORTONE | ...
     pg_tx_id = Column(String(255))
     # 청약철회 제한 동의 시각(전자책 제공 개시 후 철회 불가, 전자상거래법 §17⑥). NULL=미동의.
@@ -45,7 +45,7 @@ class Settlement(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     order_id = Column(UUID(as_uuid=True), ForeignKey("bill.book_order.id", ondelete="CASCADE"), nullable=False, unique=True)
-    channel_cd = Column(String(20), nullable=False)
+    channel = Column("channel_cd", String(20), nullable=False)
     gross_amt = Column(Numeric(15, 0), nullable=False)          # 작가 몫(원천징수 전)
     platform_fee_amt = Column(Numeric(15, 0), nullable=False)
     withholding_amt = Column(Numeric(15, 0), nullable=False)

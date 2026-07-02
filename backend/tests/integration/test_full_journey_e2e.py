@@ -98,7 +98,7 @@ async def test_author_publishes_reader_buys_and_reads(journey):
         assert settle["grossAmt"] == 7000
         assert settle["withholdingAmt"] == 231
         assert settle["payoutAmt"] == 6769
-        assert (await c.get(f"/api/orders/{order_id}", headers=buyer_auth)).json()["statusCd"] == "PAID"
+        assert (await c.get(f"/api/orders/{order_id}", headers=buyer_auth)).json()["status"] == "PAID"
 
         # 5) 독자: 본문 읽기 (정본 HTML)
         content = (await c.get(f"/api/books/{book_id}/content")).json()

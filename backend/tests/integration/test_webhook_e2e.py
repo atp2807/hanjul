@@ -69,13 +69,13 @@ async def _paid_order(c):
 async def test_webhook_cancel_reconciles_to_refunded(app_db):
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
         oid, b_auth = await _paid_order(c)
-        assert (await c.get(f"/api/orders/{oid}", headers=b_auth)).json()["statusCd"] == "PAID"
+        assert (await c.get(f"/api/orders/{oid}", headers=b_auth)).json()["status"] == "PAID"
 
         # PG가 취소 상태로 보고 → 웹훅 reconcile → 환불
         GATEWAY.status = "CANCELED"
         r = await c.post("/api/payments/webhook", json={"data": {"orderId": oid, "status": "CANCELED"}})
         assert r.status_code == 200 and r.json()["ok"] is True
-        assert (await c.get(f"/api/orders/{oid}", headers=b_auth)).json()["statusCd"] == "REFUNDED"
+        assert (await c.get(f"/api/orders/{oid}", headers=b_auth)).json()["status"] == "REFUNDED"
 
 
 async def test_webhook_body_not_trusted(app_db):
@@ -84,7 +84,7 @@ async def test_webhook_body_not_trusted(app_db):
         oid, b_auth = await _paid_order(c)
         GATEWAY.status = "DONE"  # PG는 정상 결제로 보고
         await c.post("/api/payments/webhook", json={"data": {"orderId": oid, "status": "CANCELED"}})
-        assert (await c.get(f"/api/orders/{oid}", headers=b_auth)).json()["statusCd"] == "PAID"
+        assert (await c.get(f"/api/orders/{oid}", headers=b_auth)).json()["status"] == "PAID"
 
 
 async def test_webhook_unknown_order_still_200(app_db):
