@@ -32,9 +32,10 @@ jobs:
           node-version: '20'
           cache: npm
           cache-dependency-path: package-lock.json
-      # 루트 install(workspace 링크). npm ci 대신 install — macOS 생성 lockfile에서
-      # 리눅스 네이티브 optional(@napi-rs/canvas·rollup)을 npm ci가 skip하는 버그(npm/cli#4828) 회피.
-      - run: npm install --no-audit --no-fund
+      # 루트 install(workspace 링크). macOS 생성 lockfile은 리눅스 네이티브 optional
+      # (@napi-rs/canvas-linux·rollup-linux)을 항목에서 누락 → npm ci/install 모두 skip(npm/cli#4828).
+      # lockfile 삭제 후 install해야 리눅스에서 완전 재해석돼 네이티브 바이너리가 깔린다.
+      - run: rm -f package-lock.json && npm install --no-audit --no-fund
       - run: npm run test -w web
       - run: npm run test -w potato
 
@@ -89,7 +90,8 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
       - name: 프론트 의존성 (루트 install)
-        run: npm install --no-audit --no-fund
+        # lockfile 삭제 후 install — 리눅스 네이티브 optional dep 정상 설치(npm/cli#4828)
+        run: rm -f package-lock.json && npm install --no-audit --no-fund
       - name: Playwright 브라우저 (web workspace)
         working-directory: web
         run: npx playwright install --with-deps chromium
