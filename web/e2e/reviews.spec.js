@@ -17,7 +17,7 @@ test('구매자 리뷰 작성 → 평균·목록 노출', async ({ page, request
   // 독자가 먼저 구매(데모 결제)
   const rt = await tokenFor(request, 'reader-rv@x.com', '리뷰어');
   const rauth = { Authorization: `Bearer ${rt}` };
-  const order = await (await request.post('/api/orders', { headers: rauth, data: { bookId: id } })).json();
+  const order = await (await request.post('/api/orders', { headers: rauth, data: { bookId: id, withdrawalConsent: true } })).json();
   await request.post(`/api/orders/${order.id}/confirm`, { headers: rauth, data: { pgTxId: 'demo' } });
 
   await login(page, 'reader-rv@x.com', '리뷰어');

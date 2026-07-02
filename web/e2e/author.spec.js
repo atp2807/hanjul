@@ -18,10 +18,16 @@ test('작가: 생성→출간→서점 배포까지 한 흐름', async ({ page }
   await page.getByRole('button', { name: '장 추가' }).click();
   await expect(page.getByText(/블록이 새 장으로 추가/)).toBeVisible();
 
-  // AI 표지 생성 (데모) → 미리보기 이미지 노출
-  await page.getByPlaceholder(/표지 분위기/).fill('잔잔한 한국 에세이, 따뜻한 색감');
-  await page.getByRole('button', { name: 'AI 표지 생성' }).click();
-  await expect(page.getByText('표지가 생성됐어요.')).toBeVisible();
+  // 표지 업로드 (AI 생성은 보류 — 업로드만 지원)
+  await page.locator('input[type="file"]').setInputFiles({
+    name: 'cover.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
+      'base64',
+    ),
+  });
+  await expect(page.getByText('표지를 올렸어요.')).toBeVisible();
   await expect(page.getByRole('img', { name: '표지' })).toBeVisible();
 
   // 책 정보 (부제·소개·분류)
