@@ -1,6 +1,7 @@
-import { T } from './theme';
+// 공용 컴포넌트는 @hanjul/ui 로 이전. Icon은 운영자 아이콘셋이라 앱에 유지.
+export { Button, Card, Badge, Chip, Field, PageHeader } from '@hanjul/ui';
 
-// ── 커스텀 SVG 아이콘 (이모지 대체) ──────────────────
+// ── 운영자 커스텀 SVG 아이콘 (고객 앱과 다른 셋) ──────
 const ICONS = {
   dashboard: (
     <>
@@ -11,11 +12,7 @@ const ICONS = {
     </>
   ),
   moderation: <path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z" />,
-  reports: (
-    <>
-      <path d="M5 21V4M5 4h12l-2 4 2 4H5" />
-    </>
-  ),
+  reports: <path d="M5 21V4M5 4h12l-2 4 2 4H5" />,
   accounts: (
     <>
       <circle cx="9" cy="8" r="3.2" />
@@ -60,158 +57,5 @@ export function Icon({ name, size = 18, color = 'currentColor', style }) {
     >
       {ICONS[name]}
     </svg>
-  );
-}
-
-// ── 버튼 ──────────────────────────────────────────────
-export function Button({ kind = 'secondary', children, style, ...rest }) {
-  const p = {
-    primary: { bg: T.ink, fg: T.inkText, bd: T.ink, w: 700 },
-    secondary: { bg: T.surface, fg: T.text, bd: '#d6e4de', w: 600 },
-    danger: { bg: T.dangerBg, fg: T.danger, bd: T.dangerBg, w: 700 },
-    dangerSolid: { bg: T.danger, fg: '#fff', bd: T.danger, w: 700 },
-  }[kind];
-  return (
-    <button
-      style={{
-        font: T.font,
-        fontSize: 13.5,
-        fontWeight: p.w,
-        padding: '10px 18px',
-        borderRadius: T.radius.md,
-        border: `1px solid ${p.bd}`,
-        background: p.bg,
-        color: p.fg,
-        cursor: 'pointer',
-        whiteSpace: 'nowrap',
-        ...style,
-      }}
-      {...rest}
-    >
-      {children}
-    </button>
-  );
-}
-
-export function Card({ children, style }) {
-  return (
-    <div
-      style={{
-        background: T.surface,
-        borderRadius: T.radius.card,
-        padding: 22,
-        border: `1px solid ${T.borderSoft}`,
-        ...style,
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-// 상태 배지 — tone: ok | warn | danger | info | neutral
-export function Badge({ tone = 'neutral', children, style }) {
-  const c = {
-    ok: { bg: T.okBg, fg: T.ok },
-    warn: { bg: T.warnBg, fg: T.warn },
-    danger: { bg: T.dangerBg, fg: T.danger },
-    info: { bg: T.infoBg, fg: T.info },
-    neutral: { bg: '#eef6f3', fg: T.text },
-  }[tone];
-  return (
-    <span
-      style={{
-        display: 'inline-block',
-        background: c.bg,
-        color: c.fg,
-        fontSize: 11.5,
-        fontWeight: 700,
-        padding: '3px 10px',
-        borderRadius: T.radius.pill,
-        ...style,
-      }}
-    >
-      {children}
-    </span>
-  );
-}
-
-// 필터 칩 (active=딥틸 채움)
-export function Chip({ active, children, ...rest }) {
-  return (
-    <button
-      style={{
-        font: T.font,
-        fontSize: 13,
-        fontWeight: 600,
-        padding: '8px 16px',
-        borderRadius: T.radius.pill,
-        border: active ? `1px solid ${T.ink}` : `1px solid ${T.border}`,
-        background: active ? T.ink : T.surface,
-        color: active ? T.inkText : T.text,
-        cursor: 'pointer',
-      }}
-      {...rest}
-    >
-      {children}
-    </button>
-  );
-}
-
-export function Field({ label, style, ...rest }) {
-  return (
-    <label style={{ display: 'block' }}>
-      {label && (
-        <span style={{ display: 'block', fontSize: 13, color: T.textSoft, marginBottom: 6 }}>
-          {label}
-        </span>
-      )}
-      <input
-        style={{
-          width: '100%',
-          font: T.font,
-          fontSize: 14,
-          padding: '11px 13px',
-          borderRadius: T.radius.md,
-          border: `1px solid ${T.border}`,
-          background: T.surface,
-          color: T.textStrong,
-          ...style,
-        }}
-        {...rest}
-      />
-    </label>
-  );
-}
-
-export function PageHeader({ title, subtitle, right }) {
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: 22,
-        gap: 16,
-      }}
-    >
-      <div>
-        <h1
-          style={{
-            margin: 0,
-            fontSize: 24,
-            fontWeight: 800,
-            color: T.ink,
-            letterSpacing: '-0.025em',
-          }}
-        >
-          {title}
-        </h1>
-        {subtitle && (
-          <div style={{ fontSize: 14, color: T.muted, marginTop: 4 }}>{subtitle}</div>
-        )}
-      </div>
-      {right}
-    </div>
   );
 }
