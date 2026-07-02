@@ -13,10 +13,10 @@ DUE_SOON = "DUE_SOON"   # 서평단 리뷰 마감 임박
 @dataclass
 class NotificationView:
     id: UUID
-    kind_cd: str
+    kind: str
     book_id: UUID | None
     title: str | None
-    read_yn: bool
+    is_read: bool
     created_at: datetime
 
 
@@ -37,13 +37,13 @@ class FollowRepository(Protocol):
 
 class NotificationRepository(Protocol):
     async def create_for_recipients(
-        self, recipient_ids: list[UUID], kind_cd: str, book_id: UUID | None, title: str | None
+        self, recipient_ids: list[UUID], kind: str, book_id: UUID | None, title: str | None
     ) -> None:
         """수신자별 알림 생성. (수신자,책,종류) 중복은 건너뜀(멱등 — 신간용)."""
         ...
 
     async def relight_for_recipients(
-        self, recipient_ids: list[UUID], kind_cd: str, book_id: UUID | None, title: str | None
+        self, recipient_ids: list[UUID], kind: str, book_id: UUID | None, title: str | None
     ) -> None:
         """수신자별 알림 재점등 — 기존 (수신자,책,종류)면 안읽음으로 되살림, 없으면 생성(개정판용)."""
         ...

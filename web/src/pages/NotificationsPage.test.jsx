@@ -19,8 +19,8 @@ describe('NotificationsPage', () => {
   it('알림 목록을 종류별 문구로 렌더한다', async () => {
     notifApi.getNotifications.mockResolvedValue({
       items: [
-        { id: 'n1', kindCd: 'ASSIGNED', bookId: 'b1', title: '밤의 편집자', readYn: false },
-        { id: 'n2', kindCd: 'DUE_SOON', bookId: 'b2', title: '새벽의 문장', readYn: true },
+        { id: 'n1', kind: 'ASSIGNED', bookId: 'b1', title: '밤의 편집자', isRead: false },
+        { id: 'n2', kind: 'DUE_SOON', bookId: 'b2', title: '새벽의 문장', isRead: true },
       ],
       unreadCount: 1,
     });
@@ -33,7 +33,7 @@ describe('NotificationsPage', () => {
 
   it('모두 읽음 → markAllRead 호출', async () => {
     notifApi.getNotifications.mockResolvedValue({
-      items: [{ id: 'n1', kindCd: 'ASSIGNED', bookId: 'b1', title: '밤의 편집자', readYn: false }],
+      items: [{ id: 'n1', kind: 'ASSIGNED', bookId: 'b1', title: '밤의 편집자', isRead: false }],
       unreadCount: 1,
     });
     notifApi.markAllRead.mockResolvedValue(null);
@@ -44,7 +44,7 @@ describe('NotificationsPage', () => {
 
   it('항목 클릭 → 읽음 처리 + 책으로 이동', async () => {
     notifApi.getNotifications.mockResolvedValue({
-      items: [{ id: 'n1', kindCd: 'ASSIGNED', bookId: 'b1', title: '밤의 편집자', readYn: false }],
+      items: [{ id: 'n1', kind: 'ASSIGNED', bookId: 'b1', title: '밤의 편집자', isRead: false }],
       unreadCount: 1,
     });
     notifApi.markRead.mockResolvedValue(null);

@@ -35,8 +35,8 @@ class Notification(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     recipient_id = Column(UUID(as_uuid=True), ForeignKey("usr.account.id", ondelete="CASCADE"), nullable=False)
-    kind_cd = Column(String(20), nullable=False)  # NEW_BOOK
+    kind = Column("kind_cd", String(20), nullable=False)  # NEW_BOOK
     book_id = Column(UUID(as_uuid=True), ForeignKey("pub.book.id", ondelete="CASCADE"))
     title = Column(Text)
-    read_yn = Column(Boolean, nullable=False, default=False, server_default=false())
+    is_read = Column("read_yn", Boolean, nullable=False, default=False, server_default=false())
     created_at = Column("created_ts", DateTime(timezone=True), default=_now, nullable=False)

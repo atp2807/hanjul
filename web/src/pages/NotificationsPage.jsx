@@ -24,11 +24,11 @@ export function NotificationsPage() {
   if (!user) return <div style={{ padding: 60, textAlign: 'center', color: T.muted, fontFamily: T.font }}>로그인이 필요해요.</div>;
   if (items === null) return <div style={{ padding: 60, textAlign: 'center', color: T.muted, fontFamily: T.font }}>불러오는 중…</div>;
 
-  const unread = items.filter((n) => !n.readYn).length;
-  const shown = filter === 'UNREAD' ? items.filter((n) => !n.readYn) : items;
+  const unread = items.filter((n) => !n.isRead).length;
+  const shown = filter === 'UNREAD' ? items.filter((n) => !n.isRead) : items;
 
   async function onItem(n) {
-    if (!n.readYn) { try { await markRead(n.id); } catch { /* noop */ } }
+    if (!n.isRead) { try { await markRead(n.id); } catch { /* noop */ } }
     if (n.bookId) navigate(`/books/${n.bookId}`);
   }
   async function onReadAll() {
@@ -62,18 +62,18 @@ export function NotificationsPage() {
                 key={n.id}
                 data-testid="notif-row"
                 onClick={() => onItem(n)}
-                style={{ display: 'flex', gap: 13, alignItems: 'center', textAlign: 'left', padding: '16px 18px', borderRadius: 13, cursor: 'pointer', border: `1px solid ${T.borderSoft}`, background: n.readYn ? T.surface : T.tint }}
+                style={{ display: 'flex', gap: 13, alignItems: 'center', textAlign: 'left', padding: '16px 18px', borderRadius: 13, cursor: 'pointer', border: `1px solid ${T.borderSoft}`, background: n.isRead ? T.surface : T.tint }}
               >
-                <span style={{ width: 40, height: 40, borderRadius: 11, background: KIND_ICON_BG[n.kindCd] || T.tint, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Icon name={KIND_ICON[n.kindCd] || 'bell'} size={18} stroke="#143e4a" />
+                <span style={{ width: 40, height: 40, borderRadius: 11, background: KIND_ICON_BG[n.kind] || T.tint, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Icon name={KIND_ICON[n.kind] || 'bell'} size={18} stroke="#143e4a" />
                 </span>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 13.5, color: T.textStrong, lineHeight: 1.5 }}>
-                    <b>{n.title || '새 소식'}</b>{KIND_SUFFIX[n.kindCd] || ' 소식이 있어요.'}
+                    <b>{n.title || '새 소식'}</b>{KIND_SUFFIX[n.kind] || ' 소식이 있어요.'}
                   </div>
-                  <span style={{ display: 'block', fontSize: 12, color: T.muted, marginTop: 4 }}>{KIND_LABEL[n.kindCd] || '알림'}</span>
+                  <span style={{ display: 'block', fontSize: 12, color: T.muted, marginTop: 4 }}>{KIND_LABEL[n.kind] || '알림'}</span>
                 </div>
-                {!n.readYn && <span style={{ width: 8, height: 8, borderRadius: T.radius.pill, background: 'oklch(0.7 0.12 184)', flexShrink: 0 }} />}
+                {!n.isRead && <span style={{ width: 8, height: 8, borderRadius: T.radius.pill, background: 'oklch(0.7 0.12 184)', flexShrink: 0 }} />}
               </button>
             ))}
           </div>

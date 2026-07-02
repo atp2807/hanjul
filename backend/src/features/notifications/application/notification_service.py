@@ -59,7 +59,7 @@ class NotificationService:
     async def inbox(self, recipient_id: UUID) -> tuple[list[NotificationView], int]:
         # 전체 목록을 이미 가져오므로 안읽음 수는 거기서 도출(쿼리 1번)
         items = await self.notifs.list_for(recipient_id)
-        unread = sum(1 for n in items if not n.read_yn)
+        unread = sum(1 for n in items if not n.is_read)
         return items, unread
 
     async def mark_read(self, recipient_id: UUID, notification_id: UUID) -> bool:

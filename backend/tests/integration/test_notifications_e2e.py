@@ -84,10 +84,10 @@ async def test_follow_then_new_book_notifies_only_followers(app_db):
         # 팔로워: 신간 알림 1건
         inbox = (await c.get("/api/me/notifications", headers=follower_auth)).json()
         assert inbox["unreadCount"] == 1
-        assert inbox["items"][0]["kindCd"] == "NEW_BOOK"
+        assert inbox["items"][0]["kind"] == "NEW_BOOK"
         assert inbox["items"][0]["bookId"] == book
         assert inbox["items"][0]["title"] == "신간"
-        assert inbox["items"][0]["readYn"] is False
+        assert inbox["items"][0]["isRead"] is False
 
         # 비팔로워·작가 본인: 알림 없음
         assert (await c.get("/api/me/notifications", headers=other_auth)).json()["unreadCount"] == 0
@@ -157,7 +157,7 @@ async def test_revision_notifies_buyers_and_relights(app_db):
         await c.post(f"/api/books/{book}/publish-now", headers=author_auth)
         inbox = (await c.get("/api/me/notifications", headers=buyer_auth)).json()
         assert inbox["unreadCount"] == 1
-        assert inbox["items"][0]["kindCd"] == "REVISION"
+        assert inbox["items"][0]["kind"] == "REVISION"
         assert inbox["items"][0]["bookId"] == book
 
         # 읽음 → 0
@@ -168,7 +168,7 @@ async def test_revision_notifies_buyers_and_relights(app_db):
         # 다시 개정 → 같은 알림이 재점등(행 1개 유지, 다시 안읽음)
         await c.post(f"/api/books/{book}/publish-now", headers=author_auth)
         again = (await c.get("/api/me/notifications", headers=buyer_auth)).json()
-        revisions = [n for n in again["items"] if n["kindCd"] == "REVISION"]
+        revisions = [n for n in again["items"] if n["kind"] == "REVISION"]
         assert len(revisions) == 1 and again["unreadCount"] == 1
 
 
@@ -202,7 +202,7 @@ async def test_scheduled_publish_notifies_followers(app_db, sessionmaker):
 
         inbox = (await c.get("/api/me/notifications", headers=follower_auth)).json()
         assert inbox["unreadCount"] == 1
-        assert inbox["items"][0]["kindCd"] == "NEW_BOOK"
+        assert inbox["items"][0]["kind"] == "NEW_BOOK"
         assert inbox["items"][0]["bookId"] == book
 
 

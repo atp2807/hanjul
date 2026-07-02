@@ -208,8 +208,8 @@ async def test_assign_notifies_reviewer(app_db):
         # 배정 후: 리뷰어에게 ASSIGNED 알림(책 제목 포함, 안읽음)
         after = (await c.get("/api/me/notifications", headers=r_auth)).json()
         assert after["unreadCount"] >= 1
-        item = next(n for n in after["items"] if n["kindCd"] == "ASSIGNED")
-        assert item["title"] == "알림책" and item["bookId"] == book and item["readYn"] is False
+        item = next(n for n in after["items"] if n["kind"] == "ASSIGNED")
+        assert item["title"] == "알림책" and item["bookId"] == book and item["isRead"] is False
 
 
 async def test_assign_only_by_campaign_author(app_db):

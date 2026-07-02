@@ -51,7 +51,7 @@ class SqlNotificationRepository:
         self.session = session
 
     async def create_for_recipients(
-        self, recipient_ids: list[UUID], kind_cd: str, book_id: UUID | None, title: str | None
+        self, recipient_ids: list[UUID], kind: str, book_id: UUID | None, title: str | None
     ) -> None:
         if not recipient_ids:
             return
@@ -61,7 +61,7 @@ class SqlNotificationRepository:
                 await self.session.execute(
                     select(Notification.recipient_id).where(
                         Notification.book_id == book_id,
-                        Notification.kind_cd == kind_cd,
+                        Notification.kind == kind,
                         Notification.recipient_id.in_(recipient_ids),
                     )
                 )
@@ -72,7 +72,7 @@ class SqlNotificationRepository:
             return
         self.session.add_all(
             [
-                Notification(recipient_id=r, kind_cd=kind_cd, book_id=book_id, title=title)
+                Notification(recipient_id=r, kind=kind, book_id=book_id, title=title)
                 for r in fresh
             ]
         )
@@ -82,7 +82,7 @@ class SqlNotificationRepository:
             await self.session.rollback()  # 유니크 경쟁 → 멱등
 
     async def relight_for_recipients(
-        self, recipient_ids: list[UUID], kind_cd: str, book_id: UUID | None, title: str | None
+        self, recipient_ids: list[UUID], kind: str, book_id: UUID | None, title: str | None
     ) -> None:
         if not recipient_ids:
             return
@@ -92,7 +92,7 @@ class SqlNotificationRepository:
                 await self.session.execute(
                     select(Notification).where(
                         Notification.book_id == book_id,
-                        Notification.kind_cd == kind_cd,
+                        Notification.kind == kind,
                         Notification.recipient_id.in_(recipient_ids),
                     )
                 )
@@ -102,12 +102,12 @@ class SqlNotificationRepository:
         for r in recipient_ids:
             cur = existing.get(r)
             if cur is not None:
-                cur.read_yn = False  # 다시 안읽음으로 되살림(개정판 재알림)
+                cur.is_read = False  # 다시 안읽음으로 되살림(개정판 재알림)
                 cur.title = title
                 cur.created_at = now
             else:
                 self.session.add(
-                    Notification(recipient_id=r, kind_cd=kind_cd, book_id=book_id, title=title)
+                    Notification(recipient_id=r, kind=kind, book_id=book_id, title=title)
                 )
         try:
             await self.session.commit()
@@ -125,10 +125,10 @@ class SqlNotificationRepository:
         return [
             NotificationView(
                 id=n.id,
-                kind_cd=n.kind_cd,
+                kind=n.kind,
                 book_id=n.book_id,
                 title=n.title,
-                read_yn=n.read_yn,
+                is_read=n.is_read,
                 created_at=n.created_at,
             )
             for n in rows
@@ -138,7 +138,7 @@ class SqlNotificationRepository:
         n = await self.session.get(Notification, notification_id)
         if n is None or n.recipient_id != recipient_id:
             return False
-        n.read_yn = True
+        n.is_read = True
         await self.session.commit()
         return True
 
@@ -146,7 +146,7 @@ class SqlNotificationRepository:
         # 메모리 적재 없이 일괄 UPDATE (안읽음만)
         await self.session.execute(
             update(Notification)
-            .where(Notification.recipient_id == recipient_id, Notification.read_yn.is_(False))
-            .values(read_yn=True)
+            .where(Notification.recipient_id == recipient_id, Notification.is_read.is_(False))
+            .values(is_read=True)
         )
         await self.session.commit()

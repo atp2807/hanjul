@@ -32,9 +32,9 @@ async def test_due_soon_creates_reminder_idempotent(sessionmaker):
 
         notifs = SqlNotificationRepository(s)
         items = await notifs.list_for(reader.id)
-        assert len([x for x in items if x.kind_cd == "DUE_SOON"]) == 1
+        assert len([x for x in items if x.kind == "DUE_SOON"]) == 1
 
         # 재실행 → 멱등(중복 알림 없음)
         await remind_due_soon(s, base, within_days=2)
         items2 = await notifs.list_for(reader.id)
-        assert len([x for x in items2 if x.kind_cd == "DUE_SOON"]) == 1
+        assert len([x for x in items2 if x.kind == "DUE_SOON"]) == 1

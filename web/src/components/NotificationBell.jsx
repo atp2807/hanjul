@@ -40,7 +40,7 @@ export function NotificationBell() {
   }, []);
 
   async function openItem(n) {
-    if (!n.readYn) {
+    if (!n.isRead) {
       await markRead(n.id).catch(() => {});
       refresh();
     }
@@ -93,18 +93,18 @@ export function NotificationBell() {
                 key={n.id}
                 data-testid="notif-item"
                 onClick={() => openItem(n)}
-                style={{ display: 'flex', gap: 14, width: '100%', textAlign: 'left', padding: '18px 24px', border: 'none', borderBottom: '1px solid #f3f7f5', background: n.readYn ? T.surface : T.bg, cursor: 'pointer', alignItems: 'flex-start' }}
+                style={{ display: 'flex', gap: 14, width: '100%', textAlign: 'left', padding: '18px 24px', border: 'none', borderBottom: '1px solid #f3f7f5', background: n.isRead ? T.surface : T.bg, cursor: 'pointer', alignItems: 'flex-start' }}
               >
-                <span style={{ width: 40, height: 40, borderRadius: 11, background: KIND_ICON_BG[n.kindCd] || T.tint, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Icon name={KIND_ICON[n.kindCd] || 'bell'} size={18} stroke="#143e4a" />
+                <span style={{ width: 40, height: 40, borderRadius: 11, background: KIND_ICON_BG[n.kind] || T.tint, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Icon name={KIND_ICON[n.kind] || 'bell'} size={18} stroke="#143e4a" />
                 </span>
                 <span style={{ flex: 1 }}>
                   <span style={{ display: 'block', fontSize: 14, color: T.textStrong, lineHeight: 1.5 }}>
-                    <b>{n.title || '새 책'}</b> {KIND_SUFFIX[n.kindCd] || '소식이 있어요.'}
+                    <b>{n.title || '새 책'}</b> {KIND_SUFFIX[n.kind] || '소식이 있어요.'}
                   </span>
-                  <span style={{ display: 'block', fontSize: 12, color: '#a8b5af', marginTop: 4 }}>{KIND_LABEL[n.kindCd] || '알림'}</span>
+                  <span style={{ display: 'block', fontSize: 12, color: '#a8b5af', marginTop: 4 }}>{KIND_LABEL[n.kind] || '알림'}</span>
                 </span>
-                {!n.readYn && <span style={{ width: 8, height: 8, borderRadius: 999, background: T.accent, marginTop: 6, flexShrink: 0 }} />}
+                {!n.isRead && <span style={{ width: 8, height: 8, borderRadius: 999, background: T.accent, marginTop: 6, flexShrink: 0 }} />}
               </button>
             ))
           )}

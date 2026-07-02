@@ -28,7 +28,7 @@ describe('NotificationBell', () => {
 
   it('안읽음이 있으면 배지 수를 보여준다', async () => {
     notifApi.getNotifications.mockResolvedValue({
-      items: [{ id: 'n1', kindCd: 'NEW_BOOK', bookId: 'b1', title: '신간', readYn: false }],
+      items: [{ id: 'n1', kind: 'NEW_BOOK', bookId: 'b1', title: '신간', isRead: false }],
       unreadCount: 1,
     });
     renderBell();
@@ -37,7 +37,7 @@ describe('NotificationBell', () => {
 
   it('항목 클릭 → 읽음 처리 + 책으로 이동', async () => {
     notifApi.getNotifications.mockResolvedValue({
-      items: [{ id: 'n1', kindCd: 'NEW_BOOK', bookId: 'b1', title: '신간', readYn: false }],
+      items: [{ id: 'n1', kind: 'NEW_BOOK', bookId: 'b1', title: '신간', isRead: false }],
       unreadCount: 1,
     });
     notifApi.markRead.mockResolvedValue(null);
@@ -52,7 +52,7 @@ describe('NotificationBell', () => {
 
   it('서평단 배정 알림을 배정 문구로 렌더한다', async () => {
     notifApi.getNotifications.mockResolvedValue({
-      items: [{ id: 'n2', kindCd: 'ASSIGNED', bookId: 'b1', title: '밤의 편집자', readYn: false }],
+      items: [{ id: 'n2', kind: 'ASSIGNED', bookId: 'b1', title: '밤의 편집자', isRead: false }],
       unreadCount: 1,
     });
     renderBell();
@@ -64,7 +64,7 @@ describe('NotificationBell', () => {
 
   it('마감임박 알림을 마감 문구로 렌더한다', async () => {
     notifApi.getNotifications.mockResolvedValue({
-      items: [{ id: 'n3', kindCd: 'DUE_SOON', bookId: 'b1', title: '밤의 편집자', readYn: false }],
+      items: [{ id: 'n3', kind: 'DUE_SOON', bookId: 'b1', title: '밤의 편집자', isRead: false }],
       unreadCount: 1,
     });
     renderBell();

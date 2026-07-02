@@ -7,10 +7,10 @@ from src.presentation.schema import CamelSchema
 
 class NotificationItem(CamelSchema):
     id: UUID
-    kind_cd: str
+    kind: str
     book_id: UUID | None
     title: str | None
-    read_yn: bool
+    is_read: bool
     created_at: datetime
 
 

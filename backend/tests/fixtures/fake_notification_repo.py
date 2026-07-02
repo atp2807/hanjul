@@ -26,44 +26,44 @@ class FakeNotificationRepository:
     def __init__(self) -> None:
         self.rows: list[NotificationView] = []
 
-    async def create_for_recipients(self, recipient_ids, kind_cd, book_id, title) -> None:
-        existing = {(n.recipient_id, n.book_id, n.kind_cd) for n in self.rows}
+    async def create_for_recipients(self, recipient_ids, kind, book_id, title) -> None:
+        existing = {(n.recipient_id, n.book_id, n.kind) for n in self.rows}
         for r in recipient_ids:
-            if (r, book_id, kind_cd) in existing:
+            if (r, book_id, kind) in existing:
                 continue
             from datetime import datetime, timezone
 
             self.rows.append(
                 NotificationView(
                     id=uuid.uuid4(),
-                    kind_cd=kind_cd,
+                    kind=kind,
                     book_id=book_id,
                     title=title,
-                    read_yn=False,
+                    is_read=False,
                     created_at=datetime.now(timezone.utc),
                 )
             )
             # recipient_id 를 뷰에 보관 (테스트 편의)
             self.rows[-1].recipient_id = r
 
-    async def relight_for_recipients(self, recipient_ids, kind_cd, book_id, title) -> None:
+    async def relight_for_recipients(self, recipient_ids, kind, book_id, title) -> None:
         from datetime import datetime, timezone
 
         for r in recipient_ids:
             cur = next(
                 (n for n in self.rows if getattr(n, "recipient_id", None) == r
-                 and n.book_id == book_id and n.kind_cd == kind_cd),
+                 and n.book_id == book_id and n.kind == kind),
                 None,
             )
             if cur is not None:
-                cur.read_yn = False
+                cur.is_read = False
                 cur.title = title
                 cur.created_at = datetime.now(timezone.utc)
             else:
                 self.rows.append(
                     NotificationView(
-                        id=uuid.uuid4(), kind_cd=kind_cd, book_id=book_id, title=title,
-                        read_yn=False, created_at=datetime.now(timezone.utc),
+                        id=uuid.uuid4(), kind=kind, book_id=book_id, title=title,
+                        is_read=False, created_at=datetime.now(timezone.utc),
                     )
                 )
                 self.rows[-1].recipient_id = r
@@ -74,11 +74,11 @@ class FakeNotificationRepository:
     async def mark_read(self, recipient_id: UUID, notification_id: UUID) -> bool:
         for n in self.rows:
             if n.id == notification_id and getattr(n, "recipient_id", None) == recipient_id:
-                n.read_yn = True
+                n.is_read = True
                 return True
         return False
 
     async def mark_all_read(self, recipient_id: UUID) -> None:
         for n in self.rows:
             if getattr(n, "recipient_id", None) == recipient_id:
-                n.read_yn = True
+                n.is_read = True

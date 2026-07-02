@@ -64,7 +64,7 @@ async def test_notify_revision_relights_on_each_revision():
     # 1차 개정 → 구매자 2명 알림
     assert await svc.notify_revision(book, "개정판", [b1, b2]) == 2
     items, unread = await svc.inbox(b1)
-    assert unread == 1 and items[0].kind_cd == "REVISION"
+    assert unread == 1 and items[0].kind == "REVISION"
 
     # 읽음 처리
     await svc.mark_read(b1, items[0].id)
