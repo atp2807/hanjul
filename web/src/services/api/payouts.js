@@ -4,8 +4,8 @@ import { apiClient } from './api_client';
 export function getBankAccount() {
   return apiClient.get('/me/bank-account');
 }
-export function setBankAccount(holderName, bankCd, accountNo) {
-  return apiClient.put('/me/bank-account', { holderName, bankCd, accountNo });
+export function setBankAccount(holderName, bank, accountNo) {
+  return apiClient.put('/me/bank-account', { holderName, bank, accountNo });
 }
 
 // 출금 가능액(미지급 정산 집계)

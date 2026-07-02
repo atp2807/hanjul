@@ -31,7 +31,7 @@ export function SettlementPage() {
   const [account, setAccount] = useState(null);
   const [payable, setPayable] = useState(null);
   const [payouts, setPayouts] = useState([]);
-  const [form, setForm] = useState({ holderName: '', bankCd: '', accountNo: '' });
+  const [form, setForm] = useState({ holderName: '', bank: '', accountNo: '' });
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState('');
   const [msg, setMsg] = useState('');
@@ -56,10 +56,10 @@ export function SettlementPage() {
     e.preventDefault();
     setError('');
     try {
-      const a = await setBankAccount(form.holderName, form.bankCd, form.accountNo);
+      const a = await setBankAccount(form.holderName, form.bank, form.accountNo);
       setAccount(a);
       setEditing(false);
-      setForm({ holderName: '', bankCd: '', accountNo: '' });
+      setForm({ holderName: '', bank: '', accountNo: '' });
     } catch (err) {
       setError(err.status === 422 ? '계좌 정보를 확인해 주세요.' : '저장 실패');
     }
@@ -123,7 +123,7 @@ export function SettlementPage() {
           {!editing && account ? (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ fontSize: 14, color: T.textStrong }}>
-                {account.bankCd} · {account.accountNoMasked} · {account.holderName}
+                {account.bank} · {account.accountNoMasked} · {account.holderName}
               </div>
               <button onClick={() => setEditing(true)} style={{
                 padding: '8px 14px', borderRadius: 10, border: `1px solid ${T.border}`,
@@ -138,8 +138,8 @@ export function SettlementPage() {
                   onChange={(e) => setForm({ ...form, holderName: e.target.value })} placeholder="홍길동" />
               </label>
               <label style={{ display: 'block', fontSize: 13, color: T.textSoft, marginTop: 12 }}>은행
-                <input style={inputStyle} value={form.bankCd}
-                  onChange={(e) => setForm({ ...form, bankCd: e.target.value })} placeholder="국민은행" />
+                <input style={inputStyle} value={form.bank}
+                  onChange={(e) => setForm({ ...form, bank: e.target.value })} placeholder="국민은행" />
               </label>
               <label style={{ display: 'block', fontSize: 13, color: T.textSoft, marginTop: 12 }}>계좌번호
                 <input style={inputStyle} value={form.accountNo}
@@ -160,7 +160,7 @@ export function SettlementPage() {
         <Card title="출금 내역">
           {payouts.length === 0 && <div style={{ color: T.muted, fontSize: 13 }}>출금 내역이 없어요.</div>}
           {payouts.map((p) => {
-            const st = STATUS_LABEL[p.statusCd] || { text: p.statusCd, tone: T.muted, bg: T.tint };
+            const st = STATUS_LABEL[p.status] || { text: p.status, tone: T.muted, bg: T.tint };
             return (
               <div key={p.id} style={{
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',

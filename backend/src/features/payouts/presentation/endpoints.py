@@ -31,7 +31,7 @@ async def set_bank_account(
     svc: PayoutService = Depends(get_payout_service),
 ) -> BankAccountResponse:
     # 입력검증 실패는 서비스가 ValidationError(422) → 중앙 핸들러가 매핑.
-    acc = await svc.set_bank_account(principal.id, body.holder_name, body.bank_cd, body.account_no)
+    acc = await svc.set_bank_account(principal.id, body.holder_name, body.bank, body.account_no)
     return BankAccountResponse.model_validate(acc)
 
 

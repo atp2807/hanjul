@@ -15,8 +15,8 @@ import Payouts from './Payouts';
 
 const requested = [
   {
-    id: 'p1', netAmt: 96700, withholdingAmt: 3300, statusCd: 'REQUESTED',
-    bankCd: '국민', accountNoMasked: '****1234', holderName: '김작가',
+    id: 'p1', netAmt: 96700, withholdingAmt: 3300, status: 'REQUESTED',
+    bank: '국민', accountNoMasked: '****1234', holderName: '김작가',
   },
 ];
 

@@ -29,17 +29,17 @@ class PayoutService:
         return await self.repo.get_bank_account(account_id)
 
     async def set_bank_account(
-        self, account_id: UUID, holder_name: str, bank_cd: str, account_no: str
+        self, account_id: UUID, holder_name: str, bank: str, account_no: str
     ) -> BankAccountView:
         holder_name = (holder_name or "").strip()
-        bank_cd = (bank_cd or "").strip()
+        bank = (bank or "").strip()
         digits = (account_no or "").replace("-", "").replace(" ", "")
-        if not holder_name or not bank_cd:
+        if not holder_name or not bank:
             raise ValidationError("예금주·은행은 필수예요")
         if not digits.isdigit() or not (6 <= len(digits) <= 20):
             raise ValidationError("계좌번호를 확인해 주세요")
         return await self.repo.upsert_bank_account(
-            account_id, holder_name, bank_cd, encrypt(digits), mask_account(digits)
+            account_id, holder_name, bank, encrypt(digits), mask_account(digits)
         )
 
     # ── 작가: 출금 ────────────────────────────────────
@@ -70,20 +70,20 @@ class PayoutService:
 
     async def approve(self, payout_id: UUID, operator_id: UUID) -> None:
         p = await self._require(payout_id)
-        if p.status_cd != REQUESTED:
+        if p.status != REQUESTED:
             raise InvalidPayoutState()
         await self.repo.set_status(payout_id, APPROVED, operator_id, self._now())
 
     async def mark_paid(self, payout_id: UUID, operator_id: UUID, memo: str | None = None) -> None:
         """실이체 완료 후 지급확정 (이체 자체는 운영자가 수동)."""
         p = await self._require(payout_id)
-        if p.status_cd != APPROVED:
+        if p.status != APPROVED:
             raise InvalidPayoutState()
         await self.repo.set_status(payout_id, PAID, operator_id, self._now(), memo)
 
     async def reject(self, payout_id: UUID, operator_id: UUID, memo: str | None = None) -> None:
         p = await self._require(payout_id)
-        if p.status_cd not in (REQUESTED, APPROVED):
+        if p.status not in (REQUESTED, APPROVED):
             raise InvalidPayoutState()
         # 정산분 회수 → 다시 출금 가능
         await self.repo.unlink_settlements(payout_id)

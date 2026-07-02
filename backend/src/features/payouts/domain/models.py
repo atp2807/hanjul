@@ -21,7 +21,7 @@ REJECTED = "REJECTED"
 class BankAccountView:
     id: UUID
     holder_name: str
-    bank_cd: str
+    bank: str
     account_no_masked: str
 
 
@@ -29,12 +29,12 @@ class BankAccountView:
 class PayoutView:
     id: UUID
     author_id: UUID
-    status_cd: str
+    status: str
     gross_amt: int
     withholding_amt: int
     net_amt: int
     holder_name: str | None
-    bank_cd: str | None
+    bank: str | None
     account_no_masked: str | None
     requested_at: datetime
     approved_at: datetime | None = None
@@ -74,7 +74,7 @@ class PayoutRepository(Protocol):
     # 계좌
     async def get_bank_account(self, account_id: UUID) -> BankAccountView | None: ...
     async def upsert_bank_account(
-        self, account_id: UUID, holder_name: str, bank_cd: str, account_no_enc: str, account_no_masked: str
+        self, account_id: UUID, holder_name: str, bank: str, account_no_enc: str, account_no_masked: str
     ) -> BankAccountView: ...
 
     # 출금 가능액(미지급 정산 집계)

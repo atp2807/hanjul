@@ -21,7 +21,7 @@ describe('SettlementPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUser = { id: 'a1', email: 'me@x.com' };
-    payoutsApi.getBankAccount.mockResolvedValue({ id: 'b1', bankCd: '국민', accountNoMasked: '****7890', holderName: '나' });
+    payoutsApi.getBankAccount.mockResolvedValue({ id: 'b1', bank: '국민', accountNoMasked: '****7890', holderName: '나' });
     payoutsApi.getPayable.mockResolvedValue({ grossAmt: 7000, withholdingAmt: 231, netAmt: 6769, orderCount: 1 });
     payoutsApi.getPayouts.mockResolvedValue([]);
   });

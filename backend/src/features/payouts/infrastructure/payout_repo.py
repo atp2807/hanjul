@@ -17,15 +17,15 @@ from src.infrastructure.db.models.payout import BankAccount, Payout
 
 def _acct_view(a: BankAccount) -> BankAccountView:
     return BankAccountView(
-        id=a.id, holder_name=a.holder_name, bank_cd=a.bank_cd, account_no_masked=a.account_no_masked
+        id=a.id, holder_name=a.holder_name, bank=a.bank, account_no_masked=a.account_no_masked
     )
 
 
 def _payout_view(p: Payout) -> PayoutView:
     return PayoutView(
-        id=p.id, author_id=p.author_id, status_cd=p.status_cd,
+        id=p.id, author_id=p.author_id, status=p.status,
         gross_amt=int(p.gross_amt), withholding_amt=int(p.withholding_amt), net_amt=int(p.net_amt),
-        holder_name=p.holder_name, bank_cd=p.bank_cd, account_no_masked=p.account_no_masked,
+        holder_name=p.holder_name, bank=p.bank, account_no_masked=p.account_no_masked,
         requested_at=p.requested_at, approved_at=p.approved_at, paid_at=p.paid_at, memo=p.memo,
     )
 
@@ -44,7 +44,7 @@ class SqlPayoutRepository:
         return _acct_view(row) if row else None
 
     async def upsert_bank_account(
-        self, account_id, holder_name, bank_cd, account_no_enc, account_no_masked
+        self, account_id, holder_name, bank, account_no_enc, account_no_masked
     ) -> BankAccountView:
         row = (
             await self.session.execute(
@@ -53,12 +53,12 @@ class SqlPayoutRepository:
         ).scalar_one_or_none()
         if row is None:
             row = BankAccount(
-                id=uuid4(), account_id=account_id, holder_name=holder_name, bank_cd=bank_cd,
+                id=uuid4(), account_id=account_id, holder_name=holder_name, bank=bank,
                 account_no_enc=account_no_enc, account_no_masked=account_no_masked, primary_yn=True,
             )
             self.session.add(row)
         else:
-            row.holder_name, row.bank_cd = holder_name, bank_cd
+            row.holder_name, row.bank = holder_name, bank
             row.account_no_enc, row.account_no_masked = account_no_enc, account_no_masked
         await self.session.commit()
         await self.session.refresh(row)
@@ -110,9 +110,9 @@ class SqlPayoutRepository:
         withholding = sum(int(s.withholding_amt) for s in rows)
         net = sum(int(s.payout_amt) for s in rows)
         payout = Payout(
-            id=uuid4(), author_id=author_id, status_cd=REQUESTED,
+            id=uuid4(), author_id=author_id, status=REQUESTED,
             gross_amt=gross, withholding_amt=withholding, net_amt=net,
-            holder_name=account.holder_name, bank_cd=account.bank_cd, account_no_masked=account.account_no_masked,
+            holder_name=account.holder_name, bank=account.bank, account_no_masked=account.account_no_masked,
         )
         self.session.add(payout)
         await self.session.flush()
@@ -138,14 +138,14 @@ class SqlPayoutRepository:
     async def list_by_status(self, status: str | None) -> list[PayoutView]:
         stmt = select(Payout)
         if status:
-            stmt = stmt.where(Payout.status_cd == status)
+            stmt = stmt.where(Payout.status == status)
         stmt = stmt.order_by(Payout.requested_at.asc())
         rows = (await self.session.execute(stmt)).scalars().all()
         return [_payout_view(p) for p in rows]
 
     async def set_status(self, payout_id, status, operator_id, now, memo=None) -> None:
         p = await self.session.get(Payout, payout_id)
-        p.status_cd = status
+        p.status = status
         if memo is not None:
             p.memo = memo
         if status == "APPROVED":

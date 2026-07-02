@@ -64,11 +64,11 @@ export default function Payouts() {
                 {p.netAmt.toLocaleString()}원
               </div>
               <div style={{ fontSize: 12.5, color: T.muted, marginTop: 2 }}>
-                {p.bankCd || '-'} · {p.accountNoMasked || '-'} · {p.holderName || '-'} · 원천징수{' '}
+                {p.bank || '-'} · {p.accountNoMasked || '-'} · {p.holderName || '-'} · 원천징수{' '}
                 {p.withholdingAmt.toLocaleString()}원
               </div>
             </div>
-            {p.statusCd === 'REQUESTED' && (
+            {p.status === 'REQUESTED' && (
               <>
                 <Button kind="primary" onClick={() => act(() => api.approvePayout(p.id))}>
                   승인
@@ -81,7 +81,7 @@ export default function Payouts() {
                 </Button>
               </>
             )}
-            {p.statusCd === 'APPROVED' && (
+            {p.status === 'APPROVED' && (
               <Button
                 kind="primary"
                 onClick={() => act(() => api.payPayout(p.id, window.prompt('이체 메모 (선택)') || null))}
@@ -89,8 +89,8 @@ export default function Payouts() {
                 지급완료
               </Button>
             )}
-            {p.statusCd === 'PAID' && <Badge tone="ok">지급완료</Badge>}
-            {p.statusCd === 'REJECTED' && <Badge tone="danger">반려됨</Badge>}
+            {p.status === 'PAID' && <Badge tone="ok">지급완료</Badge>}
+            {p.status === 'REJECTED' && <Badge tone="danger">반려됨</Badge>}
           </div>
         ))}
       </Card>

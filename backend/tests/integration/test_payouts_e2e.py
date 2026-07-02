@@ -92,7 +92,7 @@ async def test_full_payout_lifecycle(app_db):
 
         # 계좌 등록 (계좌번호 암호화 저장 확인)
         r = await c.put("/api/me/bank-account", headers=hdr,
-                        json={"holderName": "작가", "bankCd": "004", "accountNo": "123-456-7890"})
+                        json={"holderName": "작가", "bank": "004", "accountNo": "123-456-7890"})
         assert r.status_code == 200, r.text
         assert r.json()["accountNoMasked"].endswith("7890")
         assert "123" not in r.json()["accountNoMasked"]  # 마스킹됨
@@ -106,7 +106,7 @@ async def test_full_payout_lifecycle(app_db):
         req = await c.post("/api/me/payouts", headers=hdr)
         assert req.status_code == 201, req.text
         payout_id = req.json()["id"]
-        assert req.json()["statusCd"] == "REQUESTED"
+        assert req.json()["status"] == "REQUESTED"
         assert req.json()["netAmt"] == 6769
 
         # 신청 후 출금가능액 0 (정산분이 payout에 묶임)
@@ -130,7 +130,7 @@ async def test_full_payout_lifecycle(app_db):
         # 최종 상태 PAID
         async with app_db() as s:
             p = (await s.execute(select(Payout))).scalar_one()
-            assert p.status_cd == "PAID"
+            assert p.status == "PAID"
             assert p.paid_at is not None
 
 
@@ -140,7 +140,7 @@ async def test_reject_returns_funds(app_db):
         hdr = {"Authorization": f"Bearer {token}"}
         await _seed_sale(app_db, acc["id"])
         await c.put("/api/me/bank-account", headers=hdr,
-                    json={"holderName": "작가", "bankCd": "004", "accountNo": "1234567890"})
+                    json={"holderName": "작가", "bank": "004", "accountNo": "1234567890"})
         payout_id = (await c.post("/api/me/payouts", headers=hdr)).json()["id"]
 
         op_hdr = {"Authorization": f"Bearer {await _op_token(c, app_db)}"}
