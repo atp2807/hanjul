@@ -1,0 +1,8 @@
+{
+  "projectId": "687eaa8b-4c05-4623-8318-8771a8d13e4c",
+  "shape": "package",
+  "pkg": "@hanjul/ui",
+  "globalName": "HanjulUI",
+  "buildCmd": "npm run build",
+  "readmeHeader": ".design-sync/conventions.md"
+}
