@@ -8,8 +8,8 @@ from src.features.distribution.domain.models import DistributionChannel, Unknown
 
 
 class DemoDistributionChannel:
-    def __init__(self, channel_cd: str = "DEMO"):
-        self.channel_cd = channel_cd
+    def __init__(self, channel: str = "DEMO"):
+        self.channel = channel
 
     async def deliver(self, reference: str, epub: bytes, onix: str, filename: str) -> None:
         return  # 데모: 성공 가정
@@ -18,8 +18,8 @@ class DemoDistributionChannel:
 class SftpDistributionChannel:
     """서점 SFTP 채널 — EPUB + ONIX 업로드. 실연동은 host/계정 필요(설정)."""
 
-    def __init__(self, channel_cd: str, host: str, port: int, username: str, password: str, remote_dir: str):
-        self.channel_cd = channel_cd
+    def __init__(self, channel: str, host: str, port: int, username: str, password: str, remote_dir: str):
+        self.channel = channel
         self._host = host
         self._port = port
         self._username = username
@@ -40,16 +40,16 @@ class SftpDistributionChannel:
                     await f.write(onix.encode("utf-8"))
 
 
-def build_channel(channel_cd: str, settings: Settings) -> DistributionChannel:
+def build_channel(channel: str, settings: Settings) -> DistributionChannel:
     if settings.DISTRIBUTION_DEMO:
-        return DemoDistributionChannel(channel_cd)  # 데모는 어떤 서점이든 성공 기록
+        return DemoDistributionChannel(channel)  # 데모는 어떤 서점이든 성공 기록
     if settings.DIST_SFTP_HOST:
         return SftpDistributionChannel(
-            channel_cd,
+            channel,
             host=settings.DIST_SFTP_HOST,
             port=settings.DIST_SFTP_PORT,
             username=settings.DIST_SFTP_USER,
             password=settings.DIST_SFTP_PASSWORD,
             remote_dir=settings.DIST_SFTP_DIR,
         )
-    raise UnknownChannel(channel_cd)
+    raise UnknownChannel(channel)

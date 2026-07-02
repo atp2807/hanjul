@@ -59,9 +59,9 @@ describe('StudioEditorPage', () => {
     studio.getDistributions
       .mockResolvedValueOnce([])
       .mockResolvedValue([
-        { id: 'd1', channelCd: 'KYOBO', statusCd: 'SENT', message: null, createdAt: '2026-06-18T00:00:00Z' },
+        { id: 'd1', channel: 'KYOBO', status: 'SENT', message: null, createdAt: '2026-06-18T00:00:00Z' },
       ]);
-    studio.distributeBook.mockResolvedValue({ statusCd: 'SENT', channelCd: 'KYOBO' });
+    studio.distributeBook.mockResolvedValue({ status: 'SENT', channel: 'KYOBO' });
 
     renderEditor();
     fireEvent.click(await screen.findByText('배포 전송'));

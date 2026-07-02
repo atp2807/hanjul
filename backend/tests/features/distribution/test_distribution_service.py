@@ -7,8 +7,8 @@ from src.features.distribution.domain.models import DistributionView
 
 
 class FakeChannel:
-    def __init__(self, channel_cd="KYOBO", fail=False):
-        self.channel_cd = channel_cd
+    def __init__(self, channel="KYOBO", fail=False):
+        self.channel = channel
         self.fail = fail
         self.delivered = []
 
@@ -22,10 +22,10 @@ class FakeDistRepo:
     def __init__(self):
         self.records = []
 
-    async def record(self, book_id, channel_cd, status_cd, message):
+    async def record(self, book_id, channel, status, message):
         v = DistributionView(
-            id=uuid.uuid4(), book_id=book_id, channel_cd=channel_cd,
-            status_cd=status_cd, message=message, created_at=datetime.now(timezone.utc),
+            id=uuid.uuid4(), book_id=book_id, channel=channel,
+            status=status, message=message, created_at=datetime.now(timezone.utc),
         )
         self.records.append(v)
         return v
@@ -37,12 +37,12 @@ class FakeDistRepo:
 async def test_success_records_sent():
     ch, repo = FakeChannel(), FakeDistRepo()
     r = await DistributionService(repo, ch).distribute(uuid.uuid4(), b"epub", "<onix/>", "f")
-    assert r.status_cd == "SENT"
+    assert r.status == "SENT"
     assert ch.delivered
 
 
 async def test_failure_records_failed_without_raising():
     ch, repo = FakeChannel(fail=True), FakeDistRepo()
     r = await DistributionService(repo, ch).distribute(uuid.uuid4(), b"e", "<x/>", "f")
-    assert r.status_cd == "FAILED"
+    assert r.status == "FAILED"
     assert "sftp down" in r.message  # 감사추적: 실패도 기록

@@ -8,8 +8,8 @@ from src.infrastructure.db.models.distribution import Distribution
 
 def _to_view(d: Distribution) -> DistributionView:
     return DistributionView(
-        id=d.id, book_id=d.book_id, channel_cd=d.channel_cd,
-        status_cd=d.status_cd, message=d.message, created_at=d.created_at,
+        id=d.id, book_id=d.book_id, channel=d.channel,
+        status=d.status, message=d.message, created_at=d.created_at,
     )
 
 
@@ -17,8 +17,8 @@ class SqlDistributionRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def record(self, book_id, channel_cd, status_cd, message) -> DistributionView:
-        d = Distribution(book_id=book_id, channel_cd=channel_cd, status_cd=status_cd, message=message or None)
+    async def record(self, book_id, channel, status, message) -> DistributionView:
+        d = Distribution(book_id=book_id, channel=channel, status=status, message=message or None)
         self.session.add(d)
         await self.session.flush()
         await self.session.commit()

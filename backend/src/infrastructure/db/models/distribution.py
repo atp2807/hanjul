@@ -21,7 +21,7 @@ class Distribution(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     book_id = Column(UUID(as_uuid=True), ForeignKey("pub.book.id", ondelete="CASCADE"), nullable=False)
-    channel_cd = Column(String(20), nullable=False)   # KYOBO | YES24 | ALADIN | DEMO ...
-    status_cd = Column(String(20), nullable=False)    # SENT | FAILED
+    channel = Column("channel_cd", String(20), nullable=False)   # KYOBO | YES24 | ALADIN | DEMO ...
+    status = Column("status_cd", String(20), nullable=False)    # SENT | FAILED
     message = Column(Text)
     created_at = Column("created_ts", DateTime(timezone=True), default=_now, nullable=False)

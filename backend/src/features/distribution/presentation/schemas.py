@@ -12,7 +12,7 @@ class DistributeRequest(CamelSchema):
 class DistributionResponse(CamelSchema):
     id: UUID
     book_id: UUID
-    channel_cd: str
-    status_cd: str
+    channel: str
+    status: str
     message: str | None
     created_at: datetime

@@ -56,12 +56,12 @@ async def test_publish_then_distribute_to_store(app_db):
         r = await c.post(f"/api/books/{book}/distribute", json={"channel": "KYOBO"})
         assert r.status_code == 201
         body = r.json()
-        assert body["statusCd"] == "SENT"
-        assert body["channelCd"] == "KYOBO"
+        assert body["status"] == "SENT"
+        assert body["channel"] == "KYOBO"
 
         # 이력
         hist = (await c.get(f"/api/books/{book}/distributions")).json()
-        assert len(hist) == 1 and hist[0]["channelCd"] == "KYOBO"
+        assert len(hist) == 1 and hist[0]["channel"] == "KYOBO"
 
 
 async def test_distribute_unpublished_409(app_db):

@@ -19,9 +19,9 @@ class DistributionService:
         """채널로 전송 시도 → 성공/실패를 항상 기록(감사추적). 실패해도 레코드는 남김."""
         try:
             await self.channel.deliver(str(book_id), epub, onix, filename)
-            return await self.repo.record(book_id, self.channel.channel_cd, "SENT", "")
+            return await self.repo.record(book_id, self.channel.channel, "SENT", "")
         except Exception as e:  # 네트워크/인증 실패 등
-            return await self.repo.record(book_id, self.channel.channel_cd, "FAILED", str(e)[:500])
+            return await self.repo.record(book_id, self.channel.channel, "FAILED", str(e)[:500])
 
     async def history(self, book_id: UUID) -> list[DistributionView]:
         return await self.repo.list_for_book(book_id)

@@ -144,7 +144,7 @@ export function StudioEditorPage() {
     try {
       const r = await distributeBook(id, channel);
       notify(
-        r.statusCd === 'SENT'
+        r.status === 'SENT'
           ? `${labelOf(channel)}로 배포 전송 완료.`
           : `배포 실패: ${r.message || ''}`,
       );
@@ -326,9 +326,9 @@ export function StudioEditorPage() {
             <ul style={{ listStyle: 'none', padding: 0, marginTop: 14, fontSize: 14 }}>
               {dists.map((d) => (
                 <li key={d.id} style={{ padding: '6px 0', borderTop: '1px solid #f0f0f0' }}>
-                  <b>{labelOf(d.channelCd)}</b>{' '}
-                  <span style={{ color: d.statusCd === 'SENT' ? 'green' : 'crimson' }}>
-                    {d.statusCd === 'SENT' ? '전송됨' : '실패'}
+                  <b>{labelOf(d.channel)}</b>{' '}
+                  <span style={{ color: d.status === 'SENT' ? 'green' : 'crimson' }}>
+                    {d.status === 'SENT' ? '전송됨' : '실패'}
                   </span>{' '}
                   <span style={{ color: '#aaa' }}>{new Date(d.createdAt).toLocaleString()}</span>
                   {d.message && <span style={{ color: '#c00', marginLeft: 6 }}>{d.message}</span>}
