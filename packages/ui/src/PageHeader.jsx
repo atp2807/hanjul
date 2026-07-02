@@ -1,4 +1,4 @@
-import { T } from '../../theme';
+import { T } from './theme';
 
 /**
  * 페이지 헤더 — 제목 + 부제 + 우측 액션.

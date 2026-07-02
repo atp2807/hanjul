@@ -1,4 +1,4 @@
-import { T } from '../../theme';
+import { T } from './theme';
 
 /**
  * 입력 필드 — 라벨 + input. textarea는 as="textarea".

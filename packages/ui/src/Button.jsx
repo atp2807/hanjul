@@ -1,4 +1,4 @@
-import { T } from '../../theme';
+import { T } from './theme';
 
 /**
  * 버튼 — 한줄 기본 액션 컴포넌트.

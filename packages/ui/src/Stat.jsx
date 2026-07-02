@@ -1,4 +1,4 @@
-import { T } from '../../theme';
+import { T } from './theme';
 
 /**
  * 통계 카드 — 큰 숫자 + 라벨. 대시보드·수익 요약용.

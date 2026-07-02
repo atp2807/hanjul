@@ -1,4 +1,4 @@
-import { T } from '../../theme';
+import { T } from './theme';
 
 /**
  * 필터 칩 — 목록 상단 카테고리/상태 필터. active면 딥틸 채움.

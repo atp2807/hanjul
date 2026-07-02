@@ -1,4 +1,4 @@
-import { T } from '../../theme';
+import { T } from './theme';
 
 /**
  * 카드 — 콘텐츠 컨테이너. 흰 배경 + 라운드(18).
