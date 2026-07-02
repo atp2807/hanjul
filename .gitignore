@@ -30,3 +30,7 @@ backend/htmlcov/
 
 # 업로드 표지(로컬 디스크 저장)
 backend/uploads/
+
+# 테스트 커버리지 산출물
+.coverage
+coverage/

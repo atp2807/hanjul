@@ -22,21 +22,21 @@ jobs:
       - run: pip install -r requirements-dev.txt
       - run: python -m pytest -q
 
-  web:
-    name: 프론트 컴포넌트 (vitest)
+  frontend:
+    name: 프론트 컴포넌트 (vitest — web·potato)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: web
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: npm
-          cache-dependency-path: web/package-lock.json
+          # 모노레포 단일 루트 lockfile — 서브 lockfile로 npm ci 하면 optional dep(rollup) 유실
+          cache-dependency-path: package-lock.json
+      # 루트에서 설치해야 workspace(@hanjul/ui·lib) 링크 + 플랫폼 optional dep 정상
       - run: npm ci
-      - run: npm run test
+      - run: npm run test -w web
+      - run: npm run test -w potato
 
   e2e:
     name: 브라우저 E2E (Playwright)
@@ -87,9 +87,8 @@ jobs:
         with:
           node-version: '20'
           cache: npm
-          cache-dependency-path: web/package-lock.json
-      - name: 프론트 의존성 + 브라우저
-        working-directory: web
+          cache-dependency-path: package-lock.json
+      - name: 프론트 의존성 + 브라우저 (루트 install)
         run: |
           npm ci
           npx playwright install --with-deps chromium

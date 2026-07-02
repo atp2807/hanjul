@@ -4,6 +4,17 @@ import react from '@vitejs/plugin-react';
 // 운영자 앱(potato.hanjul.io) — web/ 와 완전 분리된 별도 빌드/배포.
 export default defineConfig({
   plugins: [react()],
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: ['./src/test/setup.js'],
+    exclude: ['**/node_modules/**'],
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.{js,jsx}'],
+      exclude: ['src/**/*.test.{js,jsx}', 'src/test/**', 'src/main.jsx', 'src/App.jsx'],
+    },
+  },
   server: {
     // web(35173)과 다른 dev 포트
     port: parseInt(process.env.VITE_PORT || '35180', 10),
