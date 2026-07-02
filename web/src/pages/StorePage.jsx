@@ -3,41 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 
 import { Icon } from '../components/Icon';
 import { listStore } from '../services/api/books';
-import { coverGradient, T } from '../theme';
-
-function Cover({ url, title }) {
-  if (url) {
-    return (
-      <img
-        src={url}
-        alt={title}
-        loading="lazy"
-        decoding="async"
-        style={{ width: '100%', aspectRatio: '3/4.3', objectFit: 'cover', borderRadius: T.radius.lg }}
-      />
-    );
-  }
-  return (
-    <div
-      style={{
-        width: '100%',
-        aspectRatio: '3/4.3',
-        borderRadius: T.radius.lg,
-        background: coverGradient(title),
-        display: 'flex',
-        alignItems: 'flex-end',
-        padding: 16,
-        color: '#dff5ef',
-        fontSize: 15,
-        fontWeight: 700,
-        lineHeight: 1.3,
-        boxSizing: 'border-box',
-      }}
-    >
-      {title}
-    </div>
-  );
-}
+import { T } from '../theme';
+import { Cover } from '../components/ui';
 
 const FEATURES = [
   { icon: 'read', title: '서점', desc: '수천 권의 전자책과 취향 큐레이션으로 다음 책을 만나세요.' },

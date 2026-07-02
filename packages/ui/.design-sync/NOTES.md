@@ -25,9 +25,13 @@
 ## 프로젝트
 - claude.ai/design projectId: 687eaa8b-4c05-4623-8318-8771a8d13e4c
 - globalName: `HanjulUI` (window.HanjulUI.*)
-- 8 컴포넌트: Button·Card·Badge·Chip·Field·PageHeader·Stat·**Avatar** + theme(T).
+- 9 컴포넌트: Button·Card·Badge·Chip·Field·PageHeader·Stat·**Avatar·Cover** + theme(T).
 
 ## 이력
+- **Cover 추가**(2026-07-02, 재sync): 책 표지 표시 프리미티브. web LibraryPage·StorePage의
+  로컬 Cover 중복 2개 + BookDetail·Author 인라인 복붙 + 썸네일 4곳(ReviewerActivity·
+  CampaignStudio·Moderation)을 통합. `url` 있으면 이미지, 없으면 coverGradient placeholder.
+  실표지 업로드가 들어오면 이 한 곳이 이미지로 바뀌는 seam. 5셀 프리뷰 통과.
 - **Avatar 추가**(2026-07-02, 재sync): design agent(claude.ai/design)가 우리 토큰으로 디자인 →
   코드로 승격. `f3263907` 프로젝트의 `Avatar.dc.html` 로직 그대로. web·potato 42곳 인라인
   아바타 복붙 정리용. theme에 `AVATAR_GRADIENTS`·`avatarGradient`·`seedHash`(coverGradient와

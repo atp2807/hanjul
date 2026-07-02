@@ -3,18 +3,8 @@ import { Link } from 'react-router-dom';
 
 import { useAuth } from '../auth/AuthContext';
 import { getLibrary, refundOrder } from '../services/api/orders';
-import { coverGradient, T } from '../theme';
-
-function Cover({ url, title }) {
-  if (url) {
-    return <img src={url} alt={title} loading="lazy" style={{ width: '100%', aspectRatio: '3/4.3', objectFit: 'cover', borderRadius: T.radius.lg }} />;
-  }
-  return (
-    <div style={{ width: '100%', aspectRatio: '3/4.3', borderRadius: T.radius.lg, background: coverGradient(title), display: 'flex', alignItems: 'flex-end', padding: 14, color: '#dff5ef', fontSize: 14, fontWeight: 700, lineHeight: 1.3, boxSizing: 'border-box' }}>
-      {title}
-    </div>
-  );
-}
+import { T } from '../theme';
+import { Cover } from '../components/ui';
 
 export function LibraryPage() {
   const { user, loading } = useAuth();

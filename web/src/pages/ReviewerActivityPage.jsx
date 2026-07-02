@@ -4,9 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { cancelApplication, dday, getMyApplications, getReviewerStatus } from '../services/api/campaigns';
-import { coverGradient, T } from '../theme';
+import { T } from '../theme';
 import { Icon } from '../components/Icon';
-import { EmptyState } from '../components/EmptyState';
+import { Cover, EmptyState } from '../components/ui';
 
 const STATUS = {
   PENDING: { label: '신청 대기', fg: '#c79318', bg: '#fff3da' },
@@ -103,7 +103,7 @@ export function ReviewerActivityPage() {
               const urgent = d && (d === 'D-day' || d === 'D-1' || d === '마감');
               return (
                 <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 16, background: T.surface, borderRadius: 14, border: `1px solid ${T.borderSoft}` }}>
-                  <div style={{ width: 44, height: 62, borderRadius: 7, background: coverGradient(a.bookTitle || a.bookId), flexShrink: 0 }} />
+                  <Cover title={a.bookTitle || a.bookId} width={44} radius={7} label={false} />
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 14.5, fontWeight: 700, color: T.textStrong }}>{a.bookTitle || '제목 없음'}</div>
                     <div style={{ fontSize: 12.5, color: T.muted, marginTop: 3 }}>

@@ -7,12 +7,12 @@ import { useAuth } from '../auth/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { Stars } from '../components/Stars';
 import { Icon } from '../components/Icon';
-import { Avatar } from '../components/ui';
+import { Avatar, Cover } from '../components/ui';
 import { getLoginUrl } from '../services/api/auth';
 import { getStoreDetail } from '../services/api/books';
 import { confirmPayment, createOrder, getPaymentConfig } from '../services/api/orders';
 import { addReview, getReviews } from '../services/api/reviews';
-import { coverGradient, T } from '../theme';
+import { T } from '../theme';
 
 
 export function BookDetailPage() {
@@ -107,13 +107,7 @@ export function BookDetailPage() {
       <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '340px 1fr', gap: isMobile ? 28 : 48 }}>
         {/* 표지 + 구매 박스 */}
         <div>
-          {book.coverUrl ? (
-            <img src={book.coverUrl} alt={book.title} style={{ width: '100%', aspectRatio: '3/4.3', objectFit: 'cover', borderRadius: 16, boxShadow: '0 30px 50px -22px rgba(12,58,50,0.5)' }} />
-          ) : (
-            <div style={{ aspectRatio: '3/4.3', borderRadius: 16, background: coverGradient(book.title), boxShadow: '0 30px 50px -22px rgba(12,58,50,0.5)', display: 'flex', alignItems: 'flex-end', padding: 24 }}>
-              <span style={{ color: '#dff5ef', fontSize: 24, fontWeight: 700, lineHeight: 1.25 }}>{book.title}</span>
-            </div>
-          )}
+          <Cover url={book.coverUrl} title={book.title} radius={16} labelSize={22} style={{ boxShadow: '0 30px 50px -22px rgba(12,58,50,0.5)' }} />
           <div style={{ background: T.surface, borderRadius: 18, padding: 24, marginTop: 20, boxShadow: '0 1px 3px rgba(12,58,50,0.06)' }}>
             <p data-testid="price" style={{ margin: 0, display: 'flex', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' }}>
               <span style={{ fontSize: 28, fontWeight: 800, color: T.ink }}>{eff != null ? `${eff.toLocaleString()}원` : '무료'}</span>

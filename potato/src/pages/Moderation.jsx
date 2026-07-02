@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 
 import { api } from '../api';
-import { T, coverGradient } from '../theme';
-import { Badge, Button, Card, Field, PageHeader } from '../ui.jsx';
+import { T } from '../theme';
+import { Badge, Button, Card, Cover, Field, PageHeader } from '../ui.jsx';
 
 const STATUS_LABEL = { DRAFT: '초안', REVIEW: '심사중', PUBLISHED: '출판중' };
 
@@ -64,16 +64,7 @@ export default function Moderation() {
               background: b.blocked ? '#fdf6f4' : 'transparent',
             }}
           >
-            <div
-              style={{
-                width: 38,
-                height: 52,
-                borderRadius: 6,
-                background: coverGradient(b.id),
-                flexShrink: 0,
-                opacity: b.blocked ? 0.5 : 1,
-              }}
-            />
+            <Cover title={b.id} width={38} radius={6} label={false} style={{ opacity: b.blocked ? 0.5 : 1 }} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: T.textStrong }}>{b.title}</div>
               <div style={{ fontSize: 12, color: T.muted, marginTop: 2 }}>

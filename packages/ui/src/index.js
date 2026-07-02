@@ -8,4 +8,5 @@ export { Field } from './Field';
 export { PageHeader } from './PageHeader';
 export { Stat } from './Stat';
 export { Avatar } from './Avatar';
+export { Cover } from './Cover';
 export * from './theme';

@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthContext';
 import { getAuthor } from '../services/api/authors';
 import { followAuthor, getFollowStatus, unfollowAuthor } from '../services/api/notifications';
 import { coverGradient, T } from '../theme';
+import { Cover } from '../components/ui';
 
 export function AuthorPage() {
   const { id } = useParams();
@@ -49,11 +50,7 @@ export function AuthorPage() {
         <div data-testid="author-books" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: 22 }}>
           {author.books.map((b) => (
             <Link key={b.id} to={`/books/${b.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-              {b.coverUrl ? (
-                <img src={b.coverUrl} alt={b.title} style={{ width: '100%', aspectRatio: '3/4.3', objectFit: 'cover', borderRadius: 12 }} />
-              ) : (
-                <div style={{ width: '100%', aspectRatio: '3/4.3', borderRadius: 12, background: coverGradient(b.title), display: 'flex', alignItems: 'flex-end', padding: 14, color: '#dff5ef', fontSize: 14, fontWeight: 700, lineHeight: 1.3, boxSizing: 'border-box' }}>{b.title}</div>
-              )}
+              <Cover url={b.coverUrl} title={b.title} radius={12} />
               <div style={{ marginTop: 9, fontWeight: 700, fontSize: 15, color: T.textStrong }}>{b.title}</div>
               <div style={{ color: T.muted, fontSize: 13 }}>{b.priceAmt != null ? `${b.priceAmt.toLocaleString()}원` : '무료'}</div>
             </Link>

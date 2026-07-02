@@ -5,8 +5,8 @@ import { useAuth } from '../auth/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { assignReviewer, closeCampaign, createCampaign, getApplicants, getMyCampaigns } from '../services/api/campaigns';
 import { getMyBooks } from '../services/api/studio';
-import { coverGradient, T } from '../theme';
-import { Avatar, EmptyState } from '../components/ui';
+import { T } from '../theme';
+import { Avatar, Cover, EmptyState } from '../components/ui';
 
 function Stat({ label, value, sub }) {
   return (
@@ -160,7 +160,7 @@ export function CampaignStudioPage() {
                 <div key={c.id} style={{ borderBottom: `1px solid #f3f7f5` }}>
                   <div style={{ display: 'flex', alignItems: 'center', padding: '15px 0' }}>
                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 12 }}>
-                      <div style={{ width: 32, height: 44, borderRadius: 5, background: coverGradient(c.bookTitle || c.id) }} />
+                      <Cover title={c.bookTitle || c.id} width={32} radius={5} label={false} />
                       <span style={{ fontSize: 14, fontWeight: 700, color: T.textStrong }}>{c.bookTitle || '제목 없음'}</span>
                     </div>
                     <span style={{ width: 80 }}><span style={{ padding: '4px 10px', background: st.bg, color: st.fg, borderRadius: T.radius.pill, fontSize: 12, fontWeight: 700 }}>{st.label}</span></span>

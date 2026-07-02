@@ -30,6 +30,7 @@
 - **PageHeader** — `title`, `subtitle`, `right`(우측 액션)
 - **Stat** — `label`, `value`, `color`(값 색상)
 - **Avatar** — `name`(이니셜·색 시드, 같은 이름=같은 색), `src`(있으면 이미지), `size`: xs|sm|md|lg|xl|number, `status`: online|away|busy|offline(우하단 점), `ring`(흰 테두리). 색은 표지 `coverGradient`와 동일 해시.
+- **Cover** — 책 표지(세로 3:4.3). `url`(있으면 이미지, 없으면 `title` 시드 그라데이션 placeholder), `width`(고정 px, 미지정 시 100%), `radius`, `label`(작은 썸네일은 false), `labelSize`, `style`(boxShadow·opacity 등). 실표지 업로드가 들어오면 이 컴포넌트 한 곳이 이미지로 바뀜.
 
 ## 진실의 소스
 컴포넌트 API는 `components/<Name>/<Name>.d.ts`, 토큰 `T`는 `_ds_bundle.js`에서 export된다(`window.HanjulUI.T`).
