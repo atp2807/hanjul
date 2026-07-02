@@ -97,7 +97,7 @@ async def test_campaign_full_flow(app_db):
         # 증정본으로 리뷰 → 서평단(REVIEW_COPY)
         assert (await c.post(f"/api/books/{book}/reviews", json={"rating": 5, "body": "사전 리뷰"}, headers=r_auth)).status_code == 201
         item = (await c.get(f"/api/books/{book}/reviews")).json()["items"][0]
-        assert item["sourceCd"] == "REVIEW_COPY"
+        assert item["source"] == "REVIEW_COPY"
         # 리뷰 작성 → 신청 COMPLETED + 내 캠페인 집계
         apps = (await c.get("/api/me/applications", headers=r_auth)).json()["items"]
         assert apps[0]["status"] == "COMPLETED"

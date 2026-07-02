@@ -67,7 +67,7 @@ async def list_reviews(
         items=[
             ReviewItem(
                 id=r.id, rating=r.rating, body=r.body, author=names.get(r.account_id),
-                created_at=r.created_at, updated_at=r.updated_at, source_cd=r.source_cd,
+                created_at=r.created_at, updated_at=r.updated_at, source=r.source,
             )
             for r in items
         ],

@@ -17,7 +17,7 @@ class ReviewItem(CamelSchema):
     author: str | None
     created_at: datetime
     updated_at: datetime | None = None
-    source_cd: str = "PURCHASE"
+    source: str = "PURCHASE"
 
 
 class ReviewListResponse(CamelSchema):

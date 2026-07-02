@@ -208,7 +208,7 @@ export function BookDetailPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
                   <Avatar name={r.author || '익명'} size={30} />
                   <span style={{ fontSize: 14, fontWeight: 700, color: T.ink }}>{r.author || '익명'}</span>
-                  {r.sourceCd === 'REVIEW_COPY' && (
+                  {r.source === 'REVIEW_COPY' && (
                     <span title="출판 전 증정본을 받아 작성한 사전 리뷰예요." style={{ fontSize: 11, fontWeight: 700, color: '#2f8a6f', background: '#e3f3ec', borderRadius: 999, padding: '2px 8px' }}>
                       서평단
                     </span>

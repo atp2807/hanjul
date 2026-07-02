@@ -15,7 +15,7 @@ class ReviewView:
     account_id: UUID  # 작성자 — 이름은 합성루트(엔드포인트)가 accounts.names_for로 해석
     created_at: datetime
     updated_at: datetime | None = None
-    source_cd: str = "PURCHASE"  # PURCHASE | REVIEW_COPY(서평단)
+    source: str = "PURCHASE"  # PURCHASE | REVIEW_COPY(서평단)
 
 
 @dataclass
@@ -37,9 +37,9 @@ class ReviewRepository(Protocol):
         ...
 
     async def upsert(
-        self, book_id: UUID, account_id: UUID, rating: int, body: str | None, source_cd: str = "PURCHASE"
+        self, book_id: UUID, account_id: UUID, rating: int, body: str | None, source: str = "PURCHASE"
     ) -> None:
-        """(책,계정) 한 건 — 있으면 갱신, 없으면 생성. source_cd=리뷰 출처."""
+        """(책,계정) 한 건 — 있으면 갱신, 없으면 생성. source=리뷰 출처."""
         ...
 
     async def list_for_book(self, book_id: UUID) -> list[ReviewView]:

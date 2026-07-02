@@ -71,7 +71,7 @@ async def test_review_copy_grants_review_and_marks_source(app_db, sessionmaker):
         # 증정본 권한으로 리뷰 작성 → source=REVIEW_COPY
         assert (await c.post(f"/api/books/{book}/reviews", json={"rating": 5, "body": "사전에 읽었어요"}, headers=rv_auth)).status_code == 201
         item = (await c.get(f"/api/books/{book}/reviews")).json()["items"][0]
-        assert item["sourceCd"] == "REVIEW_COPY"
+        assert item["source"] == "REVIEW_COPY"
 
         # 증정본은 작가 매출에서 제외 (0원·REVIEW 채널)
         sales = (await c.get("/api/me/sales", headers=a_auth)).json()
@@ -93,4 +93,4 @@ async def test_normal_purchase_review_is_purchase_source(app_db):
 
         await c.post(f"/api/books/{book}/reviews", json={"rating": 4, "body": "샀어요"}, headers=b_auth)
         item = (await c.get(f"/api/books/{book}/reviews")).json()["items"][0]
-        assert item["sourceCd"] == "PURCHASE"
+        assert item["source"] == "PURCHASE"
