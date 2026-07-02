@@ -6,7 +6,6 @@ import {
   distributeBook,
   downloadEpub,
   downloadOnix,
-  generateCover,
   uploadCover,
   getDistributions,
   getMyBooks,
@@ -50,7 +49,6 @@ export function StudioEditorPage() {
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [coverUrl, setCoverUrl] = useState(null);
-  const [coverPrompt, setCoverPrompt] = useState('');
   const [coverBusy, setCoverBusy] = useState(false);
   const [scheduleAt, setScheduleAt] = useState('');
   const [channel, setChannel] = useState('KYOBO');
@@ -119,20 +117,6 @@ export function StudioEditorPage() {
       notify('표지를 올렸어요.');
     } catch (err) {
       setError(err.status === 422 ? '이미지 파일(PNG·JPG·WebP, 5MB 이하)만 올릴 수 있어요.' : err.message);
-    } finally {
-      setCoverBusy(false);
-    }
-  }
-  async function doCover() {
-    if (!coverPrompt.trim()) return setError('표지 설명을 입력하세요.');
-    setCoverBusy(true);
-    setError(null);
-    try {
-      const r = await generateCover(id, coverPrompt);
-      setCoverUrl(r.coverUrl);
-      notify('표지가 생성됐어요.');
-    } catch (e) {
-      setError(e.status === 503 ? 'AI 표지 생성이 비활성 상태예요(운영 설정 필요).' : e.message);
     } finally {
       setCoverBusy(false);
     }
@@ -250,23 +234,11 @@ export function StudioEditorPage() {
             )}
           </div>
           <div style={{ flex: 1 }}>
-            <textarea
-              value={coverPrompt}
-              onChange={(e) => setCoverPrompt(e.target.value)}
-              rows={3}
-              placeholder="표지 분위기·소재를 설명하세요 (예: 잔잔한 한국 에세이, 따뜻한 색감)"
-              style={{ width: '100%', boxSizing: 'border-box', padding: 12, border: '1px solid #ddd', borderRadius: 8, fontFamily: 'inherit' }}
-            />
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-              <button onClick={doCover} disabled={coverBusy} style={primary}>
-                {coverBusy ? '처리 중…' : 'AI 표지 생성'}
-              </button>
-              <label style={{ ...btn, cursor: coverBusy ? 'default' : 'pointer', margin: 0, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                <Icon name="download" size={15} stroke={T.textMid} style={{ transform: 'rotate(180deg)' }} /> 이미지 올리기
-                <input type="file" accept="image/png,image/jpeg,image/webp" onChange={doUpload} disabled={coverBusy} style={{ display: 'none' }} />
-              </label>
-            </div>
-            <div style={{ fontSize: 12, color: T.muted, marginTop: 8 }}>직접 만든 표지가 있으면 올리고, 없으면 AI로 생성하세요. (PNG·JPG·WebP, 5MB)</div>
+            <label style={{ ...primary, cursor: coverBusy ? 'default' : 'pointer', margin: 0, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <Icon name="download" size={15} stroke="#fff" style={{ transform: 'rotate(180deg)' }} /> {coverBusy ? '올리는 중…' : '표지 이미지 올리기'}
+              <input type="file" accept="image/png,image/jpeg,image/webp" onChange={doUpload} disabled={coverBusy} style={{ display: 'none' }} />
+            </label>
+            <div style={{ fontSize: 12, color: T.muted, marginTop: 8 }}>직접 만든 표지 이미지를 올려주세요. (PNG·JPG·WebP, 5MB 이하)</div>
           </div>
         </div>
       </Section>

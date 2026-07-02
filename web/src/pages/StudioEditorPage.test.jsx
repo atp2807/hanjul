@@ -37,18 +37,18 @@ describe('StudioEditorPage', () => {
     expect(screen.queryByText('서점 배포')).not.toBeInTheDocument(); // 미출판
   });
 
-  it('AI 표지 생성 → 미리보기 이미지가 뜬다', async () => {
+  it('표지 이미지 업로드 → 미리보기 이미지가 뜬다', async () => {
     books.getBookContent.mockResolvedValue({
       id: 'b1', title: '내 책', status: 'DRAFT', priceAmt: 0, chapters: [],
     });
-    studio.generateCover.mockResolvedValue({ coverUrl: 'data:image/svg+xml;utf8,<svg/>' });
+    studio.uploadCover.mockResolvedValue({ coverUrl: 'data:image/svg+xml;utf8,<svg/>' });
 
-    renderEditor();
+    const { container } = renderEditor();
     await screen.findByText('내 책');
-    fireEvent.change(screen.getByPlaceholderText(/표지 분위기/), { target: { value: '따뜻한 에세이' } });
-    fireEvent.click(screen.getByRole('button', { name: 'AI 표지 생성' }));
+    const file = new File(['x'], 'cover.png', { type: 'image/png' });
+    fireEvent.change(container.querySelector('input[type="file"]'), { target: { files: [file] } });
 
-    await waitFor(() => expect(studio.generateCover).toHaveBeenCalledWith('b1', '따뜻한 에세이'));
+    await waitFor(() => expect(studio.uploadCover).toHaveBeenCalledWith('b1', file));
     expect(await screen.findByRole('img', { name: '표지' })).toBeInTheDocument();
   });
 
