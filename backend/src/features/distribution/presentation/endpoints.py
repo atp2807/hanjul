@@ -1,5 +1,5 @@
 """서점 배포 API — 출판본을 EPUB+ONIX로 만들어 채널 전송 + 이력."""
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
@@ -48,7 +48,7 @@ async def distribute(
         names = await acct.names_for([meta.author_id])
         author = names.get(meta.author_id)
 
-    modified = datetime.now(timezone.utc)
+    modified = datetime.now(UTC)
     epub = build_epub(
         EpubBook(
             title=content.title,

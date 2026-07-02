@@ -1,6 +1,6 @@
 """catalog API — 출판 라이프사이클(/books) + 스토어(/store)."""
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
@@ -9,18 +9,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import get_session
 from src.engine.publishing.onix import OnixProduct, build_onix
-from src.features.auth.domain.models import AccountPrincipal
 from src.features.accounts.application.account_service import AccountService
 from src.features.accounts.domain.models import AccountNotFound
 from src.features.accounts.presentation.dependencies import get_account_service
+from src.features.auth.domain.models import AccountPrincipal
 from src.features.auth.presentation.dependencies import get_current_account
 from src.features.billing.application.order_service import OrderService
 from src.features.billing.presentation.dependencies import get_order_service
 from src.features.catalog.application.catalog_service import CatalogService
 from src.features.catalog.domain.models import PUBLISHED
 from src.features.catalog.presentation.dependencies import get_catalog_service
-from src.features.notifications.application.notification_service import NotificationService
-from src.features.notifications.presentation.dependencies import get_notification_service
 from src.features.catalog.presentation.schemas import (
     AssignAuthorRequest,
     AuthorProfileResponse,
@@ -32,6 +30,8 @@ from src.features.catalog.presentation.schemas import (
     StoreListResponse,
     UpdateMetaRequest,
 )
+from src.features.notifications.application.notification_service import NotificationService
+from src.features.notifications.presentation.dependencies import get_notification_service
 from src.shared.errors import ConflictError, ForbiddenError, NotFoundError
 
 router = APIRouter(tags=["catalog"])
@@ -202,7 +202,7 @@ async def book_onix(
         author=author,
         price_amt=meta.price_amt,
     )
-    xml = build_onix(product, datetime.now(timezone.utc).strftime("%Y%m%d"))
+    xml = build_onix(product, datetime.now(UTC).strftime("%Y%m%d"))
     return Response(content=xml, media_type="application/xml")
 
 

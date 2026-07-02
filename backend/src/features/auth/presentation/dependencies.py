@@ -6,13 +6,13 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import get_session
-from src.shared.errors import UnauthorizedError
 from src.config.settings import settings
 from src.features.auth.application.auth_service import AuthService
 from src.features.auth.application.token import JwtTokenIssuer
 from src.features.auth.domain.models import AccountPrincipal
 from src.features.auth.infrastructure.account_repo import SqlAccountRepository
 from src.features.auth.infrastructure.providers import build_providers
+from src.shared.errors import UnauthorizedError
 
 
 def token_issuer() -> JwtTokenIssuer:

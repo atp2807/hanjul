@@ -1,15 +1,15 @@
 """catalog 서비스 — 출판 라이프사이클 + 스토어 조회."""
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from src.features.catalog.domain.models import (
+    DRAFT,
+    PUBLISHED,
+    REVIEW,
     BookNotFound,
     BookSummary,
     InvalidTransition,
     PriceRequired,
-    DRAFT,
-    PUBLISHED,
-    REVIEW,
 )
 from src.features.catalog.domain.repository import CatalogRepository
 from src.shared.errors import ValidationError
@@ -60,7 +60,7 @@ class CatalogService:
     async def takedown(self, book_id: UUID, now: datetime | None = None) -> None:
         """운영자 강제 비공개 — blocked_at 설정. 작가 status와 직교(재출판해도 유지)."""
         await self._require(book_id)
-        await self.repo.set_blocked(book_id, now or datetime.now(timezone.utc))
+        await self.repo.set_blocked(book_id, now or datetime.now(UTC))
 
     async def restore(self, book_id: UUID) -> None:
         """운영자 takedown 해제 — blocked_at 제거."""
@@ -88,14 +88,14 @@ class CatalogService:
             raise InvalidTransition(s.status, PUBLISHED)
         if s.price_amt is None:
             raise PriceRequired()
-        await self.repo.set_status(book_id, PUBLISHED, now or datetime.now(timezone.utc))
+        await self.repo.set_status(book_id, PUBLISHED, now or datetime.now(UTC))
 
     async def auto_publish(self, book_id: UUID, now: datetime | None = None) -> None:
         """즉시 출간 — 심사 단계 생략하고 바로 게시. 가격은 필수."""
         s = await self._require(book_id)
         if s.price_amt is None:
             raise PriceRequired()
-        await self.repo.set_status(book_id, PUBLISHED, now or datetime.now(timezone.utc))
+        await self.repo.set_status(book_id, PUBLISHED, now or datetime.now(UTC))
 
     async def schedule_publish(self, book_id: UUID, when: datetime) -> None:
         """예약 발행 — when 시각에 스케줄러가 자동 게시. 가격은 필수."""

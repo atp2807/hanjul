@@ -1,0 +1,18 @@
+# 백엔드 lint/format — ruff (flake8+isort+black 대체)
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+src = ["src"]
+extend-exclude = ["migrations", ".venv", ".venv312"]
+
+[tool.ruff.lint]
+# E/F=pycodestyle+pyflakes, I=isort, B=bugbear, UP=pyupgrade, SIM=simplify
+select = ["E", "F", "I", "B", "UP", "SIM"]
+# B008: FastAPI Depends() 관용 · E501: 길이는 format 담당 · B904: 예외 from 체이닝(점진 채택)
+ignore = ["B008", "E501", "B904", "SIM117"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["E501"]
+
+[tool.ruff.format]
+quote-style = "double"

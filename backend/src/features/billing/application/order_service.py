@@ -2,7 +2,7 @@
 
 결제 확인 시 정산 엔진(engine.settlement)으로 분배/원천징수를 계산해 기록.
 """
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from src.engine.settlement.calculate import calculate_settlement
@@ -54,7 +54,7 @@ class OrderService:
         if await self.repo.owns(buyer_account_id, book_id):
             raise AlreadyOwned()
         return await self.repo.create_order(
-            book_id, buyer_account_id, price, channel, consent_at=datetime.now(timezone.utc)
+            book_id, buyer_account_id, price, channel, consent_at=datetime.now(UTC)
         )
 
     async def get_order(self, order_id: UUID) -> OrderView:

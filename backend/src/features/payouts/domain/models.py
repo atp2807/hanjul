@@ -3,7 +3,7 @@
 흐름: 계좌 등록 → 미지급 정산분 집계(출금 가능액) → 출금 신청(payout, REQUESTED)
      → 운영자 승인(APPROVED) → 실이체 후 지급완료(PAID). 반려(REJECTED)면 정산분 회수.
 """
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Protocol
 from uuid import UUID

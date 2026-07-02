@@ -1,6 +1,5 @@
 """account 리포지토리 포트."""
 from typing import Protocol
-from uuid import UUID
 
 from src.features.auth.domain.models import AuthAccount, SocialProfile
 

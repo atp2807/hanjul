@@ -1,5 +1,5 @@
 """FollowRepository / NotificationRepository 의 SQLAlchemy 구현."""
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import select, update
@@ -98,7 +98,7 @@ class SqlNotificationRepository:
                 )
             ).scalars().all()
         }
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         for r in recipient_ids:
             cur = existing.get(r)
             if cur is not None:

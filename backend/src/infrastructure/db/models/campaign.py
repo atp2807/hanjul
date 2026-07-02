@@ -4,7 +4,7 @@ review_campaign = 작가/출판사가 책에 건 서평단(증정본 N부).
 review_application = 독자의 리뷰어 신청(배정되면 증정본 + 마감).
 """
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
@@ -13,7 +13,7 @@ from src.config.database import Base
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class ReviewCampaign(Base):

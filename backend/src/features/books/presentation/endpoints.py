@@ -1,5 +1,5 @@
 """books API 엔드포인트."""
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
@@ -134,7 +134,7 @@ async def download_epub(
             for ch in content.chapters
         ],
     )
-    modified = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    modified = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     data = build_epub(epub_book, modified)
     return Response(
         content=data,

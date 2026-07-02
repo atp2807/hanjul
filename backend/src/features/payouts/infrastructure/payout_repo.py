@@ -1,5 +1,4 @@
 """payouts SQLAlchemy 어댑터 — bill.bank_account / bill.payout / settlement 집계."""
-from datetime import datetime
 from uuid import UUID, uuid4
 
 from sqlalchemy import func, select, update

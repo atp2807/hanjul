@@ -4,7 +4,7 @@ follow = 독자→작가 구독(쌍 유일). notification = 수신자별 인앱 
 (수신자,책,종류) 유일 → 같은 책 재발행 시 알림 중복 안 됨(멱등).
 """
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String, Text, UniqueConstraint, false
 from sqlalchemy.dialects.postgresql import UUID
@@ -13,7 +13,7 @@ from src.config.database import Base
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class Follow(Base):

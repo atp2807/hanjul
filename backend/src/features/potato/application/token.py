@@ -5,7 +5,7 @@
 2. aud="potato" — 고객 토큰(aud 없음)을 potato 검증에 넣으면 MissingRequiredClaim,
    반대로 potato 토큰(aud 있음)을 고객 검증(audience 미지정)에 넣으면 InvalidAudience.
 """
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 import jwt
@@ -20,7 +20,7 @@ class PotatoTokenIssuer:
         self._ttl = timedelta(hours=ttl_hours)
 
     def issue(self, operator_id: UUID, role_cd: str) -> str:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         payload = {
             "sub": str(operator_id),
             "role": role_cd,

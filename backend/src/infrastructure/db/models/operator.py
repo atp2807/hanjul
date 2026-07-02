@@ -5,7 +5,7 @@ operator = 내부 직원(운영자/개발자). 고객처럼 소셜가입·구매
 audit_log = 운영자 행위 감사(누가·언제·무엇을·어떤 대상).
 """
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import JSON, Boolean, Column, DateTime, ForeignKey, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
@@ -14,7 +14,7 @@ from src.config.database import Base
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class Operator(Base):

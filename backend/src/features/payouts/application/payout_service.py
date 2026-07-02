@@ -1,5 +1,5 @@
 """payouts 서비스 — 작가(계좌·출금신청) + 운영자(승인·지급·반려)."""
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from src.features.payouts.application.crypto import encrypt, mask_account
@@ -91,4 +91,4 @@ class PayoutService:
 
     @staticmethod
     def _now() -> datetime:
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)

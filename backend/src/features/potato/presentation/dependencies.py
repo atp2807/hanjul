@@ -6,7 +6,6 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import get_potato_session, get_session
-from src.shared.errors import ForbiddenError, UnauthorizedError
 from src.config.settings import settings
 from src.features.potato.application.audit import AuditService
 from src.features.potato.application.auth_service import PotatoAuthService
@@ -16,6 +15,7 @@ from src.features.potato.domain.models import DEVELOPER, OperatorPrincipal
 from src.features.potato.infrastructure.audit_repo import SqlAuditRepository
 from src.features.potato.infrastructure.operator_repo import SqlOperatorRepository
 from src.features.potato.infrastructure.stats_repo import SqlStatsRepository
+from src.shared.errors import ForbiddenError, UnauthorizedError
 
 
 def potato_token_issuer() -> PotatoTokenIssuer:

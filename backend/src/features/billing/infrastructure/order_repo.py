@@ -1,5 +1,5 @@
 """OrderRepository 의 SQLAlchemy 구현."""
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import func, select
@@ -64,7 +64,7 @@ class SqlOrderRepository:
         o.status_cd = "PAID"
         o.pg_provider_cd = pg_provider_cd
         o.pg_tx_id = pg_tx_id
-        o.paid_at = datetime.now(timezone.utc)
+        o.paid_at = datetime.now(UTC)
         self.session.add(
             Settlement(
                 order_id=order_id,
@@ -91,7 +91,7 @@ class SqlOrderRepository:
             await self.session.rollback()
             return False
         o.status_cd = "REFUNDED"
-        o.refunded_at = datetime.now(timezone.utc)
+        o.refunded_at = datetime.now(UTC)
         await self.session.commit()
         return True
 
@@ -102,7 +102,7 @@ class SqlOrderRepository:
         self.session.add(
             Order(
                 book_id=book_id, buyer_account_id=account_id, amount_amt=0,
-                channel_cd="REVIEW", status_cd="PAID", paid_at=datetime.now(timezone.utc),
+                channel_cd="REVIEW", status_cd="PAID", paid_at=datetime.now(UTC),
             )
         )
         await self.session.commit()

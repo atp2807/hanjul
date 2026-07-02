@@ -1,5 +1,5 @@
 """campaigns 서비스 — 서평단 캠페인 생성·신청·배정(증정본 지급)."""
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from src.features.campaigns.domain.models import (
@@ -36,7 +36,7 @@ class CampaignService:
         return c
 
     async def apply(self, campaign_id: UUID, applicant_id: UUID, now: datetime | None = None) -> None:
-        now = now or datetime.now(timezone.utc)
+        now = now or datetime.now(UTC)
         # 기한 초과분 정리 후 자격회수 상태면 신청 차단
         status = await self.repo.reviewer_status(applicant_id, now)
         if status.blocked_until is not None:
@@ -49,7 +49,7 @@ class CampaignService:
     async def assign(self, campaign_id: UUID, applicant_id: UUID, now: datetime | None = None) -> bool:
         """배정 — 슬롯 차감 + 마감 설정. 증정본 지급은 호출 측(엔드포인트)이 OrderService로."""
         c = await self.get(campaign_id)
-        now = now or datetime.now(timezone.utc)
+        now = now or datetime.now(UTC)
         deadline = now + timedelta(days=c.review_days)
         ok = await self.repo.assign(campaign_id, applicant_id, deadline)
         if not ok:
@@ -57,16 +57,16 @@ class CampaignService:
         return True
 
     async def list_my_applications(self, applicant_id: UUID, now: datetime | None = None) -> list[ApplicationView]:
-        await self.repo.sweep_overdue(applicant_id, now or datetime.now(timezone.utc))
+        await self.repo.sweep_overdue(applicant_id, now or datetime.now(UTC))
         return await self.repo.list_my_applications(applicant_id)
 
     async def reviewer_status(self, applicant_id: UUID, now: datetime | None = None) -> ReviewerStatus:
-        return await self.repo.reviewer_status(applicant_id, now or datetime.now(timezone.utc))
+        return await self.repo.reviewer_status(applicant_id, now or datetime.now(UTC))
 
     # ── 운영자 자격회수(서평단) ───────────────────────
     async def block_reviewer(self, account_id: UUID, now: datetime | None = None) -> None:
         """운영자 수동 자격회수 — 해제 전까지 사실상 무기한(far-future)."""
-        now = now or datetime.now(timezone.utc)
+        now = now or datetime.now(UTC)
         await self.repo.block_reviewer(account_id, now + timedelta(days=OPERATOR_BLOCK_DAYS))
 
     async def unblock_reviewer(self, account_id: UUID) -> None:
@@ -76,7 +76,7 @@ class CampaignService:
         self, account_id: UUID, now: datetime | None = None
     ) -> datetime | None:
         """현재 유효한 차단 만료 시각(만료됐으면 None)."""
-        now = now or datetime.now(timezone.utc)
+        now = now or datetime.now(UTC)
         until = await self.repo.blocked_until(account_id)
         return until if (until is not None and until > now) else None
 

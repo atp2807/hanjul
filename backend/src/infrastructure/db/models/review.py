@@ -1,15 +1,15 @@
 """리뷰·평점 모델 — 스키마 commu. 책 1—* 리뷰, (책,계정) 유일."""
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-from sqlalchemy import Column, ForeignKey, Integer, String, Text, DateTime, UniqueConstraint
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 
 from src.config.database import Base
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class Review(Base):

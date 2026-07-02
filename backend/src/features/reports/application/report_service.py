@@ -1,5 +1,5 @@
 """신고 서비스 — 접수(고객) + 목록/처리(운영자)."""
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 from src.features.reports.domain.models import (
@@ -50,6 +50,6 @@ class ReportService:
             raise ReportNotFound()
         status = RESOLVED if act == "RESOLVE" else DISMISSED
         await self.repo.resolve(
-            report_id, status, operator_id, resolution, now or datetime.now(timezone.utc)
+            report_id, status, operator_id, resolution, now or datetime.now(UTC)
         )
         return status

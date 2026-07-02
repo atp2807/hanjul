@@ -5,11 +5,11 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import RedirectResponse
 
 from src.config.settings import settings
-from src.shared.errors import NotFoundError
 from src.features.auth.application.auth_service import AuthService
 from src.features.auth.domain.models import OAuthExchangeError, SocialProfile
 from src.features.auth.presentation.dependencies import get_auth_service
 from src.features.auth.presentation.schemas import LoginUrlResponse
+from src.shared.errors import NotFoundError
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 logger = logging.getLogger("app")

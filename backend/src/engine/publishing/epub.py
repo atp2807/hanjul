@@ -55,7 +55,7 @@ def _chapter_xhtml(ch: EpubChapter, lang: str) -> str:
 def _nav_xhtml(book: EpubBook, files: list[str]) -> str:
     items = "\n".join(
         f'      <li><a href="{fn}">{_esc(ch.title or f"{i + 1}장")}</a></li>'
-        for i, (ch, fn) in enumerate(zip(book.chapters, files))
+        for i, (ch, fn) in enumerate(zip(book.chapters, files, strict=False))
     )
     return (
         '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE html>\n'
@@ -103,6 +103,6 @@ def build_epub(book: EpubBook, modified: str) -> bytes:
         z.writestr("OEBPS/style.css", _CSS)
         z.writestr("OEBPS/package.opf", _opf(book, files, modified))
         z.writestr("OEBPS/nav.xhtml", _nav_xhtml(book, files))
-        for ch, fn in zip(book.chapters, files):
+        for ch, fn in zip(book.chapters, files, strict=False):
             z.writestr(f"OEBPS/{fn}", _chapter_xhtml(ch, book.language))
     return buf.getvalue()

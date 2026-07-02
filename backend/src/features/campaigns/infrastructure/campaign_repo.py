@@ -1,18 +1,10 @@
 """CampaignRepository 의 SQLAlchemy 구현."""
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
-
-from datetime import datetime, timezone
 
 from sqlalchemy import case, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from datetime import timedelta, timezone
-
-
-def _aware(dt):
-    """sqlite는 tz-naive로 돌려줌 → UTC로 간주해 aware 비교 가능하게."""
-    return dt.replace(tzinfo=timezone.utc) if dt is not None and dt.tzinfo is None else dt
 
 from src.features.campaigns.domain.models import (
     BLOCK_DAYS,
@@ -25,6 +17,11 @@ from src.features.campaigns.domain.models import (
 )
 from src.infrastructure.db.models.book import Book
 from src.infrastructure.db.models.campaign import ReviewApplication, ReviewCampaign, ReviewerBlock
+
+
+def _aware(dt):
+    """sqlite는 tz-naive로 돌려줌 → UTC로 간주해 aware 비교 가능하게."""
+    return dt.replace(tzinfo=UTC) if dt is not None and dt.tzinfo is None else dt
 
 
 def _campaign_view(c: ReviewCampaign, title: str | None, category: str | None = None) -> CampaignView:
@@ -111,7 +108,7 @@ class SqlCampaignRepository:
             return False
         app.status_cd = "ASSIGNED"
         app.deadline_at = deadline
-        app.assigned_at = datetime.now(timezone.utc)
+        app.assigned_at = datetime.now(UTC)
         camp.filled += 1
         if camp.filled >= camp.slots:
             camp.status_cd = "CLOSED"

@@ -4,7 +4,7 @@
 처리자(resolved_by)는 potato.operator — 두 영역을 잇는 경계 테이블.
 """
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import Column, DateTime, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import UUID
@@ -13,7 +13,7 @@ from src.config.database import Base
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class Report(Base):

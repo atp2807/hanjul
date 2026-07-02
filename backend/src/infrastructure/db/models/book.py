@@ -7,9 +7,9 @@
 네이밍룰: Python 속성=친화명 / DB 컬럼=접미어(_ts, _cd, _no, _yn). 단수 테이블 + 스키마.
 """
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
-from sqlalchemy import Column, String, Integer, Numeric, Text, ForeignKey, DateTime
+from sqlalchemy import Column, DateTime, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
@@ -17,7 +17,7 @@ from src.config.database import Base
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class Book(Base):

@@ -5,14 +5,12 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import get_session
-from src.features.auth.domain.models import AccountPrincipal
 from src.features.accounts.application.account_service import AccountService
 from src.features.accounts.presentation.dependencies import get_account_service
+from src.features.auth.domain.models import AccountPrincipal
 from src.features.auth.presentation.dependencies import get_current_account
 from src.features.billing.application.order_service import OrderService
 from src.features.billing.presentation.dependencies import get_order_service
-from src.features.notifications.application.notification_service import NotificationService
-from src.features.notifications.presentation.dependencies import get_notification_service
 from src.features.campaigns.application.campaign_service import CampaignService
 from src.features.campaigns.infrastructure.campaign_repo import SqlCampaignRepository
 from src.features.campaigns.presentation.dependencies import get_campaign_service
@@ -29,6 +27,8 @@ from src.features.campaigns.presentation.schemas import (
     CreateCampaignRequest,
     ReviewerStatusResponse,
 )
+from src.features.notifications.application.notification_service import NotificationService
+from src.features.notifications.presentation.dependencies import get_notification_service
 from src.shared.errors import ConflictError, ForbiddenError, NotFoundError
 
 router = APIRouter(tags=["campaigns"])
