@@ -4,7 +4,7 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { api } from './api';
 import { useOps } from './auth.jsx';
 import { T } from './theme';
-import { Icon } from './ui.jsx';
+import { Avatar, Icon } from './ui.jsx';
 
 const NAV = [
   { to: '/', label: '대시보드', icon: 'dashboard', end: true },
@@ -109,15 +109,7 @@ export default function Layout() {
               marginBottom: 10,
             }}
           >
-            <span
-              style={{
-                width: 34,
-                height: 34,
-                borderRadius: 999,
-                background: 'linear-gradient(140deg,#1d7e8e,#2aa0a8)',
-                flexShrink: 0,
-              }}
-            />
+            <Avatar name={operator?.name} size={34} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: T.inkText, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {operator?.name}

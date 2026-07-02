@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import { api } from '../api';
 import { T } from '../theme';
-import { Badge, Button, Card, Field, Icon, PageHeader } from '../ui.jsx';
+import { Avatar, Badge, Button, Card, Field, Icon, PageHeader } from '../ui.jsx';
 
 export default function Accounts() {
   const [id, setId] = useState('');
@@ -50,15 +50,7 @@ export default function Accounts() {
       {acc && (
         <Card>
           <div style={{ display: 'flex', alignItems: 'center', gap: 13, marginBottom: 16 }}>
-            <span
-              style={{
-                width: 46,
-                height: 46,
-                borderRadius: 999,
-                background: 'linear-gradient(140deg,#1d7e8e,#2aa0a8)',
-                flexShrink: 0,
-              }}
-            />
+            <Avatar name={acc.displayName || '(이름 없음)'} size={46} />
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
                 <strong style={{ color: T.textStrong, fontSize: 17 }}>

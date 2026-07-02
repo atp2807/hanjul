@@ -6,7 +6,7 @@ import { useIsMobile } from '../hooks/useIsMobile';
 import { assignReviewer, closeCampaign, createCampaign, getApplicants, getMyCampaigns } from '../services/api/campaigns';
 import { getMyBooks } from '../services/api/studio';
 import { coverGradient, T } from '../theme';
-import { EmptyState } from '../components/EmptyState';
+import { Avatar, EmptyState } from '../components/ui';
 
 function Stat({ label, value, sub }) {
   return (
@@ -37,7 +37,7 @@ function Applicants({ campaignId, onAssigned }) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '8px 0 14px' }}>
       {list.map((a) => (
         <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: T.bg, borderRadius: 11 }}>
-          <span style={{ width: 30, height: 30, borderRadius: T.radius.pill, background: 'linear-gradient(140deg,#1d7e8e,#2aa0a8)' }} />
+          <Avatar name={a.applicantName || '리뷰어'} size={30} />
           <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: T.textStrong }}>{a.applicantName || '리뷰어'}</span>
           <span style={{ fontSize: 12.5, color: T.muted }}>{ST[a.statusCd] || a.statusCd}</span>
           {a.statusCd === 'PENDING' && (

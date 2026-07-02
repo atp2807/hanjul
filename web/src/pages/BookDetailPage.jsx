@@ -7,6 +7,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { Stars } from '../components/Stars';
 import { Icon } from '../components/Icon';
+import { Avatar } from '../components/ui';
 import { getLoginUrl } from '../services/api/auth';
 import { getStoreDetail } from '../services/api/books';
 import { confirmPayment, createOrder, getPaymentConfig } from '../services/api/orders';
@@ -211,7 +212,7 @@ export function BookDetailPage() {
             {reviews?.items.map((r) => (
               <div key={r.id} style={{ background: T.surface, borderRadius: 16, padding: '22px 24px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                  <span style={{ width: 30, height: 30, borderRadius: 999, background: coverGradient(r.author || '') }} />
+                  <Avatar name={r.author || '익명'} size={30} />
                   <span style={{ fontSize: 14, fontWeight: 700, color: T.ink }}>{r.author || '익명'}</span>
                   {r.sourceCd === 'REVIEW_COPY' && (
                     <span title="출판 전 증정본을 받아 작성한 사전 리뷰예요." style={{ fontSize: 11, fontWeight: 700, color: '#2f8a6f', background: '#e3f3ec', borderRadius: 999, padding: '2px 8px' }}>
