@@ -2,9 +2,20 @@
   "name": "hanjul",
   "private": true,
   "version": "0.0.0",
+  "type": "module",
   "workspaces": [
     "packages/*",
     "web",
     "potato"
-  ]
+  ],
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.19.0",
+    "eslint": "^9.19.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "globals": "^15.14.0"
+  }
 }

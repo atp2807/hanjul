@@ -37,6 +37,7 @@ jobs:
       # (@napi-rs/canvas-linux·rollup-linux)을 항목에서 누락 → npm ci/install 모두 skip(npm/cli#4828).
       # lockfile 삭제 후 install해야 리눅스에서 완전 재해석돼 네이티브 바이너리가 깔린다.
       - run: rm -f package-lock.json && npm install --no-audit --no-fund
+      - run: npm run lint
       - run: npm run test -w web
       - run: npm run test -w potato
 
