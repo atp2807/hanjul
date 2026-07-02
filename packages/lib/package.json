@@ -1,0 +1,13 @@
+{
+  "name": "@hanjul/lib",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "한줄 공용 프론트 로직 — API 클라이언트 + 인증 컨텍스트 팩토리",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "peerDependencies": {
+    "react": ">=19"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "@hanjul/ui",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "한줄 공용 디자인 시스템 — 프리미티브 컴포넌트 + 테마 토큰",
+  "exports": {
+    ".": "./src/index.js",
+    "./theme": "./src/theme.js"
+  },
+  "peerDependencies": {
+    "react": ">=19"
+  },
+  "scripts": {
+    "build": "node build.mjs"
+  }
+}
