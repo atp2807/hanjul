@@ -51,7 +51,26 @@ export const COVER_GRADIENTS = [
 ];
 
 export function coverGradient(seed = '') {
+  return COVER_GRADIENTS[seedHash(seed) % COVER_GRADIENTS.length];
+}
+
+// 아바타 틸 그라데이션 (web·potato 42곳에 복붙돼 있던 것을 팔레트로 승격)
+export const AVATAR_GRADIENTS = [
+  'linear-gradient(140deg,#1d7e8e,#2aa0a8)',
+  'linear-gradient(140deg,#2aa0a8,#3fb0b0)',
+  'linear-gradient(140deg,#16525e,#1d7e8e)',
+  'linear-gradient(140deg,#0e4a5c,#2a8f97)',
+  'linear-gradient(140deg,#2f8a6f,#5bbf9e)',
+  'linear-gradient(140deg,#3a7d8c,#63b3c0)',
+];
+
+// 이름 시드 → 결정론적 해시 (표지·아바타 색 일관: 둘 다 이 해시를 씀)
+export function seedHash(seed = '') {
   let h = 0;
   for (let i = 0; i < seed.length; i += 1) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
-  return COVER_GRADIENTS[h % COVER_GRADIENTS.length];
+  return h;
+}
+
+export function avatarGradient(seed = '') {
+  return AVATAR_GRADIENTS[seedHash(seed || 'seed') % AVATAR_GRADIENTS.length];
 }

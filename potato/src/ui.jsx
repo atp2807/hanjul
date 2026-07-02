@@ -1,5 +1,5 @@
 // 공용 컴포넌트는 @hanjul/ui 로 이전. Icon은 운영자 아이콘셋이라 앱에 유지.
-export { Button, Card, Badge, Chip, Field, PageHeader } from '@hanjul/ui';
+export { Button, Card, Badge, Chip, Field, PageHeader, Avatar } from '@hanjul/ui';
 
 // ── 운영자 커스텀 SVG 아이콘 (고객 앱과 다른 셋) ──────
 const ICONS = {

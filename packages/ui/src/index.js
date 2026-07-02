@@ -7,4 +7,5 @@ export { Chip } from './Chip';
 export { Field } from './Field';
 export { PageHeader } from './PageHeader';
 export { Stat } from './Stat';
+export { Avatar } from './Avatar';
 export * from './theme';

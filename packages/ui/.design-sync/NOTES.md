@@ -25,4 +25,10 @@
 ## 프로젝트
 - claude.ai/design projectId: 687eaa8b-4c05-4623-8318-8771a8d13e4c
 - globalName: `HanjulUI` (window.HanjulUI.*)
-- 7 컴포넌트: Button·Card·Badge·Chip·Field·PageHeader·Stat + theme(T).
+- 8 컴포넌트: Button·Card·Badge·Chip·Field·PageHeader·Stat·**Avatar** + theme(T).
+
+## 이력
+- **Avatar 추가**(2026-07-02, 재sync): design agent(claude.ai/design)가 우리 토큰으로 디자인 →
+  코드로 승격. `f3263907` 프로젝트의 `Avatar.dc.html` 로직 그대로. web·potato 42곳 인라인
+  아바타 복붙 정리용. theme에 `AVATAR_GRADIENTS`·`avatarGradient`·`seedHash`(coverGradient와
+  공유) 추가 — 표지·아바타 색 동일 해시. resync 드라이버로 Avatar만 added, 8셀 프리뷰 전부 통과.

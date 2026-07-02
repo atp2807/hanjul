@@ -29,6 +29,7 @@
 - **Field** — `label`, `as`: input|textarea
 - **PageHeader** — `title`, `subtitle`, `right`(우측 액션)
 - **Stat** — `label`, `value`, `color`(값 색상)
+- **Avatar** — `name`(이니셜·색 시드, 같은 이름=같은 색), `src`(있으면 이미지), `size`: xs|sm|md|lg|xl|number, `status`: online|away|busy|offline(우하단 점), `ring`(흰 테두리). 색은 표지 `coverGradient`와 동일 해시.
 
 ## 진실의 소스
 컴포넌트 API는 `components/<Name>/<Name>.d.ts`, 토큰 `T`는 `_ds_bundle.js`에서 export된다(`window.HanjulUI.T`).
