@@ -23,7 +23,7 @@ describe('ReviewersPage', () => {
   it('모집중 캠페인을 카드로 렌더한다', async () => {
     campaigns.listOpenCampaigns.mockResolvedValue({
       items: [
-        { id: 'c1', bookTitle: '밤의 편집자', slots: 30, filled: 23, remaining: 7, statusCd: 'OPEN' },
+        { id: 'c1', bookTitle: '밤의 편집자', slots: 30, filled: 23, remaining: 7, status: 'OPEN' },
       ],
     });
     renderPage();

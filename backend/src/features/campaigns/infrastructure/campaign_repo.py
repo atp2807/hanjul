@@ -28,7 +28,7 @@ def _campaign_view(c: ReviewCampaign, title: str | None, category: str | None = 
     return CampaignView(
         id=c.id, book_id=c.book_id, book_title=title, category=category, author_id=c.author_id,
         slots=c.slots, filled=c.filled, remaining=max(0, c.slots - c.filled),
-        review_days=c.review_days, min_chars=c.min_chars, status_cd=c.status_cd, created_at=c.created_at,
+        review_days=c.review_days, min_chars=c.min_chars, status=c.status, created_at=c.created_at,
     )
 
 
@@ -59,7 +59,7 @@ class SqlCampaignRepository:
         q = (
             select(ReviewCampaign, Book.title, Book.category)
             .outerjoin(Book, Book.id == ReviewCampaign.book_id)
-            .where(ReviewCampaign.status_cd == "OPEN")
+            .where(ReviewCampaign.status == "OPEN")
         )
         if category:
             q = q.where(Book.category == category)
@@ -99,19 +99,19 @@ class SqlCampaignRepository:
                 select(ReviewApplication).where(
                     ReviewApplication.campaign_id == campaign_id,
                     ReviewApplication.applicant_id == applicant_id,
-                    ReviewApplication.status_cd == "PENDING",
+                    ReviewApplication.status == "PENDING",
                 ).with_for_update()
             )
         ).scalar_one_or_none()
         if app is None:
             await self.session.rollback()
             return False
-        app.status_cd = "ASSIGNED"
+        app.status = "ASSIGNED"
         app.deadline_at = deadline
         app.assigned_at = datetime.now(UTC)
         camp.filled += 1
         if camp.filled >= camp.slots:
-            camp.status_cd = "CLOSED"
+            camp.status = "CLOSED"
         await self.session.commit()
         return True
 
@@ -128,7 +128,7 @@ class SqlCampaignRepository:
         return [
             ApplicationView(
                 id=a.id, campaign_id=a.campaign_id, book_id=book_id, book_title=title,
-                applicant_id=a.applicant_id, status_cd=a.status_cd, deadline_at=a.deadline_at, created_at=a.created_at,
+                applicant_id=a.applicant_id, status=a.status, deadline_at=a.deadline_at, created_at=a.created_at,
             )
             for a, book_id, title in rows
         ]
@@ -139,7 +139,7 @@ class SqlCampaignRepository:
             await self.session.execute(select(ReviewCampaign).where(ReviewCampaign.id == campaign_id))
         ).scalar_one_or_none()
         if camp is not None:
-            camp.status_cd = "CLOSED"
+            camp.status = "CLOSED"
             await self.session.commit()
 
     async def cancel(self, campaign_id, applicant_id) -> bool:
@@ -148,7 +148,7 @@ class SqlCampaignRepository:
                 select(ReviewApplication).where(
                     ReviewApplication.campaign_id == campaign_id,
                     ReviewApplication.applicant_id == applicant_id,
-                    ReviewApplication.status_cd == "PENDING",
+                    ReviewApplication.status == "PENDING",
                 )
             )
         ).scalar_one_or_none()
@@ -164,7 +164,7 @@ class SqlCampaignRepository:
             select(
                 ReviewApplication.campaign_id.label("cid"),
                 func.count().label("applicants"),
-                func.sum(case((ReviewApplication.status_cd == "COMPLETED", 1), else_=0)).label("reviewed"),
+                func.sum(case((ReviewApplication.status == "COMPLETED", 1), else_=0)).label("reviewed"),
             )
             .group_by(ReviewApplication.campaign_id)
             .subquery()
@@ -182,7 +182,7 @@ class SqlCampaignRepository:
             AuthorCampaignView(
                 id=c.id, book_id=c.book_id, book_title=title, slots=c.slots, filled=c.filled,
                 remaining=max(0, c.slots - c.filled), review_days=c.review_days, min_chars=c.min_chars,
-                status_cd=c.status_cd, applicants=applicants or 0, reviewed=reviewed or 0, created_at=c.created_at,
+                status=c.status, applicants=applicants or 0, reviewed=reviewed or 0, created_at=c.created_at,
             )
             for c, title, applicants, reviewed in rows
         ]
@@ -199,7 +199,7 @@ class SqlCampaignRepository:
         return [
             ApplicantView(
                 id=a.id, applicant_id=a.applicant_id, applicant_name=None,
-                status_cd=a.status_cd, deadline_at=a.deadline_at, created_at=a.created_at,
+                status=a.status, deadline_at=a.deadline_at, created_at=a.created_at,
             )
             for a in rows
         ]
@@ -213,7 +213,7 @@ class SqlCampaignRepository:
                 .join(ReviewCampaign, ReviewCampaign.id == ReviewApplication.campaign_id)
                 .outerjoin(Book, Book.id == ReviewCampaign.book_id)
                 .where(
-                    ReviewApplication.status_cd == "ASSIGNED",
+                    ReviewApplication.status == "ASSIGNED",
                     ReviewApplication.deadline_at.is_not(None),
                     ReviewApplication.deadline_at > now,
                     ReviewApplication.deadline_at <= cutoff,
@@ -230,14 +230,14 @@ class SqlCampaignRepository:
                 .where(
                     ReviewCampaign.book_id == book_id,
                     ReviewApplication.applicant_id == applicant_id,
-                    ReviewApplication.status_cd == "ASSIGNED",
+                    ReviewApplication.status == "ASSIGNED",
                 )
                 .order_by(ReviewApplication.assigned_at.asc())  # 다중 캠페인 시 가장 먼저 배정된 것부터(결정적)
             )
         ).scalars().first()
         if app is None:
             return
-        app.status_cd = "COMPLETED"
+        app.status = "COMPLETED"
         await self.session.commit()
 
     async def _block_until(self, account_id) -> datetime | None:
@@ -276,7 +276,7 @@ class SqlCampaignRepository:
             await self.session.execute(
                 select(ReviewApplication).where(
                     ReviewApplication.applicant_id == applicant_id,
-                    ReviewApplication.status_cd == "ASSIGNED",
+                    ReviewApplication.status == "ASSIGNED",
                     ReviewApplication.deadline_at.is_not(None),
                     ReviewApplication.deadline_at < now,
                 )
@@ -285,7 +285,7 @@ class SqlCampaignRepository:
         if not overdue:
             return
         for a in overdue:
-            a.status_cd = "EXPIRED"
+            a.status = "EXPIRED"
         await self.session.flush()  # EXPIRED 반영 후 집계
         blocked_at = _aware(await self._block_until(applicant_id))
         # 차단 중이면 그대로 두고, 비차단일 때만 '이번 사이클' 미작성으로 재판정.
@@ -293,7 +293,7 @@ class SqlCampaignRepository:
             # 직전 차단 이후(=차단설정시각 = blocked_at - BLOCK_DAYS) 발생한 미작성만 카운트 → 회복 후 리셋
             cond = [
                 ReviewApplication.applicant_id == applicant_id,
-                ReviewApplication.status_cd == "EXPIRED",
+                ReviewApplication.status == "EXPIRED",
             ]
             if blocked_at is not None:
                 cond.append(ReviewApplication.deadline_at > blocked_at - timedelta(days=BLOCK_DAYS))
@@ -308,9 +308,9 @@ class SqlCampaignRepository:
         await self.sweep_overdue(applicant_id, now)
         rows = (
             await self.session.execute(
-                select(ReviewApplication.status_cd, func.count())
+                select(ReviewApplication.status, func.count())
                 .where(ReviewApplication.applicant_id == applicant_id)
-                .group_by(ReviewApplication.status_cd)
+                .group_by(ReviewApplication.status)
             )
         ).all()
         by = {s: n for s, n in rows}

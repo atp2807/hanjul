@@ -27,7 +27,7 @@ class CampaignItem(CamelSchema):
     remaining: int
     review_days: int
     min_chars: int
-    status_cd: str
+    status: str
     created_at: datetime
 
 
@@ -40,7 +40,7 @@ class ApplicationItem(CamelSchema):
     campaign_id: UUID
     book_id: UUID
     book_title: str | None
-    status_cd: str
+    status: str
     deadline_at: datetime | None
     created_at: datetime
 
@@ -58,7 +58,7 @@ class AuthorCampaignItem(CamelSchema):
     remaining: int
     review_days: int
     min_chars: int
-    status_cd: str
+    status: str
     applicants: int
     reviewed: int
     created_at: datetime
@@ -72,7 +72,7 @@ class ApplicantItem(CamelSchema):
     id: UUID
     applicant_id: UUID
     applicant_name: str | None
-    status_cd: str
+    status: str
     deadline_at: datetime | None
     created_at: datetime
 

@@ -48,17 +48,17 @@ export function ReviewerActivityPage() {
   if (!user) return <div style={{ padding: 60, textAlign: 'center', color: T.muted, fontFamily: T.font }}>로그인이 필요해요.</div>;
   if (items === null) return <div style={{ padding: 60, textAlign: 'center', color: T.muted, fontFamily: T.font }}>불러오는 중…</div>;
 
-  const assigned = items.filter((a) => a.statusCd === 'ASSIGNED');
-  const completed = items.filter((a) => a.statusCd === 'COMPLETED');
-  const pending = items.filter((a) => a.statusCd === 'PENDING');
-  const expired = items.filter((a) => a.statusCd === 'EXPIRED');
+  const assigned = items.filter((a) => a.status === 'ASSIGNED');
+  const completed = items.filter((a) => a.status === 'COMPLETED');
+  const pending = items.filter((a) => a.status === 'PENDING');
+  const expired = items.filter((a) => a.status === 'EXPIRED');
   // 서버 집계 우선, 없으면 목록에서 도출
   const rate = status ? status.completionRate : (completed.length + expired.length ? Math.round((completed.length / (completed.length + expired.length)) * 100) : null);
   const received = status ? status.received : assigned.length + completed.length;
   const blockedUntil = status?.blockedUntil || null;
 
   const counts = { ALL: items.length, PENDING: pending.length, ASSIGNED: assigned.length, COMPLETED: completed.length };
-  const shown = filter === 'ALL' ? items : items.filter((a) => a.statusCd === filter);
+  const shown = filter === 'ALL' ? items : items.filter((a) => a.status === filter);
 
   async function onCancel(a) {
     try { await cancelApplication(a.campaignId); load(); } catch { /* noop */ }
@@ -98,8 +98,8 @@ export function ReviewerActivityPage() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {shown.map((a) => {
-              const st = STATUS[a.statusCd] || STATUS.PENDING;
-              const d = a.statusCd === 'ASSIGNED' ? dday(a.deadlineAt) : null;
+              const st = STATUS[a.status] || STATUS.PENDING;
+              const d = a.status === 'ASSIGNED' ? dday(a.deadlineAt) : null;
               const urgent = d && (d === 'D-day' || d === 'D-1' || d === '마감');
               return (
                 <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: 16, background: T.surface, borderRadius: 14, border: `1px solid ${T.borderSoft}` }}>
@@ -107,24 +107,24 @@ export function ReviewerActivityPage() {
                   <div style={{ flex: 1 }}>
                     <div style={{ fontSize: 14.5, fontWeight: 700, color: T.textStrong }}>{a.bookTitle || '제목 없음'}</div>
                     <div style={{ fontSize: 12.5, color: T.muted, marginTop: 3 }}>
-                      {a.statusCd === 'ASSIGNED' && `리뷰 기한 ${d} · 증정본 수령 완료`}
-                      {a.statusCd === 'PENDING' && '배정 결과를 기다리는 중'}
-                      {a.statusCd === 'COMPLETED' && '리뷰 게시됨'}
-                      {a.statusCd === 'EXPIRED' && '리뷰 기한이 지났어요 · 미작성'}
+                      {a.status === 'ASSIGNED' && `리뷰 기한 ${d} · 증정본 수령 완료`}
+                      {a.status === 'PENDING' && '배정 결과를 기다리는 중'}
+                      {a.status === 'COMPLETED' && '리뷰 게시됨'}
+                      {a.status === 'EXPIRED' && '리뷰 기한이 지났어요 · 미작성'}
                     </div>
                   </div>
                   <span style={{ padding: '5px 12px', borderRadius: T.radius.pill, fontSize: 12, fontWeight: 700, color: urgent ? '#e0654f' : st.fg, background: urgent ? '#fdeeea' : st.bg }}>
-                    {st.label}{urgent && a.statusCd === 'ASSIGNED' ? ' · 마감임박' : ''}
+                    {st.label}{urgent && a.status === 'ASSIGNED' ? ' · 마감임박' : ''}
                   </span>
-                  {a.statusCd === 'PENDING' && (
+                  {a.status === 'PENDING' && (
                     <button onClick={() => onCancel(a)} style={{ padding: '9px 16px', background: T.tint, color: T.ink, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, minWidth: 88, cursor: 'pointer' }}>신청 취소</button>
                   )}
-                  {(a.statusCd === 'ASSIGNED' || a.statusCd === 'COMPLETED') && (
-                    <button onClick={() => navigate(a.statusCd === 'ASSIGNED' ? `/campaigns/${a.campaignId}/review` : `/books/${a.bookId}`)} style={{ padding: '9px 16px', background: a.statusCd === 'ASSIGNED' ? T.ink : T.tint, color: a.statusCd === 'ASSIGNED' ? T.inkText : T.ink, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, minWidth: 88, cursor: 'pointer' }}>
-                      {a.statusCd === 'ASSIGNED' ? '리뷰 쓰기' : '리뷰 보기'}
+                  {(a.status === 'ASSIGNED' || a.status === 'COMPLETED') && (
+                    <button onClick={() => navigate(a.status === 'ASSIGNED' ? `/campaigns/${a.campaignId}/review` : `/books/${a.bookId}`)} style={{ padding: '9px 16px', background: a.status === 'ASSIGNED' ? T.ink : T.tint, color: a.status === 'ASSIGNED' ? T.inkText : T.ink, border: 'none', borderRadius: 10, fontSize: 13, fontWeight: 700, minWidth: 88, cursor: 'pointer' }}>
+                      {a.status === 'ASSIGNED' ? '리뷰 쓰기' : '리뷰 보기'}
                     </button>
                   )}
-                  {a.statusCd === 'EXPIRED' && <span style={{ minWidth: 88, textAlign: 'center', fontSize: 12.5, color: T.muted }}>기한 종료</span>}
+                  {a.status === 'EXPIRED' && <span style={{ minWidth: 88, textAlign: 'center', fontSize: 12.5, color: T.muted }}>기한 종료</span>}
                 </div>
               );
             })}

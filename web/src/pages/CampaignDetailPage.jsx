@@ -95,7 +95,7 @@ export function CampaignDetailPage() {
           <div style={{ background: T.surface, borderRadius: 20, padding: 26, position: 'sticky', top: 20 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: T.text, marginBottom: 8 }}>
               <span>남은 증정본</span>
-              <span style={{ color: c.remaining > 0 ? T.text : '#e0654f', fontWeight: 700 }}>{c.statusCd === 'OPEN' ? '모집중' : '마감'}</span>
+              <span style={{ color: c.remaining > 0 ? T.text : '#e0654f', fontWeight: 700 }}>{c.status === 'OPEN' ? '모집중' : '마감'}</span>
             </div>
             <div style={{ fontSize: 24, fontWeight: 800, color: T.ink, marginBottom: 8 }}>
               {c.remaining}부 <span style={{ fontSize: 14, fontWeight: 500, color: '#9bb4bc' }}>/ {c.slots}부</span>
@@ -107,8 +107,8 @@ export function CampaignDetailPage() {
             {applied ? (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: 15, background: T.tint, color: '#2f8a6f', borderRadius: 13, fontSize: 15, fontWeight: 700, border: `1px solid #cfe7df` }}><Icon name="check" size={18} stroke="#2f8a6f" /> 신청 완료</div>
             ) : (
-              <button onClick={onApply} disabled={busy || c.statusCd !== 'OPEN'} style={{ width: '100%', padding: 15, background: c.statusCd === 'OPEN' ? T.ink : '#9bb4bc', color: T.inkText, border: 'none', borderRadius: 13, fontSize: 15, fontWeight: 700, cursor: c.statusCd === 'OPEN' ? 'pointer' : 'default' }}>
-                {c.statusCd === 'OPEN' ? (busy ? '신청 중…' : '리뷰어 신청하기') : '마감된 모집'}
+              <button onClick={onApply} disabled={busy || c.status !== 'OPEN'} style={{ width: '100%', padding: 15, background: c.status === 'OPEN' ? T.ink : '#9bb4bc', color: T.inkText, border: 'none', borderRadius: 13, fontSize: 15, fontWeight: 700, cursor: c.status === 'OPEN' ? 'pointer' : 'default' }}>
+                {c.status === 'OPEN' ? (busy ? '신청 중…' : '리뷰어 신청하기') : '마감된 모집'}
               </button>
             )}
             {err && <div style={{ color: '#e0654f', fontSize: 12.5, textAlign: 'center', marginTop: 10 }}>{err}</div>}

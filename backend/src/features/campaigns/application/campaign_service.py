@@ -42,7 +42,7 @@ class CampaignService:
         if status.blocked_until is not None:
             raise ReviewerBlocked(status.blocked_until)
         c = await self.get(campaign_id)
-        if c.status_cd != "OPEN":
+        if c.status != "OPEN":
             raise NoSlotsLeft()
         await self.repo.apply(campaign_id, applicant_id)
 

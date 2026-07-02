@@ -27,7 +27,7 @@ class ReviewCampaign(Base):
     filled = Column(Integer, nullable=False, default=0)
     review_days = Column(Integer, nullable=False, default=7)
     min_chars = Column(Integer, nullable=False, default=0)
-    status_cd = Column(String(20), nullable=False, default="OPEN")  # OPEN | CLOSED
+    status = Column("status_cd", String(20), nullable=False, default="OPEN")  # OPEN | CLOSED
     created_at = Column("created_ts", DateTime(timezone=True), default=_now, nullable=False)
 
 
@@ -41,7 +41,7 @@ class ReviewApplication(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     campaign_id = Column(UUID(as_uuid=True), ForeignKey("commu.review_campaign.id", ondelete="CASCADE"), nullable=False)
     applicant_id = Column(UUID(as_uuid=True), ForeignKey("usr.account.id", ondelete="CASCADE"), nullable=False)
-    status_cd = Column(String(20), nullable=False, default="PENDING")  # PENDING | ASSIGNED
+    status = Column("status_cd", String(20), nullable=False, default="PENDING")  # PENDING | ASSIGNED
     assigned_at = Column("assigned_ts", DateTime(timezone=True))
     deadline_at = Column("deadline_ts", DateTime(timezone=True))
     created_at = Column("created_ts", DateTime(timezone=True), default=_now, nullable=False)

@@ -77,7 +77,7 @@ async def test_campaign_full_flow(app_db):
         assert (await c.post(f"/api/campaigns/{cid}/apply", headers=r_auth)).status_code == 204
         # 내 신청함 — PENDING
         apps = (await c.get("/api/me/applications", headers=r_auth)).json()["items"]
-        assert apps[0]["statusCd"] == "PENDING"
+        assert apps[0]["status"] == "PENDING"
         # 신청자 목록 — 작가만(타인 403)
         assert (await c.get(f"/api/campaigns/{cid}/applications", headers=r_auth)).status_code == 403
         applicants = (await c.get(f"/api/campaigns/{cid}/applications", headers=a_auth)).json()["items"]
@@ -90,7 +90,7 @@ async def test_campaign_full_flow(app_db):
         assert (await c.post(f"/api/campaigns/{cid}/assign", json={"applicantId": reader["id"]}, headers=a_auth)).status_code == 204
         # 신청 ASSIGNED + 마감 설정
         apps = (await c.get("/api/me/applications", headers=r_auth)).json()["items"]
-        assert apps[0]["statusCd"] == "ASSIGNED" and apps[0]["deadlineAt"] is not None
+        assert apps[0]["status"] == "ASSIGNED" and apps[0]["deadlineAt"] is not None
         # 슬롯 다 차서 모집 마감
         assert (await c.get("/api/campaigns/open")).json()["items"] == [] or all(x["id"] != cid for x in (await c.get("/api/campaigns/open")).json()["items"])
 
@@ -100,7 +100,7 @@ async def test_campaign_full_flow(app_db):
         assert item["sourceCd"] == "REVIEW_COPY"
         # 리뷰 작성 → 신청 COMPLETED + 내 캠페인 집계
         apps = (await c.get("/api/me/applications", headers=r_auth)).json()["items"]
-        assert apps[0]["statusCd"] == "COMPLETED"
+        assert apps[0]["status"] == "COMPLETED"
         mine = (await c.get("/api/me/campaigns", headers=a_auth)).json()["items"]
         row = next(x for x in mine if x["id"] == cid)
         assert row["applicants"] == 1 and row["reviewed"] == 1 and row["filled"] == 1

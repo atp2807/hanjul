@@ -15,7 +15,7 @@ vi.mock('../services/api/campaigns', async (o) => ({
 vi.mock('../services/api/books');
 vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ user: { id: 'u1' } }) }));
 
-const CAMP = { id: 'c1', bookId: 'b1', bookTitle: '밤의 편집자', slots: 30, filled: 23, remaining: 7, reviewDays: 14, minChars: 300, statusCd: 'OPEN' };
+const CAMP = { id: 'c1', bookId: 'b1', bookTitle: '밤의 편집자', slots: 30, filled: 23, remaining: 7, reviewDays: 14, minChars: 300, status: 'OPEN' };
 
 function renderPage() {
   return render(

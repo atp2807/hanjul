@@ -19,7 +19,7 @@ class CampaignView:
     remaining: int
     review_days: int
     min_chars: int
-    status_cd: str
+    status: str
     created_at: datetime
 
 
@@ -30,7 +30,7 @@ class ApplicationView:
     book_id: UUID
     book_title: str | None
     applicant_id: UUID
-    status_cd: str       # PENDING | ASSIGNED | COMPLETED
+    status: str       # PENDING | ASSIGNED | COMPLETED
     deadline_at: datetime | None
     created_at: datetime
 
@@ -46,7 +46,7 @@ class AuthorCampaignView:
     remaining: int
     review_days: int
     min_chars: int
-    status_cd: str
+    status: str
     applicants: int      # 총 신청자 수
     reviewed: int        # 리뷰 완료(COMPLETED) 수
     created_at: datetime
@@ -58,7 +58,7 @@ class ApplicantView:
     id: UUID
     applicant_id: UUID
     applicant_name: str | None
-    status_cd: str
+    status: str
     deadline_at: datetime | None
     created_at: datetime
 

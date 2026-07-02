@@ -24,11 +24,11 @@ function renderPage() {
 describe('CampaignStudioPage', () => {
   it('집계 + 캠페인 행 + 신청자 배정', async () => {
     campaigns.getMyCampaigns.mockResolvedValue({ items: [
-      { id: 'c1', bookId: 'b1', bookTitle: '관리책', slots: 10, filled: 3, remaining: 7, statusCd: 'OPEN', applicants: 5, reviewed: 2 },
+      { id: 'c1', bookId: 'b1', bookTitle: '관리책', slots: 10, filled: 3, remaining: 7, status: 'OPEN', applicants: 5, reviewed: 2 },
     ] });
     studio.getMyBooks.mockResolvedValue({ items: [{ id: 'b1', title: '관리책', status: 'PUBLISHED' }] });
     campaigns.getApplicants.mockResolvedValue({ items: [
-      { id: 'ap1', applicantId: 'u9', applicantName: '리뷰어A', statusCd: 'PENDING', deadlineAt: null },
+      { id: 'ap1', applicantId: 'u9', applicantName: '리뷰어A', status: 'PENDING', deadlineAt: null },
     ] });
     campaigns.assignReviewer.mockResolvedValue(null);
     renderPage();
@@ -46,7 +46,7 @@ describe('CampaignStudioPage', () => {
 
   it('진행중(OPEN) 캠페인을 작가가 마감한다', async () => {
     campaigns.getMyCampaigns.mockResolvedValue({ items: [
-      { id: 'c1', bookId: 'b1', bookTitle: '마감대상', slots: 10, filled: 1, remaining: 9, statusCd: 'OPEN', applicants: 3, reviewed: 0 },
+      { id: 'c1', bookId: 'b1', bookTitle: '마감대상', slots: 10, filled: 1, remaining: 9, status: 'OPEN', applicants: 3, reviewed: 0 },
     ] });
     studio.getMyBooks.mockResolvedValue({ items: [] });
     campaigns.closeCampaign.mockResolvedValue(null);

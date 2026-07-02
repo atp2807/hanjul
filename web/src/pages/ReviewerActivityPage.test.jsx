@@ -14,10 +14,10 @@ vi.mock('../services/api/campaigns', async (o) => ({
 vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ user: { id: 'u1' } }) }));
 
 const APPS = [
-  { id: 'a1', campaignId: 'c1', bookId: 'b1', bookTitle: '배정책', statusCd: 'ASSIGNED', deadlineAt: '2099-01-01T00:00:00Z' },
-  { id: 'a2', campaignId: 'c2', bookId: 'b2', bookTitle: '대기책', statusCd: 'PENDING', deadlineAt: null },
-  { id: 'a3', campaignId: 'c3', bookId: 'b3', bookTitle: '만료책', statusCd: 'EXPIRED', deadlineAt: null },
-  { id: 'a4', campaignId: 'c4', bookId: 'b4', bookTitle: '완료책', statusCd: 'COMPLETED', deadlineAt: null },
+  { id: 'a1', campaignId: 'c1', bookId: 'b1', bookTitle: '배정책', status: 'ASSIGNED', deadlineAt: '2099-01-01T00:00:00Z' },
+  { id: 'a2', campaignId: 'c2', bookId: 'b2', bookTitle: '대기책', status: 'PENDING', deadlineAt: null },
+  { id: 'a3', campaignId: 'c3', bookId: 'b3', bookTitle: '만료책', status: 'EXPIRED', deadlineAt: null },
+  { id: 'a4', campaignId: 'c4', bookId: 'b4', bookTitle: '완료책', status: 'COMPLETED', deadlineAt: null },
 ];
 
 function renderPage() {

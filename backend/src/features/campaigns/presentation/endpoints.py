@@ -98,7 +98,7 @@ async def campaign_applicants(
         items=[
             ApplicantItem(
                 id=a.id, applicant_id=a.applicant_id, applicant_name=names.get(a.applicant_id),
-                status_cd=a.status_cd, deadline_at=a.deadline_at, created_at=a.created_at,
+                status=a.status, deadline_at=a.deadline_at, created_at=a.created_at,
             )
             for a in items
         ]

@@ -39,8 +39,8 @@ function Applicants({ campaignId, onAssigned }) {
         <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: T.bg, borderRadius: 11 }}>
           <Avatar name={a.applicantName || '리뷰어'} size={30} />
           <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: T.textStrong }}>{a.applicantName || '리뷰어'}</span>
-          <span style={{ fontSize: 12.5, color: T.muted }}>{ST[a.statusCd] || a.statusCd}</span>
-          {a.statusCd === 'PENDING' && (
+          <span style={{ fontSize: 12.5, color: T.muted }}>{ST[a.status] || a.status}</span>
+          {a.status === 'PENDING' && (
             <button onClick={() => assign(a.applicantId)} style={{ padding: '7px 14px', background: T.ink, color: T.inkText, border: 'none', borderRadius: 9, fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>배정</button>
           )}
         </div>
@@ -120,7 +120,7 @@ export function CampaignStudioPage() {
   if (!user) return <div style={{ padding: 60, textAlign: 'center', color: T.muted, fontFamily: T.font }}>로그인이 필요해요.</div>;
   if (camps === null) return <div style={{ padding: 60, textAlign: 'center', color: T.muted, fontFamily: T.font }}>불러오는 중…</div>;
 
-  const ongoing = camps.filter((c) => c.statusCd === 'OPEN').length;
+  const ongoing = camps.filter((c) => c.status === 'OPEN').length;
   const applicants = camps.reduce((s, c) => s + c.applicants, 0);
   const assigned = camps.reduce((s, c) => s + c.filled, 0);
   const reviewed = camps.reduce((s, c) => s + c.reviewed, 0);
@@ -153,7 +153,7 @@ export function CampaignStudioPage() {
               <span style={{ flex: 1 }}>캠페인</span><span style={{ width: 80 }}>상태</span><span style={{ width: isMobile ? 64 : 110, textAlign: 'center' }}>신청/배정</span>{!isMobile && <span style={{ width: 140 }}>리뷰 완료율</span>}<span style={{ width: 96, textAlign: 'right' }}> </span>
             </div>
             {camps.map((c) => {
-              const st = STATUS[c.statusCd] || STATUS.OPEN;
+              const st = STATUS[c.status] || STATUS.OPEN;
               const rate = c.filled ? Math.round((c.reviewed / c.filled) * 100) : 0;
               const open = openRow === c.id;
               return (
@@ -175,7 +175,7 @@ export function CampaignStudioPage() {
                     )}
                     <span style={{ width: 96, textAlign: 'right', display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
                       <button onClick={() => setOpenRow(open ? null : c.id)} style={{ background: 'none', border: 'none', color: T.ink, fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>{open ? '닫기' : '신청자'}</button>
-                      {c.statusCd === 'OPEN' && (
+                      {c.status === 'OPEN' && (
                         <button onClick={() => closeCampaign(c.id).then(load).catch(() => {})} style={{ background: 'none', border: 'none', color: T.muted, fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>마감</button>
                       )}
                     </span>
