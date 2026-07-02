@@ -8,10 +8,16 @@
     ".": "./src/index.js",
     "./theme": "./src/theme.js"
   },
+  "types": "./dist/index.d.ts",
   "peerDependencies": {
     "react": ">=19"
   },
   "scripts": {
     "build": "node build.mjs"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.17",
+    "esbuild": "^0.28.1",
+    "typescript": "^6.0.3"
   }
 }

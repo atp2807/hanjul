@@ -2,9 +2,10 @@ import { T } from './theme';
 
 /**
  * 페이지 헤더 — 제목 + 부제 + 우측 액션.
- * @param {string} title
- * @param {string} [subtitle]
- * @param {React.ReactNode} [right] 우측 액션 영역
+ * @param {object} props
+ * @param {string} props.title
+ * @param {string} [props.subtitle]
+ * @param {import('react').ReactNode} [props.right] 우측 액션 영역
  */
 export function PageHeader({ title, subtitle, right }) {
   return (

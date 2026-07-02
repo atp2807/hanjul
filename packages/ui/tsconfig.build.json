@@ -1,0 +1,17 @@
+{
+  "//": "JSDoc→.d.ts 자동생성 전용 (TS 코드 안 씀). 타입체크 안 함.",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "jsx": "react-jsx",
+    "moduleResolution": "bundler",
+    "module": "esnext",
+    "target": "esnext",
+    "skipLibCheck": true,
+    "rootDir": "./src",
+    "outDir": "./dist"
+  },
+  "include": ["src/**/*.js", "src/**/*.jsx"]
+}

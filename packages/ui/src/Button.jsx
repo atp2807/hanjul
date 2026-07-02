@@ -2,10 +2,12 @@ import { T } from './theme';
 
 /**
  * 버튼 — 한줄 기본 액션 컴포넌트.
- * @param {'primary'|'secondary'|'ghost'|'danger'} [kind='primary']
- *   primary=딥틸 채움(주 액션) · secondary=테두리 · ghost=투명 · danger=삭제/경고
- * @param {'md'|'sm'} [size='md']
- * @param {boolean} [block] 전체 너비
+ * @param {object} props
+ * @param {'primary'|'secondary'|'ghost'|'danger'} [props.kind='primary'] primary=딥틸 채움(주 액션) · secondary=테두리 · ghost=투명 · danger=삭제/경고
+ * @param {'md'|'sm'} [props.size='md']
+ * @param {boolean} [props.block] 전체 너비
+ * @param {import('react').CSSProperties} [props.style]
+ * @param {import('react').ReactNode} [props.children]
  */
 export function Button({ kind = 'primary', size = 'md', block, style, children, ...rest }) {
   const palette = {

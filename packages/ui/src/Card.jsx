@@ -2,8 +2,11 @@ import { T } from './theme';
 
 /**
  * 카드 — 콘텐츠 컨테이너. 흰 배경 + 라운드(18).
- * @param {boolean} [bordered] 테두리 추가 (기본은 그림자만)
- * @param {'ink'} [tone] ink=딥틸 배경(강조 카드, 텍스트는 밝게)
+ * @param {object} props
+ * @param {boolean} [props.bordered] 테두리 추가 (기본은 그림자만)
+ * @param {'ink'} [props.tone] ink=딥틸 배경(강조 카드, 텍스트는 밝게)
+ * @param {import('react').CSSProperties} [props.style]
+ * @param {import('react').ReactNode} [props.children]
  */
 export function Card({ bordered, tone, style, children, ...rest }) {
   const isInk = tone === 'ink';

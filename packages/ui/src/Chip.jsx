@@ -2,7 +2,10 @@ import { T } from './theme';
 
 /**
  * 필터 칩 — 목록 상단 카테고리/상태 필터. active면 딥틸 채움.
- * @param {boolean} active 선택 상태
+ * @param {object} props
+ * @param {boolean} [props.active] 선택 상태
+ * @param {import('react').CSSProperties} [props.style]
+ * @param {import('react').ReactNode} [props.children]
  */
 export function Chip({ active, style, children, ...rest }) {
   return (

@@ -2,8 +2,10 @@ import { T } from './theme';
 
 /**
  * 입력 필드 — 라벨 + input. textarea는 as="textarea".
- * @param {string} [label]
- * @param {'input'|'textarea'} [as='input']
+ * @param {object} props
+ * @param {string} [props.label]
+ * @param {'input'|'textarea'} [props.as='input']
+ * @param {import('react').CSSProperties} [props.style]
  */
 export function Field({ label, as = 'input', style, ...rest }) {
   const Tag = as;
