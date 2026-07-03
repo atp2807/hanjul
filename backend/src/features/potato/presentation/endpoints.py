@@ -24,8 +24,8 @@ async def login(
     body: LoginRequest, svc: PotatoAuthService = Depends(get_potato_auth_service)
 ) -> TokenResponse:
     # InvalidCredentials 401·OperatorInactive 403 → 중앙 핸들러
-    token, role_cd = await svc.login(body.email, body.password)
-    return TokenResponse(token=token, role_cd=role_cd)
+    token, role = await svc.login(body.email, body.password)
+    return TokenResponse(token=token, role=role)
 
 
 @router.get("/auth/me", response_model=OperatorResponse)

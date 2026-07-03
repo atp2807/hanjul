@@ -36,7 +36,7 @@ def app_db(sessionmaker):
 async def _op_token(c, sessionmaker) -> str:
     async with sessionmaker() as s:
         await SqlOperatorRepository(s).create(
-            email=EMAIL, name="운영자", role_cd=OPERATOR, password_hash=hash_password(PASSWORD)
+            email=EMAIL, name="운영자", role=OPERATOR, password_hash=hash_password(PASSWORD)
         )
     r = await c.post("/api/potato/auth/login", json={"email": EMAIL, "password": PASSWORD})
     return r.json()["token"]
@@ -45,7 +45,7 @@ async def _op_token(c, sessionmaker) -> str:
 async def _make_account(sessionmaker) -> str:
     aid = uuid4()
     async with sessionmaker() as s:
-        s.add(Account(id=aid, email="reader@x.com", display_name="독자", role_cd="READER"))
+        s.add(Account(id=aid, email="reader@x.com", display_name="독자", role="READER"))
         await s.commit()
     return str(aid)
 
@@ -63,7 +63,7 @@ async def test_suspend_and_block_review_with_audit(app_db):
 
         # 초기 상태
         view = (await c.get(f"/api/potato/accounts/{aid}", headers=hdr)).json()
-        assert view["statusCd"] == "ACTIVE"
+        assert view["status"] == "ACTIVE"
         assert view["reviewBlocked"] is False
 
         # 정지
@@ -76,7 +76,7 @@ async def test_suspend_and_block_review_with_audit(app_db):
         ).status_code == 204
 
         view = (await c.get(f"/api/potato/accounts/{aid}", headers=hdr)).json()
-        assert view["statusCd"] == "SUSPENDED"
+        assert view["status"] == "SUSPENDED"
         assert view["reviewBlocked"] is True
 
         # 해제
@@ -85,7 +85,7 @@ async def test_suspend_and_block_review_with_audit(app_db):
             await c.post(f"/api/potato/accounts/{aid}/unblock-review", headers=hdr)
         ).status_code == 204
         view = (await c.get(f"/api/potato/accounts/{aid}", headers=hdr)).json()
-        assert view["statusCd"] == "ACTIVE"
+        assert view["status"] == "ACTIVE"
         assert view["reviewBlocked"] is False
 
         # 없는 계정 → 404

@@ -56,18 +56,18 @@ export default function Accounts() {
                 <strong style={{ color: T.textStrong, fontSize: 17 }}>
                   {acc.displayName || '(이름 없음)'}
                 </strong>
-                <Badge tone={acc.statusCd === 'SUSPENDED' ? 'danger' : 'ok'}>
-                  {acc.statusCd === 'SUSPENDED' ? '정지됨' : '정상'}
+                <Badge tone={acc.status === 'SUSPENDED' ? 'danger' : 'ok'}>
+                  {acc.status === 'SUSPENDED' ? '정지됨' : '정상'}
                 </Badge>
                 {acc.reviewBlocked && <Badge tone="warn">서평단 차단</Badge>}
               </div>
               <div style={{ fontSize: 13, color: T.muted, marginTop: 4 }}>
-                {acc.email} · {acc.roleCd}
+                {acc.email} · {acc.role}
               </div>
             </div>
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-            {acc.statusCd === 'SUSPENDED' ? (
+            {acc.status === 'SUSPENDED' ? (
               <Button onClick={() => act(() => api.unsuspend(acc.id))}>정지 해제</Button>
             ) : (
               <Button

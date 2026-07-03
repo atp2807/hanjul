@@ -25,7 +25,7 @@ class Operator(Base):
     email = Column(String(320), unique=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
     name = Column(String(200), nullable=False)
-    role_cd = Column(String(20), nullable=False, default="OPERATOR")  # OPERATOR | DEVELOPER
+    role = Column("role_cd", String(20), nullable=False, default="OPERATOR")  # OPERATOR | DEVELOPER
     is_active = Column("active_yn", Boolean, nullable=False, default=True)
     created_at = Column("created_ts", DateTime(timezone=True), default=_now, nullable=False)
 

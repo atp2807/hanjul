@@ -66,7 +66,7 @@ async def test_author_publishes_reader_buys_and_reads(journey):
         # 1) 작가 · 독자 소셜 로그인 (서로 다른 provider → 다른 계정)
         author_token, author = await login_account(c, "google", "a")
         buyer_token, buyer = await login_account(c, "naver", "b")
-        assert author["roleCd"] == "READER"
+        assert author["role"] == "READER"
         author_id, buyer_id = author["id"], buyer["id"]
         assert author_id != buyer_id
         author_auth = {"Authorization": f"Bearer {author_token}"}

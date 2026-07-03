@@ -39,7 +39,7 @@ def app_db(sessionmaker):
 async def _seed_operator(sessionmaker, role: str = DEVELOPER) -> None:
     async with sessionmaker() as s:
         await SqlOperatorRepository(s).create(
-            email=EMAIL, name="운영자", role_cd=role, password_hash=hash_password(PASSWORD)
+            email=EMAIL, name="운영자", role=role, password_hash=hash_password(PASSWORD)
         )
 
 
@@ -62,13 +62,13 @@ async def test_login_success_and_me(app_db):
         ok = await c.post("/api/potato/auth/login", json={"email": EMAIL, "password": PASSWORD})
         assert ok.status_code == 200, ok.text
         body = ok.json()
-        assert body["roleCd"] == "DEVELOPER"
+        assert body["role"] == "DEVELOPER"
         token = body["token"]
         # me
         me = await c.get("/api/potato/auth/me", headers={"Authorization": f"Bearer {token}"})
         assert me.status_code == 200
         assert me.json()["email"] == EMAIL
-        assert me.json()["roleCd"] == "DEVELOPER"
+        assert me.json()["role"] == "DEVELOPER"
 
 
 async def test_me_requires_token(app_db):

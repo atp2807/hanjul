@@ -35,7 +35,7 @@ class AuthService:
         if account is None:
             account = await self.repo.create_with_credential(profile)
 
-        token = self.token_issuer.issue(account.id, account.role_cd)
+        token = self.token_issuer.issue(account.id, account.role)
         return AuthResult(account=account, token=token, is_new=is_new)
 
     async def login_with_profile(self, profile: SocialProfile) -> AuthResult:
@@ -47,5 +47,5 @@ class AuthService:
         is_new = account is None
         if account is None:
             account = await self.repo.create_with_credential(profile)
-        token = self.token_issuer.issue(account.id, account.role_cd)
+        token = self.token_issuer.issue(account.id, account.role)
         return AuthResult(account=account, token=token, is_new=is_new)

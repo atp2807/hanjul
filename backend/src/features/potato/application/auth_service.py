@@ -18,7 +18,7 @@ class PotatoAuthService:
         self._token = token_issuer
 
     async def login(self, email: str, password: str) -> tuple[str, str]:
-        """성공 시 (token, role_cd). 자격증명 먼저 검증(비활성 여부를 오답에 노출 안 함)."""
+        """성공 시 (token, role). 자격증명 먼저 검증(비활성 여부를 오답에 노출 안 함)."""
         operator = await self._repo.get_by_email(email)
         if operator is None or not operator.password_hash or not verify_password(
             password, operator.password_hash
@@ -26,7 +26,7 @@ class PotatoAuthService:
             raise InvalidCredentials()
         if not operator.is_active:
             raise OperatorInactive()
-        return self._token.issue(operator.id, operator.role_cd), operator.role_cd
+        return self._token.issue(operator.id, operator.role), operator.role
 
     async def get_operator(self, operator_id: UUID) -> Operator:
         operator = await self._repo.get(operator_id)

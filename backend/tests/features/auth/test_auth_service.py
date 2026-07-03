@@ -21,7 +21,7 @@ async def test_first_login_creates_account_and_token():
     res = await svc.complete_login("google", "code")  # provider 코드 대소문자 무관
     assert res.is_new is True
     assert res.account.email == "a@b.com"
-    assert res.account.role_cd == "READER"
+    assert res.account.role == "READER"
     payload = issuer.verify(res.token)
     assert payload["sub"] == str(res.account.id)
 

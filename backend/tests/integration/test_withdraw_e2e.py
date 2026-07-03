@@ -64,7 +64,7 @@ async def test_export_then_withdraw_anonymizes(app_db):
             accs = (await s.execute(select(Account))).scalars().all()
             assert len(accs) == 1  # 행 유지(법정 보존)
             acc = accs[0]
-            assert acc.status_cd == "DELETED"
+            assert acc.status == "DELETED"
             assert acc.email is None
             assert acc.display_name == "탈퇴한 사용자"
             assert acc.bio is None

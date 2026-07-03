@@ -39,8 +39,8 @@ async def view_account(
         id=acc.id,
         email=acc.email,
         display_name=acc.display_name,
-        role_cd=acc.role_cd,
-        status_cd=acc.status_cd,
+        role=acc.role,
+        status=acc.status,
         review_blocked=blocked_until is not None,
         review_blocked_at=blocked_until,
     )

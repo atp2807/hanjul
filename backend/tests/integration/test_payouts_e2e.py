@@ -74,7 +74,7 @@ async def _seed_sale(sessionmaker, author_id, gross=7000, wh=231, payout=6769) -
 
 async def _op_token(c, sessionmaker) -> str:
     async with sessionmaker() as s:
-        await SqlOperatorRepository(s).create(email=OP_EMAIL, name="운영자", role_cd=OPERATOR,
+        await SqlOperatorRepository(s).create(email=OP_EMAIL, name="운영자", role=OPERATOR,
                                               password_hash=hash_password(OP_PW))
     r = await c.post("/api/potato/auth/login", json={"email": OP_EMAIL, "password": OP_PW})
     return r.json()["token"]

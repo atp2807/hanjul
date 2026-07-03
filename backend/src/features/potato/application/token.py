@@ -19,11 +19,11 @@ class PotatoTokenIssuer:
         self._alg = alg
         self._ttl = timedelta(hours=ttl_hours)
 
-    def issue(self, operator_id: UUID, role_cd: str) -> str:
+    def issue(self, operator_id: UUID, role: str) -> str:
         now = datetime.now(UTC)
         payload = {
             "sub": str(operator_id),
-            "role": role_cd,
+            "role": role,
             "aud": POTATO_AUDIENCE,
             "iat": now,
             "exp": now + self._ttl,

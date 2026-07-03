@@ -12,7 +12,7 @@ class AccountResponse(CamelSchema):
     id: UUID
     email: str | None
     display_name: str | None
-    role_cd: str
+    role: str
     bio: str | None = None
 
 

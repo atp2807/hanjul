@@ -15,9 +15,9 @@ class AccountProfile:
     id: UUID
     email: str | None
     display_name: str | None
-    role_cd: str
+    role: str
     bio: str | None
-    status_cd: str = "ACTIVE"  # ACTIVE | SUSPENDED (운영자 정지)
+    status: str = "ACTIVE"  # ACTIVE | SUSPENDED (운영자 정지)
     # 서평단 자격회수는 더 이상 여기 없음 — commu.reviewer_block (campaigns 소유)
 
 

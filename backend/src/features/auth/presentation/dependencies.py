@@ -35,7 +35,7 @@ def _principal_from(creds: HTTPAuthorizationCredentials | None) -> AccountPrinci
         return None
     try:
         payload = token_issuer().verify(creds.credentials)
-        return AccountPrincipal(id=UUID(payload["sub"]), role_cd=payload.get("role", "READER"))
+        return AccountPrincipal(id=UUID(payload["sub"]), role=payload.get("role", "READER"))
     except Exception:
         return None
 

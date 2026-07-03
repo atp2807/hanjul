@@ -26,8 +26,8 @@ class Account(Base):
     email = Column(String(320), unique=True)  # 소셜이 이메일 미제공 가능 → nullable
     display_name = Column(String(200))
     bio = Column(Text)  # 작가 소개(프로필)
-    role_cd = Column(String(20), nullable=False, default="READER")   # READER | AUTHOR (운영자는 potato.operator)
-    status_cd = Column(String(20), nullable=False, default="ACTIVE")  # ACTIVE | SUSPENDED
+    role = Column("role_cd", String(20), nullable=False, default="READER")   # READER | AUTHOR (운영자는 potato.operator)
+    status = Column("status_cd", String(20), nullable=False, default="ACTIVE")  # ACTIVE | SUSPENDED
     # 서평단 자격회수는 commu.reviewer_block 으로 이전됨(0021) — 더 이상 여기 없음.
     created_at = Column("created_ts", DateTime(timezone=True), default=_now, nullable=False)
     updated_at = Column("updated_ts", DateTime(timezone=True), default=_now, onupdate=_now, nullable=False)

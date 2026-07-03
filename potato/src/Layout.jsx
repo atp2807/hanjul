@@ -115,7 +115,7 @@ export default function Layout() {
                 {operator?.name}
               </div>
               <div style={{ fontSize: 11, color: T.sidebarMuted }}>
-                {operator?.roleCd === 'DEVELOPER' ? '개발자' : '운영자'}
+                {operator?.role === 'DEVELOPER' ? '개발자' : '운영자'}
               </div>
             </div>
           </div>

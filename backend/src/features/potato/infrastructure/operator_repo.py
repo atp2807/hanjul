@@ -18,7 +18,7 @@ class SqlOperatorRepository:
             id=row.id,
             email=row.email,
             name=row.name,
-            role_cd=row.role_cd,
+            role=row.role,
             is_active=row.is_active,
             password_hash=row.password_hash,
         )
@@ -34,13 +34,13 @@ class SqlOperatorRepository:
         return self._to_domain(row) if row else None
 
     async def create(
-        self, email: str, name: str, role_cd: str, password_hash: str
+        self, email: str, name: str, role: str, password_hash: str
     ) -> Operator:
         row = OperatorRow(
             id=uuid4(),
             email=email,
             name=name,
-            role_cd=role_cd,
+            role=role,
             password_hash=password_hash,
             is_active=True,
         )

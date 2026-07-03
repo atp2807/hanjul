@@ -15,9 +15,9 @@ def _to_profile(acc: Account) -> AccountProfile:
         id=acc.id,
         email=acc.email,
         display_name=acc.display_name,
-        role_cd=acc.role_cd,
+        role=acc.role,
         bio=acc.bio,
-        status_cd=acc.status_cd,
+        status=acc.status,
     )
 
 
@@ -41,7 +41,7 @@ class SqlAccountRepository:
     async def set_status(self, account_id: UUID, status: str) -> None:
         acc = await self.session.get(Account, account_id)
         if acc is not None:
-            acc.status_cd = status
+            acc.status = status
             await self.session.commit()
 
     async def withdraw(self, account_id: UUID) -> bool:
@@ -52,7 +52,7 @@ class SqlAccountRepository:
         acc.email = None
         acc.display_name = WITHDRAWN_NAME
         acc.bio = None
-        acc.status_cd = "DELETED"
+        acc.status = "DELETED"
         # 소셜 연결 삭제 → 재로그인 시 이 계정으로 못 돌아옴(새 계정 생성)
         await self.session.execute(delete(Credential).where(Credential.account_id == account_id))
         await self.session.commit()

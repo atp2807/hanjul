@@ -19,7 +19,7 @@ class AuthAccount:
     id: UUID
     email: str | None
     display_name: str | None
-    role_cd: str
+    role: str
     bio: str | None = None
 
 
@@ -27,7 +27,7 @@ class AuthAccount:
 class AccountPrincipal:
     """JWT 클레임에서 복원한 인증 주체 (DB 조회 없이 authz/entitlement용)."""
     id: UUID
-    role_cd: str
+    role: str
 
 
 @dataclass

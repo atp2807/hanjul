@@ -14,14 +14,14 @@ class LoginRequest(CamelSchema):
 
 class TokenResponse(CamelSchema):
     token: str
-    role_cd: str
+    role: str
 
 
 class OperatorResponse(CamelSchema):
     id: UUID
     email: str
     name: str
-    role_cd: str
+    role: str
 
 
 # ── 모더레이션 ────────────────────────────────────────
@@ -64,8 +64,8 @@ class AccountModerationView(CamelSchema):
     id: UUID
     email: str | None
     display_name: str | None
-    role_cd: str
-    status_cd: str
+    role: str
+    status: str
     review_blocked: bool
     review_blocked_at: datetime | None
 

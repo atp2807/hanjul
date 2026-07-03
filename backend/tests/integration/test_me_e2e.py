@@ -53,4 +53,4 @@ async def test_me_requires_token_and_returns_account(app_db):
         assert r.status_code == 200
         body = r.json()
         assert body["email"] == "me@x.com"
-        assert body["roleCd"] == "READER"
+        assert body["role"] == "READER"

@@ -8,7 +8,7 @@ from src.infrastructure.db.models.account import Account, Credential
 
 def _to_auth_account(acc: Account) -> AuthAccount:
     return AuthAccount(
-        id=acc.id, email=acc.email, display_name=acc.display_name, role_cd=acc.role_cd, bio=acc.bio
+        id=acc.id, email=acc.email, display_name=acc.display_name, role=acc.role, bio=acc.bio
     )
 
 
@@ -32,7 +32,7 @@ class SqlAccountRepository:
         account = Account(
             email=profile.email,
             display_name=profile.display_name,
-            role_cd="READER",
+            role="READER",
         )
         self.session.add(account)
         await self.session.flush()

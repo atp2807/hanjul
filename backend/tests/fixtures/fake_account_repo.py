@@ -27,7 +27,7 @@ class FakeAccountRepository:
             id=uuid.uuid4(),
             email=profile.email,
             display_name=profile.display_name,
-            role_cd="READER",
+            role="READER",
         )
         self.by_cred[(profile.provider_cd, profile.provider_user_id)] = acc
         return acc

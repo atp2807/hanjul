@@ -89,7 +89,7 @@ def get_current_operator(
         raise UnauthorizedError("operator authentication required")
     try:
         payload = potato_token_issuer().verify(creds.credentials)
-        return OperatorPrincipal(id=UUID(payload["sub"]), role_cd=payload.get("role", "OPERATOR"))
+        return OperatorPrincipal(id=UUID(payload["sub"]), role=payload.get("role", "OPERATOR"))
     except Exception:
         raise UnauthorizedError("operator authentication required")
 
@@ -98,6 +98,6 @@ def require_developer(
     principal: OperatorPrincipal = Depends(get_current_operator),
 ) -> OperatorPrincipal:
     """개발자 전용(시스템/엔진 메뉴). 일반 운영자는 403."""
-    if principal.role_cd != DEVELOPER:
+    if principal.role != DEVELOPER:
         raise ForbiddenError("developer only")
     return principal

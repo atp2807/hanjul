@@ -15,8 +15,8 @@ import { api } from '../api';
 import Accounts from './Accounts';
 
 const active = {
-  id: 'a1', displayName: '김작가', email: 'k@x.com', roleCd: 'USER',
-  statusCd: 'ACTIVE', reviewBlocked: false,
+  id: 'a1', displayName: '김작가', email: 'k@x.com', role: 'USER',
+  status: 'ACTIVE', reviewBlocked: false,
 };
 
 function lookup(value = 'a1') {

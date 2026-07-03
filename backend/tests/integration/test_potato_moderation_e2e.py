@@ -37,7 +37,7 @@ def app_db(sessionmaker):
 async def _login(c, sessionmaker) -> str:
     async with sessionmaker() as s:
         await SqlOperatorRepository(s).create(
-            email=EMAIL, name="모더레이터", role_cd=OPERATOR, password_hash=hash_password(PASSWORD)
+            email=EMAIL, name="모더레이터", role=OPERATOR, password_hash=hash_password(PASSWORD)
         )
     r = await c.post("/api/potato/auth/login", json={"email": EMAIL, "password": PASSWORD})
     return r.json()["token"]
