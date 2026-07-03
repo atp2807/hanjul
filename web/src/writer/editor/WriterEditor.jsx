@@ -2,7 +2,7 @@
 // 타이핑 핫패스 = 메모리 Y.Doc(즉시) → y-indexeddb 가 매 변경 로컬 영속(안 날아감).
 // 저장 상태를 눈에 보이게 표시 + 마크다운 입력룰(#,##,>) + 문서변경 콜백(자동 목차용).
 import { baseKeymap, toggleMark } from 'prosemirror-commands';
-import { inputRules, textblockTypeInputRule, wrappingInputRule } from 'prosemirror-inputrules';
+import { InputRule, inputRules, textblockTypeInputRule } from 'prosemirror-inputrules';
 import { keymap } from 'prosemirror-keymap';
 import { EditorState } from 'prosemirror-state';
 import { EditorView } from 'prosemirror-view';
@@ -22,7 +22,12 @@ function markdownInputRules() {
   return inputRules({
     rules: [
       textblockTypeInputRule(/^(#{1,3})\s$/, schema.nodes.heading, (m) => ({ level: 4 - m[1].length })),
-      wrappingInputRule(/^\s*>\s$/, schema.nodes.blockquote),
+      // blockquote 는 이 스키마에서 textblock(inline*) → wrapping 이 아니라 textblockType 로 변환.
+      textblockTypeInputRule(/^\s*>\s$/, schema.nodes.blockquote),
+      // 구분선: 줄 처음에서 ---/***/___ → 수평선(hr). 정본·백엔드 import 와 동일 토큰.
+      new InputRule(/^(?:---|\*\*\*|___)$/, (state, _match, start, end) =>
+        state.tr.replaceRangeWith(start, end, schema.nodes.horizontal_rule.create()),
+      ),
     ],
   });
 }

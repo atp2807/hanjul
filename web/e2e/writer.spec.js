@@ -44,6 +44,22 @@ test('마커 규칙 — ### 챕터(h1), ## 장(h2)', async ({ page }) => {
   await expect(editor.locator('h2')).toHaveText('1장');
 });
 
+test('마커 규칙 — > 인용(blockquote)', async ({ page }) => {
+  await page.goto('/write/e2e-quote');
+  const editor = page.locator('.ProseMirror');
+  await editor.click();
+  await page.keyboard.type('> 인용문입니다'); // "> " 트리거 → blockquote 로 변환 후 본문 입력
+  await expect(editor.locator('blockquote')).toContainText('인용문입니다');
+});
+
+test('마커 규칙 — --- 구분선(hr)', async ({ page }) => {
+  await page.goto('/write/e2e-hr');
+  const editor = page.locator('.ProseMirror');
+  await editor.click();
+  await page.keyboard.type('---'); // 줄 처음의 --- → 수평선(hr)
+  await expect(editor.locator('hr')).toBeVisible();
+});
+
 test('서식 단축키 → 정본으로 직렬화 가능한 마크 적용', async ({ page }) => {
   await page.goto('/write/e2e-fmt');
   const editor = page.locator('.ProseMirror');
