@@ -11,8 +11,9 @@ import { Icon } from '../components/Icon';
 import { Stars } from '../components/Stars';
 import { T } from '../theme';
 
-// deadlineAt(ISO) → "D-2 · 11:58:04" (남은 시간 실시간)
+// deadlineAt(ISO) → "D-2 · 11:58:04" (남은 시간 실시간). false = 확인 실패(없음과 구분).
 function countdown(deadlineAt, now) {
+  if (deadlineAt === false) return '기한 확인 실패 — 새로고침해 주세요';
   if (!deadlineAt) return '기한 없음';
   let ms = new Date(deadlineAt).getTime() - now;
   if (ms <= 0) return '마감됨';
@@ -37,11 +38,11 @@ export function ReviewCopyReviewPage() {
 
   const { data: camp, loading, error, reload } = useApiQuery(() => getCampaign(id), [id]);
   useEffect(() => {
-    // 마감 카운트다운은 보조 정보 — 실패해도 리뷰 작성은 가능 (침묵 허용)
+    // 마감일 확인 실패를 '기한 없음'으로 둔갑시키면 리뷰어가 마감을 놓친다 — 반드시 구분 표시
     if (user) getMyApplications().then((r) => {
       const a = r.items.find((x) => x.campaignId === id);
       if (a) setDeadline(a.deadlineAt);
-    }).catch(() => {});
+    }).catch(() => setDeadline(false));
   }, [id, user]);
 
   useEffect(() => {

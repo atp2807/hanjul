@@ -11,6 +11,7 @@ export function NotificationBell() {
   const [items, setItems] = useState([]);
   const [unread, setUnread] = useState(0);
   const [open, setOpen] = useState(false);
+  const [actionError, setActionError] = useState('');
   const navigate = useNavigate();
   const ref = useRef(null);
 
@@ -41,6 +42,7 @@ export function NotificationBell() {
 
   async function openItem(n) {
     if (!n.isRead) {
+      // 읽음 표시 실패는 이동을 막지 않음 (안읽음으로 남아 다음에 다시 보임)
       await markRead(n.id).catch(() => {});
       refresh();
     }
@@ -49,7 +51,9 @@ export function NotificationBell() {
   }
 
   async function onMarkAll() {
-    await markAllRead().catch(() => {});
+    setActionError('');
+    try { await markAllRead(); }
+    catch { setActionError('모두 읽음 처리에 실패했어요.'); return; }
     refresh();
   }
 
@@ -85,6 +89,9 @@ export function NotificationBell() {
               </button>
             )}
           </div>
+          {actionError && (
+            <div role="alert" style={{ padding: '10px 24px', fontSize: 12.5, fontWeight: 600, color: T.danger, background: T.dangerBg }}>{actionError}</div>
+          )}
           {items.length === 0 ? (
             <p style={{ padding: 28, textAlign: 'center', color: T.muted, fontSize: 13 }}>알림이 없어요.</p>
           ) : (

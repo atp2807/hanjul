@@ -36,7 +36,7 @@ export function CampaignDetailPage() {
     if (c?.bookId) getStoreDetail(c.bookId).then(setBook).catch(() => {});
   }, [c?.bookId]);
   useEffect(() => {
-    // 신청 여부도 보조 — 실패 시 미신청으로 보이고, 중복 신청은 서버가 거절
+    // 신청 여부 확인 실패 → 미신청으로 보여도, 중복 신청 시 서버 detail("이미 신청…")이 그대로 표시되므로 안전
     if (user) getMyApplications().then((r) => setApplied(r.items.some((a) => a.campaignId === id))).catch(() => {});
   }, [id, user]);
 
@@ -47,9 +47,8 @@ export function CampaignDetailPage() {
       await applyCampaign(id);
       setApplied(true);
     } catch (e) {
-      if (e.status === 409) setErr('마감된 모집이에요.');
-      else if (e.status === 403) setErr('서평단 참여 제한 기간이에요. 내 활동에서 해제일을 확인하세요.');
-      else setErr('신청에 실패했어요.');
+      // 서버 detail(마감/중복신청/참여제한 등 정확한 사유) 우선 — 409를 '마감'으로 뭉뚱그리지 않기
+      setErr(e.detail || '신청에 실패했어요. 잠시 후 다시 시도해 주세요.');
     } finally {
       setBusy(false);
     }

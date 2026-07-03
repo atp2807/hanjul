@@ -14,6 +14,20 @@ export function createApiClient(tokenKey) {
     else localStorage.removeItem(tokenKey);
   };
 
+  // 에러 body 의 detail(서버가 주는 사용자용 한국어 문구)을 살려서 던진다.
+  // detail 이 문자열일 때만 사용 (FastAPI 422 는 배열이라 제외) — err.detail 로 노출.
+  async function toError(res, path) {
+    let detail = null;
+    try {
+      const body = await res.json();
+      if (typeof body?.detail === 'string') detail = body.detail;
+    } catch { /* body 없음/JSON 아님 */ }
+    const err = new Error(detail || `API ${res.status}: ${path}`);
+    err.status = res.status;
+    err.detail = detail;
+    return err;
+  }
+
   async function request(path, options = {}) {
     const token = getToken();
     const res = await fetch(`${BASE}/api${path}`, {
@@ -24,11 +38,7 @@ export function createApiClient(tokenKey) {
       },
       ...options,
     });
-    if (!res.ok) {
-      const err = new Error(`API ${res.status}: ${path}`);
-      err.status = res.status;
-      throw err;
-    }
+    if (!res.ok) throw await toError(res, path);
     if (res.status === 204) return null; // No Content
     return res.json();
   }
@@ -39,11 +49,7 @@ export function createApiClient(tokenKey) {
     const res = await fetch(`${BASE}/api${path}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
-    if (!res.ok) {
-      const err = new Error(`API ${res.status}: ${path}`);
-      err.status = res.status;
-      throw err;
-    }
+    if (!res.ok) throw await toError(res, path);
     const blob = await res.blob();
     const cd = res.headers.get('Content-Disposition') || '';
     const m = cd.match(/filename="?([^"]+)"?/);
@@ -65,11 +71,7 @@ export function createApiClient(tokenKey) {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
       body: formData,
     });
-    if (!res.ok) {
-      const err = new Error(`API ${res.status}: ${path}`);
-      err.status = res.status;
-      throw err;
-    }
+    if (!res.ok) throw await toError(res, path);
     return res.json();
   }
 

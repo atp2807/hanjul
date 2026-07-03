@@ -29,6 +29,7 @@ export function WritePage() {
   const [focus, setFocus] = useState(false); // 집중 모드(방해 없는 쓰기)
   const [notes, setNotes] = useState(''); // 자료(인물·설정 메모)
   const [meta, setMeta] = useState(null); // 책 메타(표지·가격·소개·ISBN) — 출판 전 점검
+  const [metaError, setMetaError] = useState(false); // 점검 패널이 조용히 사라지지 않게 실패를 구분
   const [previewBlocks, setPreviewBlocks] = useState(null); // 출판 전 미리보기(독자 모습)
   const viewRef = useRef(null);
   const ydocRef = useRef(null);
@@ -64,8 +65,8 @@ export function WritePage() {
 
   const refreshMeta = useCallback(() => {
     getMyBooks()
-      .then((r) => setMeta(r?.items?.find((b) => b.id === id) || null)) // 응답 형태 변경에도 안전
-      .catch(() => {}); // 미로그인/네트워크면 점검 숨김
+      .then((r) => { setMeta(r?.items?.find((b) => b.id === id) || null); setMetaError(false); }) // 응답 형태 변경에도 안전
+      .catch((e) => { if (e.status !== 401) setMetaError(true); }); // 미로그인(401)만 점검 숨김, 장애는 표시
   }, [id]);
   useEffect(() => { refreshMeta(); }, [refreshMeta]);
 
@@ -360,6 +361,12 @@ export function WritePage() {
           </div>
 
           {/* 출판 전 점검 — 누락 항목 안내(차단 아님) */}
+          {metaError && (
+            <div role="alert" style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12, fontSize: 13, color: '#d97706' }}>
+              출판 점검 정보를 불러오지 못했어요.
+              <button onClick={refreshMeta} style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid #ddd', background: '#fff', fontWeight: 600, cursor: 'pointer' }}>다시 시도</button>
+            </div>
+          )}
           {meta && (
             <div data-testid="checklist" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 10, marginBottom: 12, fontSize: 13 }}>
               {[

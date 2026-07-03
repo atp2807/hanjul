@@ -41,16 +41,28 @@ describe('CampaignDetailPage', () => {
     await waitFor(() => expect(campaigns.applyCampaign).toHaveBeenCalledWith('c1'));
   });
 
-  it('마감(409)이면 안내 문구', async () => {
+  it('신청 실패(409) — 서버 detail 문구를 그대로 표시', async () => {
     campaigns.getCampaign.mockResolvedValue(CAMP);
     campaigns.getMyApplications.mockResolvedValue({ items: [] });
-    const err = new Error('409'); err.status = 409;
+    const err = new Error('마감됐거나 신청할 수 없는 모집이에요.');
+    err.status = 409; err.detail = '마감됐거나 신청할 수 없는 모집이에요.';
     campaigns.applyCampaign.mockRejectedValue(err);
     books.getStoreDetail.mockResolvedValue({});
     renderPage();
 
     fireEvent.click(await screen.findByRole('button', { name: '리뷰어 신청하기' }));
-    await waitFor(() => expect(screen.getByText('마감된 모집이에요.')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('마감됐거나 신청할 수 없는 모집이에요.')).toBeInTheDocument());
+  });
+
+  it('신청 실패 — detail 없으면 일반 문구 (침묵 금지)', async () => {
+    campaigns.getCampaign.mockResolvedValue(CAMP);
+    campaigns.getMyApplications.mockResolvedValue({ items: [] });
+    campaigns.applyCampaign.mockRejectedValue(new Error('network'));
+    books.getStoreDetail.mockResolvedValue({});
+    renderPage();
+
+    fireEvent.click(await screen.findByRole('button', { name: '리뷰어 신청하기' }));
+    await waitFor(() => expect(screen.getByText(/신청에 실패했어요/)).toBeInTheDocument());
   });
 
   it('이미 신청했으면 완료 상태로 표시', async () => {

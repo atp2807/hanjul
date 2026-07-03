@@ -73,21 +73,24 @@ function Stat({ n, label }) {
 function FollowButton({ authorId }) {
   const [following, setFollowing] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
 
   useEffect(() => {
-    getFollowStatus(authorId).then((s) => setFollowing(s.following)).catch(() => setFollowing(false)); // 보조 정보 — 실패 시 미팔로우로 표시 (침묵 허용)
+    // 상태 확인 실패 → 미팔로우로 표시하되, 토글 실패는 아래서 반드시 안내 (무반응 금지)
+    getFollowStatus(authorId).then((s) => setFollowing(s.following)).catch(() => setFollowing(false));
   }, [authorId]);
 
   async function toggle() {
     if (busy || following === null) return;
     setBusy(true);
+    setErr('');
     const next = !following;
     try {
       if (next) await followAuthor(authorId);
       else await unfollowAuthor(authorId);
       setFollowing(next);
-    } catch {
-      // 실패 시 상태 유지
+    } catch (e) {
+      setErr(e.detail || '처리에 실패했어요. 잠시 후 다시 시도해 주세요.');
     } finally {
       setBusy(false);
     }
@@ -95,23 +98,26 @@ function FollowButton({ authorId }) {
 
   if (following === null) return null;
   return (
-    <button
-      data-testid="follow-btn"
-      onClick={toggle}
-      disabled={busy}
-      style={{
-        padding: '12px 26px',
-        borderRadius: 12,
-        border: following ? `1px solid #d6e4de` : 'none',
-        background: following ? T.surface : T.ink,
-        color: following ? T.textMid : T.inkText,
-        fontWeight: 700,
-        fontSize: 14,
-        cursor: 'pointer',
-      }}
-    >
-      {following ? '팔로잉' : '＋ 팔로우'}
-    </button>
+    <>
+      <button
+        data-testid="follow-btn"
+        onClick={toggle}
+        disabled={busy}
+        style={{
+          padding: '12px 26px',
+          borderRadius: 12,
+          border: following ? `1px solid #d6e4de` : 'none',
+          background: following ? T.surface : T.ink,
+          color: following ? T.textMid : T.inkText,
+          fontWeight: 700,
+          fontSize: 14,
+          cursor: 'pointer',
+        }}
+      >
+        {following ? '팔로잉' : '＋ 팔로우'}
+      </button>
+      {err && <div role="alert" style={{ marginTop: 8, fontSize: 12.5, color: T.danger, fontWeight: 600 }}>{err}</div>}
+    </>
   );
 }
 
