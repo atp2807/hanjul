@@ -28,7 +28,7 @@ class Order(Base):
     amount_amt = Column(Numeric(15, 0), nullable=False)
     channel = Column("channel_cd", String(20), nullable=False, default="SELF")   # SELF | EXTERNAL
     status = Column("status_cd", String(20), nullable=False, default="PENDING")  # PENDING | PAID | CANCELLED
-    pg_provider_cd = Column(String(20))                                 # PORTONE | ...
+    pg_provider = Column("pg_provider_cd", String(20))                                 # PORTONE | ...
     pg_tx_id = Column(String(255))
     # 청약철회 제한 동의 시각(전자책 제공 개시 후 철회 불가, 전자상거래법 §17⑥). NULL=미동의.
     withdrawal_consent_at = Column("withdrawal_consent_ts", DateTime(timezone=True))

@@ -28,7 +28,7 @@ class BankAccount(Base):
     bank = Column("bank_cd", String(20), nullable=False)         # 은행 코드/명
     account_no_enc = Column(String(255), nullable=False)  # Fernet 암호문
     account_no_masked = Column(String(50), nullable=False)  # 조회용 마스킹
-    primary_yn = Column("primary_yn", Boolean, nullable=False, default=True)
+    is_primary = Column("primary_yn", Boolean, nullable=False, default=True)
     created_at = Column("created_ts", DateTime(timezone=True), default=_now, nullable=False)
     updated_at = Column("updated_ts", DateTime(timezone=True), default=_now, onupdate=_now, nullable=False)
 

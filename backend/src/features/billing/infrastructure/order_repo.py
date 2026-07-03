@@ -46,7 +46,7 @@ class SqlOrderRepository:
         )
 
     async def mark_paid_with_settlement(
-        self, order_id: UUID, pg_provider_cd: str, pg_tx_id: str, breakdown: SettlementBreakdown
+        self, order_id: UUID, pg_provider: str, pg_tx_id: str, breakdown: SettlementBreakdown
     ) -> None:
         # 행 잠금 + 상태 재확인 — 동시 confirm 2건이 둘 다 PAID/정산 2중 기록되는 레이스 차단.
         # (이미 PAID면 멱등 no-op: 토스 idempotency 로 실제 청구는 1회.)
@@ -62,7 +62,7 @@ class SqlOrderRepository:
             await self.session.rollback()
             return
         o.status = "PAID"
-        o.pg_provider_cd = pg_provider_cd
+        o.pg_provider = pg_provider
         o.pg_tx_id = pg_tx_id
         o.paid_at = datetime.now(UTC)
         self.session.add(

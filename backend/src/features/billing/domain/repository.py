@@ -16,7 +16,7 @@ class OrderRepository(Protocol):
         ...
 
     async def mark_paid_with_settlement(
-        self, order_id: UUID, pg_provider_cd: str, pg_tx_id: str, breakdown: SettlementBreakdown
+        self, order_id: UUID, pg_provider: str, pg_tx_id: str, breakdown: SettlementBreakdown
     ) -> None:
         """주문을 PAID 로 전이하고 정산 레코드를 함께 기록 (원자적)."""
         ...

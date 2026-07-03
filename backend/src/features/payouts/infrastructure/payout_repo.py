@@ -38,7 +38,7 @@ class SqlPayoutRepository:
     async def get_bank_account(self, account_id: UUID) -> BankAccountView | None:
         row = (
             await self.session.execute(
-                select(BankAccount).where(BankAccount.account_id == account_id, BankAccount.primary_yn.is_(True))
+                select(BankAccount).where(BankAccount.account_id == account_id, BankAccount.is_primary.is_(True))
             )
         ).scalar_one_or_none()
         return _acct_view(row) if row else None
@@ -48,13 +48,13 @@ class SqlPayoutRepository:
     ) -> BankAccountView:
         row = (
             await self.session.execute(
-                select(BankAccount).where(BankAccount.account_id == account_id, BankAccount.primary_yn.is_(True))
+                select(BankAccount).where(BankAccount.account_id == account_id, BankAccount.is_primary.is_(True))
             )
         ).scalar_one_or_none()
         if row is None:
             row = BankAccount(
                 id=uuid4(), account_id=account_id, holder_name=holder_name, bank=bank,
-                account_no_enc=account_no_enc, account_no_masked=account_no_masked, primary_yn=True,
+                account_no_enc=account_no_enc, account_no_masked=account_no_masked, is_primary=True,
             )
             self.session.add(row)
         else:
