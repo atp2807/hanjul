@@ -11,6 +11,7 @@ from src.features.books.presentation.content_rating_endpoints import (
     router as content_rating_router,
 )
 from src.features.books.presentation.endpoints import router as books_router
+from src.features.books.presentation.hwp_import_endpoint import router as hwp_import_router
 from src.features.campaigns.presentation.endpoints import router as campaigns_router
 from src.features.catalog.presentation.endpoints import router as catalog_router
 from src.features.cover.presentation.endpoints import router as cover_router
@@ -59,3 +60,4 @@ router.include_router(reports_router)  # 고객 신고 접수 — 게이트 없�
 router.include_router(payouts_router)  # 작가 출금 — 인증만
 router.include_router(bizverify_router)  # 사업자등록번호 진위확인 — 엔드포인트 자체 인증
 router.include_router(content_rating_router)  # 콘텐츠 연령등급 — 기준 공개·작가 도구
+router.include_router(hwp_import_router)  # HWP 원고 가져오기 — 상태없는 파싱(로그인만)

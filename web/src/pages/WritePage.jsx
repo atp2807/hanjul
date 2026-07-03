@@ -7,6 +7,8 @@ import { Link, useParams } from 'react-router-dom';
 import { getMyBooks, setBookContent, publishNow, setPreviewLimit, unpublishBook } from '../services/api/studio';
 import { Reader } from '../reader/Reader';
 import { docxToNeutral } from '../writer/adapters/docx_import';
+import { epubToNeutral } from '../writer/adapters/epub_import';
+import { hwpToNeutral } from '../writer/adapters/hwp_import';
 import { splitIntoChapters } from '../writer/core/chapters';
 import { docToOutline } from '../writer/core/outline';
 import { blocksToCanonical } from '../writer/core/serialize';
@@ -191,6 +193,42 @@ export function WritePage() {
     }
   }
 
+  async function importEpub(e) {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // 같은 파일 재선택 허용
+    if (!file) return;
+    setMsg(null);
+    try {
+      const neutral = await epubToNeutral(await file.arrayBuffer());
+      if (!neutral.blocks.length) {
+        setMsg({ ok: false, text: '가져올 내용이 없어요.' });
+        return;
+      }
+      replaceContent(neutral);
+      setMsg({ ok: true, text: `EPUB ${neutral.blocks.length}개 블록을 가져왔어요.` });
+    } catch (err) {
+      setMsg({ ok: false, text: `가져오기 실패: ${err?.message ?? String(err)}` });
+    }
+  }
+
+  async function importHwp(e) {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // 같은 파일 재선택 허용
+    if (!file) return;
+    setMsg(null);
+    try {
+      const neutral = await hwpToNeutral(file);
+      if (!neutral.blocks.length) {
+        setMsg({ ok: false, text: '가져올 내용이 없어요.' });
+        return;
+      }
+      replaceContent(neutral);
+      setMsg({ ok: true, text: `HWP ${neutral.blocks.length}개 블록을 가져왔어요.` });
+    } catch (err) {
+      setMsg({ ok: false, text: `가져오기 실패: ${err?.message ?? String(err)}` });
+    }
+  }
+
   function jump(pos) {
     const view = viewRef.current;
     if (!view) return;
@@ -315,6 +353,14 @@ export function WritePage() {
             <label style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #ddd', background: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
               가져오기(.docx)
               <input type="file" accept=".docx" onChange={importDocx} style={{ display: 'none' }} />
+            </label>
+            <label style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #ddd', background: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
+              가져오기(.epub)
+              <input type="file" accept=".epub" onChange={importEpub} style={{ display: 'none' }} />
+            </label>
+            <label style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #ddd', background: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
+              가져오기(.hwp/.hwpx)
+              <input type="file" accept=".hwp,.hwpx" onChange={importHwp} style={{ display: 'none' }} />
             </label>
             <button
               onClick={saveSnapshot}

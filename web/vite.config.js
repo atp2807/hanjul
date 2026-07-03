@@ -16,6 +16,11 @@ export default defineConfig({
   resolve: {
     alias: { '@': '/src' },
   },
+  // jszip(EPUB 가져오기)를 초기 최적화 패스에 포함 — 런타임 늦은 발견 시 발생하는
+  // vite 재-최적화(모노레포에서 hoist된 react 경로 오인 → 504 Outdated Optimize Dep) 회피.
+  optimizeDeps: {
+    include: ['jszip'],
+  },
   test: {
     environment: 'jsdom',
     globals: true,
