@@ -91,8 +91,8 @@ export function Reader({ blocks, bookId }) {
   return (
     <div style={{ fontFamily, color: theme.fg }}>
       <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-        <button style={btn} onClick={() => setScale((s) => Math.max(0.7, +(s - 0.1).toFixed(2)))}>A-</button>
-        <button style={btn} onClick={() => setScale((s) => Math.min(2, +(s + 0.1).toFixed(2)))}>A+</button>
+        <button style={btn} aria-label="글자 작게" onClick={() => setScale((s) => Math.max(0.7, +(s - 0.1).toFixed(2)))}>A-</button>
+        <button style={btn} aria-label="글자 크게" onClick={() => setScale((s) => Math.min(2, +(s + 0.1).toFixed(2)))}>A+</button>
         <span style={{ fontSize: 13, opacity: 0.7 }}>배율 {scale.toFixed(1)}x</span>
         <span data-testid="reader-themes" style={{ display: 'flex', gap: 6, marginLeft: 12 }}>
           {Object.entries(READER_THEMES).map(([key, t]) => (
@@ -100,6 +100,7 @@ export function Reader({ blocks, bookId }) {
               key={key}
               data-testid={`theme-${key}`}
               aria-pressed={themeKey === key}
+              aria-label={`${t.label} 테마`}
               onClick={() => setThemeKey(key)}
               title={t.label}
               style={{

@@ -64,7 +64,8 @@ function CreatePanel({ books, onClose, onCreated }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
-  async function submit() {
+  async function submit(e) {
+    e?.preventDefault();
     if (!bookId) return;
     setBusy(true);
     setError(null);
@@ -80,30 +81,30 @@ function CreatePanel({ books, onClose, onCreated }) {
       {books.length === 0 ? (
         <div style={{ color: T.muted, fontSize: 14 }}>먼저 책을 출판해야 캠페인을 열 수 있어요.</div>
       ) : (
-        <>
+        <form onSubmit={submit}>
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
             <label style={{ fontSize: 13, fontWeight: 600, color: T.text }}>책 선택
-              <select value={bookId} onChange={(e) => setBookId(e.target.value)} style={{ ...inp, marginTop: 7 }}>
+              <select value={bookId} onChange={(e) => setBookId(e.target.value)} required style={{ ...inp, marginTop: 7 }}>
                 {books.map((b) => <option key={b.id} value={b.id}>{b.title}</option>)}
               </select>
             </label>
             <label style={{ fontSize: 13, fontWeight: 600, color: T.text }}>증정본 수량
-              <input type="number" min={1} value={slots} onChange={(e) => setSlots(Math.max(1, +e.target.value))} style={{ ...inp, marginTop: 7 }} />
+              <input type="number" min={1} required value={slots} onChange={(e) => setSlots(Math.max(1, +e.target.value))} style={{ ...inp, marginTop: 7 }} />
             </label>
             <label style={{ fontSize: 13, fontWeight: 600, color: T.text }}>리뷰 기한(일)
-              <input type="number" min={1} value={reviewDays} onChange={(e) => setReviewDays(Math.max(1, +e.target.value))} style={{ ...inp, marginTop: 7 }} />
+              <input type="number" min={1} required value={reviewDays} onChange={(e) => setReviewDays(Math.max(1, +e.target.value))} style={{ ...inp, marginTop: 7 }} />
             </label>
             <label style={{ fontSize: 13, fontWeight: 600, color: T.text }}>최소 분량(자)
               <input type="number" min={0} value={minChars} onChange={(e) => setMinChars(Math.max(0, +e.target.value))} style={{ ...inp, marginTop: 7 }} />
             </label>
           </div>
           <div style={{ display: 'flex', gap: 10, marginTop: 18, justifyContent: 'flex-end' }}>
-            <button onClick={onClose} style={{ padding: '11px 20px', background: T.tint, color: T.ink, border: 'none', borderRadius: 11, fontSize: 13.5, fontWeight: 700, cursor: 'pointer' }}>취소</button>
-            <button onClick={submit} disabled={busy} style={{ padding: '11px 22px', background: T.ink, color: T.inkText, border: 'none', borderRadius: 11, fontSize: 13.5, fontWeight: 700, cursor: 'pointer' }}>{busy ? '게시 중…' : '캠페인 게시'}</button>
+            <button type="button" onClick={onClose} style={{ padding: '11px 20px', background: T.tint, color: T.ink, border: 'none', borderRadius: 11, fontSize: 13.5, fontWeight: 700, cursor: 'pointer' }}>취소</button>
+            <button type="submit" disabled={busy} style={{ padding: '11px 22px', background: T.ink, color: T.inkText, border: 'none', borderRadius: 11, fontSize: 13.5, fontWeight: 700, cursor: 'pointer' }}>{busy ? '게시 중…' : '캠페인 게시'}</button>
           </div>
           {error && <ErrorNotice message={error} style={{ marginTop: 14 }} />}
           <div style={{ fontSize: 11.5, color: '#9bb4bc', marginTop: 14 }}>증정본은 전자책으로 즉시 배포되어 인쇄·재고 비용이 없어요.</div>
-        </>
+        </form>
       )}
     </div>
   );

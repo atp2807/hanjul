@@ -45,6 +45,7 @@ export default function Moderation() {
       />
       <div style={{ maxWidth: 360, marginBottom: 18 }}>
         <Field
+          aria-label="제목 검색"
           placeholder="제목 검색"
           value={q}
           onChange={(e) => setQ(e.target.value)}

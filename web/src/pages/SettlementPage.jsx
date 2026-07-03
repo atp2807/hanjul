@@ -134,15 +134,15 @@ export function SettlementPage() {
           ) : (
             <form onSubmit={saveAccount}>
               <label style={{ display: 'block', fontSize: 13, color: T.textSoft }}>예금주
-                <input style={inputStyle} value={form.holderName}
+                <input style={inputStyle} value={form.holderName} required maxLength={100}
                   onChange={(e) => setForm({ ...form, holderName: e.target.value })} placeholder="홍길동" />
               </label>
               <label style={{ display: 'block', fontSize: 13, color: T.textSoft, marginTop: 12 }}>은행
-                <input style={inputStyle} value={form.bank}
+                <input style={inputStyle} value={form.bank} required maxLength={20}
                   onChange={(e) => setForm({ ...form, bank: e.target.value })} placeholder="국민은행" />
               </label>
               <label style={{ display: 'block', fontSize: 13, color: T.textSoft, marginTop: 12 }}>계좌번호
-                <input style={inputStyle} value={form.accountNo}
+                <input style={inputStyle} value={form.accountNo} required minLength={6} maxLength={30}
                   onChange={(e) => setForm({ ...form, accountNo: e.target.value })} placeholder="숫자만" />
               </label>
               <button type="submit" style={{

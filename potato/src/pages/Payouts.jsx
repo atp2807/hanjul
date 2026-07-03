@@ -40,9 +40,9 @@ export default function Payouts() {
   return (
     <div>
       <PageHeader title="출금 관리" subtitle="작가 출금 신청을 승인하고 지급을 확정하세요." />
-      <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
+      <div role="group" aria-label="출금 상태 필터" style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
         {TABS.map(([s, label]) => (
-          <Chip key={s} active={status === s} onClick={() => setStatus(s)}>
+          <Chip key={s} active={status === s} aria-pressed={status === s} onClick={() => setStatus(s)}>
             {label}
           </Chip>
         ))}

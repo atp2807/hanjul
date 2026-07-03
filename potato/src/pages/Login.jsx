@@ -60,7 +60,15 @@ export default function Login() {
         <div style={{ fontSize: 13, color: T.muted, marginBottom: 24 }}>운영자 콘솔에 로그인하세요.</div>
         <form onSubmit={submit}>
           <div style={{ marginBottom: 14 }}>
-            <Field label="이메일" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoFocus />
+            <Field
+              label="이메일"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoComplete="username"
+              autoFocus
+            />
           </div>
           <div style={{ marginBottom: 16 }}>
             <Field
@@ -68,6 +76,8 @@ export default function Login() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
+              autoComplete="current-password"
             />
           </div>
           {error && <div style={{ color: T.danger, fontSize: 13, marginBottom: 14 }}>{error}</div>}

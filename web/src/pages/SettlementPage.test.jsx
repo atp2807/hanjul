@@ -95,7 +95,10 @@ describe('SettlementPage', () => {
     payoutsApi.setBankAccount.mockRejectedValue(err);
     renderPage();
 
-    fireEvent.click(await screen.findByRole('button', { name: '계좌 저장' }));
+    fireEvent.change(await screen.findByPlaceholderText('홍길동'), { target: { value: '나' } });
+    fireEvent.change(screen.getByPlaceholderText('국민은행'), { target: { value: '국민' } });
+    fireEvent.change(screen.getByPlaceholderText('숫자만'), { target: { value: '1234567890' } });
+    fireEvent.click(screen.getByRole('button', { name: '계좌 저장' }));
     expect(await screen.findByText('계좌 정보를 확인해 주세요.')).toBeInTheDocument();
   });
 

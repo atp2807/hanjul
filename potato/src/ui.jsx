@@ -42,7 +42,9 @@ const ICONS = {
   ),
 };
 
-export function Icon({ name, size = 18, color = 'currentColor', style }) {
+// 아이콘은 모두 텍스트 라벨과 함께 쓰이는 장식 요소 → 기본 aria-hidden.
+// 아이콘 단독 버튼이 생기면 버튼에 aria-label을 주고 아이콘은 이대로 감춘다.
+export function Icon({ name, size = 18, color = 'currentColor', style, ...rest }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -53,7 +55,10 @@ export function Icon({ name, size = 18, color = 'currentColor', style }) {
       strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
       style={style}
+      {...rest}
     >
       {ICONS[name]}
     </svg>

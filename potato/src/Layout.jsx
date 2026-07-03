@@ -55,7 +55,7 @@ export default function Layout() {
         </div>
 
         {/* nav */}
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <nav aria-label="운영자 메뉴" style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           {NAV.map((it) => {
             const count = it.badge && stats ? stats[it.badge] : 0;
             return (

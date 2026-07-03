@@ -35,6 +35,7 @@ export function ReviewCopyReviewPage() {
   const [now, setNow] = useState(Date.now());
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  const [bodyFocused, setBodyFocused] = useState(false);
 
   const { data: camp, loading, error, reload } = useApiQuery(() => getCampaign(id), [id]);
   useEffect(() => {
@@ -102,8 +103,11 @@ export function ReviewCopyReviewPage() {
           <textarea
             value={body}
             onChange={(e) => setBody(e.target.value)}
+            onFocus={() => setBodyFocused(true)}
+            onBlur={() => setBodyFocused(false)}
+            aria-label="리뷰 내용"
             placeholder="이 책을 솔직하게 평가해 주세요."
-            style={{ width: '100%', boxSizing: 'border-box', background: T.bg, border: `1px solid #dfeae5`, borderRadius: 13, padding: 18, minHeight: 170, fontSize: 15, lineHeight: 1.9, color: '#2f4248', fontFamily: T.font, resize: 'vertical', outline: 'none' }}
+            style={{ width: '100%', boxSizing: 'border-box', background: T.bg, border: `1px solid ${bodyFocused ? T.ink : '#dfeae5'}`, borderRadius: 13, padding: 18, minHeight: 170, fontSize: 15, lineHeight: 1.9, color: '#2f4248', fontFamily: T.font, resize: 'vertical', outline: 'none', boxShadow: bodyFocused ? `0 0 0 3px ${T.ink}22` : 'none' }}
           />
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 14, gap: 20 }}>
             <div style={{ flex: 1 }}>

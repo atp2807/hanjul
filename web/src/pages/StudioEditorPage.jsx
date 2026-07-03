@@ -255,7 +255,7 @@ export function StudioEditorPage() {
       </Section>
 
       <Section title="가격">
-        <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} style={inp} /> 원
+        <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} aria-label="판매 가격(원)" style={inp} /> 원
         <button onClick={run(() => setBookPrice(id, parseInt(price || '0', 10)), '가격이 저장됐어요.')} style={btn}>가격 저장</button>
         <span style={{ color: T.faint, fontSize: 13, marginLeft: 8 }}>0이면 무료</span>
         {pNum > 0 && (
@@ -274,7 +274,7 @@ export function StudioEditorPage() {
 
       <Section title="기간 할인">
         <input type="number" value={discAmt} onChange={(e) => setDiscAmt(e.target.value)} placeholder="할인가" style={inp} /> 원
-        <input type="datetime-local" value={discUntil} onChange={(e) => setDiscUntil(e.target.value)} style={{ ...inp, marginLeft: 8 }} /> 까지
+        <input type="datetime-local" value={discUntil} onChange={(e) => setDiscUntil(e.target.value)} aria-label="할인 종료 시각" style={{ ...inp, marginLeft: 8 }} /> 까지
         <button
           onClick={run(() => setDiscount(id, parseInt(discAmt || '0', 10), new Date(discUntil).toISOString()), '할인이 설정됐어요.')}
           style={btn}
@@ -306,7 +306,7 @@ export function StudioEditorPage() {
           <>
             <button onClick={run(publishNow.bind(null, id), '즉시 출간됐어요! 스토어에 노출됩니다.')} style={primary}>즉시 출간</button>
             <span style={{ display: 'block', marginTop: 12 }} />
-            <input type="datetime-local" value={scheduleAt} onChange={(e) => setScheduleAt(e.target.value)} style={inp} />
+            <input type="datetime-local" value={scheduleAt} onChange={(e) => setScheduleAt(e.target.value)} aria-label="예약 발행 시각" style={inp} />
             <button onClick={doSchedule} style={btn}>예약 발행</button>
             <span style={{ color: '#aaa', fontSize: 13, marginLeft: 8 }}>지정 시각에 자동 게시</span>
           </>

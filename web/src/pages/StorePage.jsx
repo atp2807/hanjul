@@ -93,6 +93,8 @@ export function StorePage() {
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
+                type="search"
+                aria-label="제목 검색"
                 placeholder="제목 검색"
                 style={{ padding: '9px 14px 9px 34px', border: `1px solid ${T.border}`, borderRadius: T.radius.md, width: 220, background: T.surface, fontFamily: 'inherit' }}
               />
