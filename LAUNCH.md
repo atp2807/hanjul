@@ -68,7 +68,7 @@
 - [ ] 미성년자 결제·환불 특례(연령확인·법정대리인 동의·철회) — 약관 텍스트만 있음
 - [ ] 운영자 Phase 2 — **환불 집행** · **출간 전 심사큐** (현재 사후 takedown만) — 시안 `한줄 운영자.dc.html`
 - [ ] 거래 메일 발송 인프라 · SEO(동적 메타 react-helmet류 · sitemap.xml · robots.txt — 현재 정적 메타만)
-- [ ] **접근성** — aria 속성 web 8곳·potato 0곳, 폼 `required`/`pattern` 전무, 스크린리더 대응 미흡 (2026-07-03 재확인, 미착수)
+- [x] 🔨 **접근성 1차** — (2026-07-03 완료·배포, commit `52ab3a3`) web aria 6→14·required 0→6(정산·캠페인생성 폼)·리뷰textarea 포커스가시성 버그수정 / potato aria 0→7(장식svg aria-hidden). **남은 것**: WCAG색상대비 감사, 커스텀 다이얼로그(window.confirm 등) 키보드접근성, potato Cover alt override(UUID 노출) — lore `lr-ca34f579`
 - [x] ~~404/ErrorBoundary~~ — 완료(404 + ErrorBoundary 2026-07-03)
 
 ### 나중 🟢
