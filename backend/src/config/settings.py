@@ -75,6 +75,9 @@ class Settings(BaseSettings):
     COVER_DEMO: bool = False
     COVER_API_URL: str = ""  # novelpotato /generate-cover
     COVER_API_KEY: str = ""
+
+    # ── 사업자등록번호 진위확인 ─────────────────────────
+    NTS_BUSINESS_API_KEY: str = ""  # 공공데이터포털 odcloud 국세청 사업자등록정보 진위확인 서비스키
     # 표지 직접 업로드 — 로컬 디스크 저장 + /uploads 정적 서빙. PUBLIC_API_URL 로 절대 URL 구성.
     UPLOAD_DIR: str = "uploads"
     PUBLIC_API_URL: str = "http://localhost:28000"
