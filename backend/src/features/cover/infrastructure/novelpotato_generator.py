@@ -7,6 +7,7 @@ novelpotato(별도 FastAPI 서비스)가 실제 생성 담당:
 
 데모 생성기는 외부 의존 없이 결정적 placeholder(데이터 URI)를 돌려줘 dev/E2E 에서 동작.
 """
+import html as _html
 from urllib.parse import quote
 
 import httpx
@@ -36,7 +37,7 @@ class DemoCoverGenerator:
     """데모 — 외부 호출 없이 프롬프트를 박은 SVG 데이터 URI 반환 (결정적·오프라인)."""
 
     async def generate(self, prompt: str, reference: str) -> str:
-        label = (prompt or "표지").strip()[:24]
+        label = _html.escape((prompt or "표지").strip()[:24], quote=True)
         svg = (
             "<svg xmlns='http://www.w3.org/2000/svg' width='300' height='400'>"
             "<rect width='100%' height='100%' fill='#1f2937'/>"

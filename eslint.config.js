@@ -43,6 +43,7 @@ export default [
     plugins: { react, 'react-hooks': reactHooks },
     rules: {
       'react/jsx-uses-vars': 'error', // JSX에서 쓰는 컴포넌트 import를 미사용으로 오탐 방지
+      'react/no-danger': 'error', // dangerouslySetInnerHTML 금지 (XSS 회귀가드)
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
       'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],

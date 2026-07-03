@@ -36,6 +36,18 @@ async def test_demo_generator_returns_offline_data_uri():
     assert url.startswith("data:image/svg+xml")  # 외부 의존 없는 placeholder
 
 
+async def test_demo_generator_escapes_svg_special_chars():
+    """prompt 의 <, & 가 XML 이스케이프돼 SVG 가 깨지지 않음."""
+    from urllib.parse import unquote
+
+    from src.features.cover.infrastructure.novelpotato_generator import DemoCoverGenerator
+
+    url = await DemoCoverGenerator().generate("<b> & 표지", reference="bk")
+    decoded = unquote(url.split(",", 1)[1])
+    assert "&lt;b&gt;" in decoded and "&amp;" in decoded  # 이스케이프된 형태
+    assert "<b>" not in decoded  # 원본 raw 태그가 새지 않음
+
+
 async def test_live_generator_errors_when_unconfigured():
     from src.features.cover.infrastructure.novelpotato_generator import NovelpotatoCoverGenerator
 

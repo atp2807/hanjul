@@ -10,6 +10,11 @@ from src.features.catalog.domain.models import PUBLISHED, BookHasOrders, BookSum
 from src.infrastructure.db.models.book import Book
 
 
+def _escape_like(s: str) -> str:
+    """LIKE 패턴의 특수문자(\\ % _)를 이스케이프 — 사용자 검색어가 의도치 않은 와일드카드로 해석되지 않게."""
+    return s.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
 def _to_summary(b: Book) -> BookSummary:
     return BookSummary(
         id=b.id,
@@ -60,7 +65,7 @@ class SqlCatalogRepository:
         if status:
             stmt = stmt.where(Book.status == status)
         if q:
-            stmt = stmt.where(Book.title.ilike(f"%{q}%"))
+            stmt = stmt.where(Book.title.ilike(f"%{_escape_like(q)}%", escape="\\"))
         stmt = stmt.order_by(Book.created_at.desc()).limit(limit).offset(offset)
         rows = (await self.session.execute(stmt)).scalars().all()
         return [_to_summary(b) for b in rows]
@@ -133,7 +138,7 @@ class SqlCatalogRepository:
     ) -> list[BookSummary]:
         stmt = select(Book).where(Book.status == PUBLISHED, Book.blocked_at.is_(None))
         if q:
-            stmt = stmt.where(Book.title.ilike(f"%{q}%"))
+            stmt = stmt.where(Book.title.ilike(f"%{_escape_like(q)}%", escape="\\"))
         if kind:
             stmt = stmt.where(Book.kind == kind)
         if category:
