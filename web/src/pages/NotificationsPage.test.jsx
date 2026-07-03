@@ -59,4 +59,25 @@ describe('NotificationsPage', () => {
     renderPage();
     expect(await screen.findByText(/알림이 없어요/)).toBeInTheDocument();
   });
+
+  it('목록 로드 실패 → 침묵하지 않고 에러 + 다시 시도로 복구', async () => {
+    notifApi.getNotifications
+      .mockRejectedValueOnce(new Error('API 500'))
+      .mockResolvedValueOnce({ items: [{ id: 'n1', kind: 'ASSIGNED', bookId: 'b1', title: '밤의 편집자', isRead: false }], unreadCount: 1 });
+    renderPage();
+    expect(await screen.findByText('알림을 불러오지 못했어요.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '다시 시도' }));
+    expect(await screen.findByText('밤의 편집자')).toBeInTheDocument();
+  });
+
+  it('모두 읽음 실패 → 에러 안내 (침묵 금지)', async () => {
+    notifApi.getNotifications.mockResolvedValue({
+      items: [{ id: 'n1', kind: 'ASSIGNED', bookId: 'b1', title: '밤의 편집자', isRead: false }],
+      unreadCount: 1,
+    });
+    notifApi.markAllRead.mockRejectedValue(new Error('API 500'));
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: '모두 읽음' }));
+    expect(await screen.findByText(/모두 읽음 처리에 실패했어요/)).toBeInTheDocument();
+  });
 });

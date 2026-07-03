@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { useApiQuery } from '@hanjul/lib';
+
 import { useAuth } from '../auth/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { applyCampaign, getCampaign, getMyApplications } from '../services/api/campaigns';
 import { getStoreDetail } from '../services/api/books';
 import { coverGradient, T } from '../theme';
+import { ErrorNotice } from '../components/ui';
 import { Icon } from '../components/Icon';
 
 function Cond({ label, value }) {
@@ -22,19 +25,18 @@ export function CampaignDetailPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [c, setC] = useState(null);
   const [book, setBook] = useState(null);
   const [applied, setApplied] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
 
+  const { data: c, loading, error, reload } = useApiQuery(() => getCampaign(id), [id]);
   useEffect(() => {
-    getCampaign(id)
-      .then((camp) => {
-        setC(camp);
-        getStoreDetail(camp.bookId).then(setBook).catch(() => {});
-      })
-      .catch(() => setC(false));
+    // 책 소개는 보조 enrich — 실패해도 캠페인 정보는 온전 (침묵 허용)
+    if (c?.bookId) getStoreDetail(c.bookId).then(setBook).catch(() => {});
+  }, [c?.bookId]);
+  useEffect(() => {
+    // 신청 여부도 보조 — 실패 시 미신청으로 보이고, 중복 신청은 서버가 거절
     if (user) getMyApplications().then((r) => setApplied(r.items.some((a) => a.campaignId === id))).catch(() => {});
   }, [id, user]);
 
@@ -53,8 +55,16 @@ export function CampaignDetailPage() {
     }
   }
 
-  if (c === false) return <div style={{ padding: 60, textAlign: 'center', color: T.muted, fontFamily: T.font }}>캠페인을 찾을 수 없어요.</div>;
-  if (!c) return <div style={{ padding: 60, textAlign: 'center', color: T.muted, fontFamily: T.font }}>불러오는 중…</div>;
+  if (loading) return <div style={{ padding: 60, textAlign: 'center', color: T.muted, fontFamily: T.font }}>불러오는 중…</div>;
+  if (error) {
+    // 404(없는 캠페인)와 일시 장애(네트워크 등)를 구분 — 장애를 '없음'으로 둔갑시키지 않기
+    if (error.status === 404) return <div style={{ padding: 60, textAlign: 'center', color: T.muted, fontFamily: T.font }}>캠페인을 찾을 수 없어요.</div>;
+    return (
+      <div style={{ maxWidth: 560, margin: '60px auto', fontFamily: T.font }}>
+        <ErrorNotice message="캠페인 정보를 불러오지 못했어요." onRetry={reload} />
+      </div>
+    );
+  }
 
   const pct = c.slots ? Math.round((c.filled / c.slots) * 100) : 0;
   const reviewDur = `증정본 수령 후 ${c.reviewDays}일`;

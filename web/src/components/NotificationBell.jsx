@@ -20,7 +20,7 @@ export function NotificationBell() {
         setItems(d.items);
         setUnread(d.unreadCount);
       })
-      .catch(() => {});
+      .catch(() => {}); // 폴링 실패는 침묵 — 60초 뒤 재시도되고, 상세는 알림 페이지가 에러 표시
   }, []);
 
   // 최초 로드 + 60초 폴링 (신간 알림 도착 반영)

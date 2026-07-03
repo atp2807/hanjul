@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { useApiQuery } from '@hanjul/lib';
+
 import { useAuth } from '../auth/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { cancelApplication, dday, getMyApplications, getReviewerStatus } from '../services/api/campaigns';
 import { T } from '../theme';
 import { Icon } from '../components/Icon';
-import { Cover, EmptyState } from '../components/ui';
+import { Cover, EmptyState, ErrorNotice } from '../components/ui';
 
 const STATUS = {
   PENDING: { label: '신청 대기', fg: '#c79318', bg: '#fff3da' },
@@ -35,18 +37,27 @@ export function ReviewerActivityPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [items, setItems] = useState(null);
   const [status, setStatus] = useState(null);
   const [filter, setFilter] = useState('ALL');
+  const [actionError, setActionError] = useState(null);
 
-  function load() {
-    getMyApplications().then((r) => setItems(r.items)).catch(() => setItems([]));
-    getReviewerStatus().then(setStatus).catch(() => setStatus(null));
-  }
-  useEffect(() => { if (user) load(); }, [user]);
+  const { data, loading, error, reload } = useApiQuery(getMyApplications, [], { enabled: !!user });
+  useEffect(() => {
+    // 리뷰어 상태(완료율 배지)는 보조 정보 — 실패해도 목록에서 도출하므로 침묵 허용
+    if (user) getReviewerStatus().then(setStatus).catch(() => setStatus(null));
+  }, [user]);
+  function load() { reload(); getReviewerStatus().then(setStatus).catch(() => {}); }
 
   if (!user) return <div style={{ padding: 60, textAlign: 'center', color: T.muted, fontFamily: T.font }}>로그인이 필요해요.</div>;
-  if (items === null) return <div style={{ padding: 60, textAlign: 'center', color: T.muted, fontFamily: T.font }}>불러오는 중…</div>;
+  if (loading) return <div style={{ padding: 60, textAlign: 'center', color: T.muted, fontFamily: T.font }}>불러오는 중…</div>;
+  if (error) {
+    return (
+      <div style={{ maxWidth: 560, margin: '60px auto', fontFamily: T.font }}>
+        <ErrorNotice message="서평단 활동 내역을 불러오지 못했어요." onRetry={reload} />
+      </div>
+    );
+  }
+  const items = data.items;
 
   const assigned = items.filter((a) => a.status === 'ASSIGNED');
   const completed = items.filter((a) => a.status === 'COMPLETED');
@@ -61,13 +72,17 @@ export function ReviewerActivityPage() {
   const shown = filter === 'ALL' ? items : items.filter((a) => a.status === filter);
 
   async function onCancel(a) {
-    try { await cancelApplication(a.campaignId); load(); } catch { /* noop */ }
+    setActionError(null);
+    try { await cancelApplication(a.campaignId); load(); }
+    catch { setActionError('신청 취소에 실패했어요. 잠시 후 다시 시도해 주세요.'); }
   }
 
   return (
     <div style={{ fontFamily: T.font, color: T.text, background: T.bg, minHeight: '100%' }}>
       <div style={{ maxWidth: 1180, margin: '0 auto', padding: isMobile ? '22px 16px 48px' : '34px 40px 56px' }}>
         <h1 style={{ margin: '0 0 22px', fontSize: isMobile ? 23 : 28, fontWeight: 800, color: T.ink, letterSpacing: '-0.025em' }}>내 서평단 활동</h1>
+
+        {actionError && <ErrorNotice message={actionError} style={{ marginBottom: 16 }} />}
 
         {blockedUntil && (
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', padding: '16px 20px', background: '#fdeeea', border: '1px solid #f3cfc6', borderRadius: 14, marginBottom: 20 }}>

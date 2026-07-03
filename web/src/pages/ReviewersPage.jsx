@@ -1,11 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+import { useApiQuery } from '@hanjul/lib';
 
 import { useAuth } from '../auth/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { dday, listOpenCampaigns } from '../services/api/campaigns';
 import { coverGradient, T } from '../theme';
 import { EmptyState } from '../components/EmptyState';
+import { ErrorNotice } from '../components/ui';
 import { Icon } from '../components/Icon';
 
 function Stat({ value, label }) {
@@ -57,13 +60,10 @@ export function ReviewersPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [items, setItems] = useState(null);
   const [genre, setGenre] = useState(null); // null = 전체
 
-  useEffect(() => {
-    setItems(null);
-    listOpenCampaigns(genre).then((r) => setItems(r.items)).catch(() => setItems([]));
-  }, [genre]);
+  const { data, loading, error, reload } = useApiQuery(() => listOpenCampaigns(genre), [genre]);
+  const items = loading ? null : (data?.items ?? null);
 
   const remaining = (items || []).reduce((s, c) => s + (c.remaining || 0), 0);
 
@@ -108,7 +108,9 @@ export function ReviewersPage() {
             );
           })}
         </div>
-        {items === null ? (
+        {error ? (
+          <ErrorNotice message="모집 목록을 불러오지 못했어요." onRetry={reload} style={{ margin: '24px 0' }} />
+        ) : items === null ? (
           <div style={{ color: T.muted, padding: '40px 0' }}>불러오는 중…</div>
         ) : items.length === 0 ? (
           <EmptyState icon="search" title="모집 중인 캠페인이 없어요" desc="새 서평단이 열리면 곧 여기에 표시돼요." />

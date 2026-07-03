@@ -2,3 +2,4 @@
 export { createApiClient } from './apiClient';
 export { createAuthContext } from './createAuthContext.jsx';
 export { ErrorBoundary } from './ErrorBoundary.jsx';
+export { useApiQuery } from './useApiQuery';

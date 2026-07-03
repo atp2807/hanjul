@@ -21,7 +21,8 @@ export default function Accounts() {
   }
 
   async function act(fn) {
-    await fn();
+    setError('');
+    try { await fn(); } catch { setError('조치에 실패했습니다. 잠시 후 다시 시도하세요.'); return; }
     lookup();
   }
 

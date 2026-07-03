@@ -19,6 +19,7 @@ export default function Layout() {
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
+    // 사이드바 대기건수 배지는 보조 정보 — 실패 시 배지만 생략 (침묵 허용, 본 화면은 각자 에러 표시)
     api.dashboard().then(setStats).catch(() => {});
   }, []);
 

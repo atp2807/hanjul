@@ -75,7 +75,7 @@ function FollowButton({ authorId }) {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    getFollowStatus(authorId).then((s) => setFollowing(s.following)).catch(() => setFollowing(false));
+    getFollowStatus(authorId).then((s) => setFollowing(s.following)).catch(() => setFollowing(false)); // 보조 정보 — 실패 시 미팔로우로 표시 (침묵 허용)
   }, [authorId]);
 
   async function toggle() {

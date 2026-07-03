@@ -9,4 +9,5 @@ export { PageHeader } from './PageHeader';
 export { Stat } from './Stat';
 export { Avatar } from './Avatar';
 export { Cover } from './Cover';
+export { ErrorNotice } from './ErrorNotice';
 export * from './theme';

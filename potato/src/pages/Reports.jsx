@@ -30,7 +30,8 @@ export default function Reports() {
   async function resolve(id, action) {
     const resolution = window.prompt(action === 'RESOLVE' ? '조치 내용 (선택)' : '기각 사유 (선택)');
     if (resolution === null) return;
-    await api.resolveReport(id, action, resolution);
+    try { await api.resolveReport(id, action, resolution); }
+    catch { setError('신고 처리에 실패했습니다. 잠시 후 다시 시도하세요.'); return; }
     load();
   }
 

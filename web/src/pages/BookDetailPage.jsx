@@ -3,11 +3,13 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { loadTossPayments } from '@tosspayments/payment-sdk';
 
+import { useApiQuery } from '@hanjul/lib';
+
 import { useAuth } from '../auth/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { Stars } from '../components/Stars';
 import { Icon } from '../components/Icon';
-import { Avatar, Cover } from '../components/ui';
+import { Avatar, Cover, ErrorNotice } from '../components/ui';
 import { getLoginUrl } from '../services/api/auth';
 import { getStoreDetail } from '../services/api/books';
 import { confirmPayment, createOrder, getPaymentConfig } from '../services/api/orders';
@@ -24,7 +26,6 @@ export function BookDetailPage() {
   const [error, setError] = useState(null);
   const [buying, setBuying] = useState(false);
   const [consent, setConsent] = useState(false);
-  const [reviews, setReviews] = useState(null);
   const [rating, setRating] = useState(5);
   const [reviewBody, setReviewBody] = useState('');
 
@@ -32,8 +33,7 @@ export function BookDetailPage() {
     getStoreDetail(id).then(setBook).catch((e) => setError(e.message));
   }, [id]);
 
-  const loadReviews = () => getReviews(id).then(setReviews).catch(() => {});
-  useEffect(() => { loadReviews(); }, [id]);
+  const { data: reviews, error: reviewsError, reload: loadReviews } = useApiQuery(() => getReviews(id), [id]);
 
   async function submitReview() {
     try {
@@ -202,6 +202,7 @@ export function BookDetailPage() {
               <button onClick={submitReview} style={{ ...primaryBtn, marginTop: 8, padding: '9px 18px', width: 'auto' }}>리뷰 등록</button>
             </div>
           )}
+          {reviewsError && <ErrorNotice message="리뷰를 불러오지 못했어요." onRetry={loadReviews} style={{ marginBottom: 16 }} />}
           <div data-testid="review-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
             {reviews?.items.map((r) => (
               <div key={r.id} style={{ background: T.surface, borderRadius: 16, padding: '22px 24px' }}>

@@ -30,7 +30,10 @@ export default function Payouts() {
   }, [load]);
 
   async function act(fn) {
-    await fn();
+    setError('');
+    // 409 = 다른 운영자가 먼저 처리(중복 승인/지급 방지 가드) — 목록 갱신으로 최신 상태 반영
+    try { await fn(); }
+    catch (e) { setError(e.status === 409 ? '이미 처리된 신청입니다. 목록을 갱신했어요.' : '처리에 실패했습니다. 잠시 후 다시 시도하세요.'); }
     load();
   }
 

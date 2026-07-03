@@ -62,4 +62,23 @@ describe('CampaignStudioPage', () => {
     renderPage();
     expect(await screen.findByText('아직 캠페인이 없어요')).toBeInTheDocument();
   });
+
+  it('목록 로드 실패 → 빈 목록으로 둔갑하지 않고 에러 표시', async () => {
+    campaigns.getMyCampaigns.mockRejectedValue(new Error('API 500'));
+    studio.getMyBooks.mockResolvedValue({ items: [] });
+    renderPage();
+    expect(await screen.findByText('캠페인 목록을 불러오지 못했어요.')).toBeInTheDocument();
+    expect(screen.queryByText('아직 캠페인이 없어요')).not.toBeInTheDocument();
+  });
+
+  it('마감 실패 → 에러 안내 (침묵 금지)', async () => {
+    campaigns.getMyCampaigns.mockResolvedValue({ items: [
+      { id: 'c1', bookId: 'b1', bookTitle: '마감대상', slots: 10, filled: 1, remaining: 9, status: 'OPEN', applicants: 3, reviewed: 0 },
+    ] });
+    studio.getMyBooks.mockResolvedValue({ items: [] });
+    campaigns.closeCampaign.mockRejectedValue(new Error('API 500'));
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: '마감' }));
+    expect(await screen.findByText(/캠페인 마감에 실패했어요/)).toBeInTheDocument();
+  });
 });

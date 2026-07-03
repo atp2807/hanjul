@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+
+import { useApiQuery } from '@hanjul/lib';
 
 import { useAuth } from '../auth/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
@@ -8,31 +10,40 @@ import { getNotifications, markAllRead, markRead } from '../services/api/notific
 import { Icon } from '../components/Icon';
 import { T } from '../theme';
 import { EmptyState } from '../components/EmptyState';
+import { ErrorNotice } from '../components/ui';
 
 export function NotificationsPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [items, setItems] = useState(null);
   const [filter, setFilter] = useState('ALL'); // ALL | UNREAD
+  const [actionError, setActionError] = useState(null);
 
-  function load() {
-    getNotifications().then((r) => setItems(r.items)).catch(() => setItems([]));
-  }
-  useEffect(() => { if (user) load(); }, [user]);
+  const { data, loading, error, reload: load } = useApiQuery(getNotifications, [], { enabled: !!user });
 
   if (!user) return <div style={{ padding: 60, textAlign: 'center', color: T.muted, fontFamily: T.font }}>로그인이 필요해요.</div>;
-  if (items === null) return <div style={{ padding: 60, textAlign: 'center', color: T.muted, fontFamily: T.font }}>불러오는 중…</div>;
+  if (loading) return <div style={{ padding: 60, textAlign: 'center', color: T.muted, fontFamily: T.font }}>불러오는 중…</div>;
+  if (error) {
+    return (
+      <div style={{ maxWidth: 560, margin: '60px auto', fontFamily: T.font }}>
+        <ErrorNotice message="알림을 불러오지 못했어요." onRetry={load} />
+      </div>
+    );
+  }
+  const items = data.items;
 
   const unread = items.filter((n) => !n.isRead).length;
   const shown = filter === 'UNREAD' ? items.filter((n) => !n.isRead) : items;
 
   async function onItem(n) {
+    // 읽음 표시 실패는 이동을 막지 않음 (다음 목록 조회에서 재시도되는 셈)
     if (!n.isRead) { try { await markRead(n.id); } catch { /* noop */ } }
     if (n.bookId) navigate(`/books/${n.bookId}`);
   }
   async function onReadAll() {
-    try { await markAllRead(); load(); } catch { /* noop */ }
+    setActionError(null);
+    try { await markAllRead(); load(); }
+    catch { setActionError('모두 읽음 처리에 실패했어요. 잠시 후 다시 시도해 주세요.'); }
   }
 
   return (
@@ -44,6 +55,8 @@ export function NotificationsPage() {
             <button onClick={onReadAll} style={{ fontSize: 13, color: T.text, fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer' }}>모두 읽음</button>
           )}
         </div>
+
+        {actionError && <ErrorNotice message={actionError} style={{ marginBottom: 16 }} />}
 
         <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
           {[['ALL', `전체 ${items.length}`], ['UNREAD', `안읽음 ${unread}`]].map(([k, lab]) => (

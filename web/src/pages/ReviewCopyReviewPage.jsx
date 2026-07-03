@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { useApiQuery } from '@hanjul/lib';
+
 import { useAuth } from '../auth/AuthContext';
 import { getCampaign, getMyApplications } from '../services/api/campaigns';
 import { addReview } from '../services/api/reviews';
+import { ErrorNotice } from '../components/ui';
 import { Icon } from '../components/Icon';
 import { Stars } from '../components/Stars';
 import { T } from '../theme';
@@ -25,7 +28,6 @@ export function ReviewCopyReviewPage() {
   const { id } = useParams(); // campaignId
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [camp, setCamp] = useState(null);
   const [deadline, setDeadline] = useState(null);
   const [rating, setRating] = useState(0);
   const [body, setBody] = useState('');
@@ -33,8 +35,9 @@ export function ReviewCopyReviewPage() {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
 
+  const { data: camp, loading, error, reload } = useApiQuery(() => getCampaign(id), [id]);
   useEffect(() => {
-    getCampaign(id).then(setCamp).catch(() => setCamp(false));
+    // 마감 카운트다운은 보조 정보 — 실패해도 리뷰 작성은 가능 (침묵 허용)
     if (user) getMyApplications().then((r) => {
       const a = r.items.find((x) => x.campaignId === id);
       if (a) setDeadline(a.deadlineAt);
@@ -47,8 +50,15 @@ export function ReviewCopyReviewPage() {
   }, []);
 
   if (!user) return <div style={{ padding: 60, textAlign: 'center', color: T.muted, fontFamily: T.font }}>로그인이 필요해요.</div>;
-  if (camp === false) return <div style={{ padding: 60, textAlign: 'center', color: T.muted, fontFamily: T.font }}>캠페인을 찾을 수 없어요.</div>;
-  if (!camp) return <div style={{ padding: 60, textAlign: 'center', color: T.muted, fontFamily: T.font }}>불러오는 중…</div>;
+  if (loading) return <div style={{ padding: 60, textAlign: 'center', color: T.muted, fontFamily: T.font }}>불러오는 중…</div>;
+  if (error) {
+    if (error.status === 404) return <div style={{ padding: 60, textAlign: 'center', color: T.muted, fontFamily: T.font }}>캠페인을 찾을 수 없어요.</div>;
+    return (
+      <div style={{ maxWidth: 560, margin: '60px auto', fontFamily: T.font }}>
+        <ErrorNotice message="캠페인 정보를 불러오지 못했어요." onRetry={reload} />
+      </div>
+    );
+  }
 
   const minChars = camp.minChars || 0;
   const enough = body.length >= minChars;

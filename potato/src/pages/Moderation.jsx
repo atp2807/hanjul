@@ -27,11 +27,13 @@ export default function Moderation() {
   async function takedown(id) {
     const reason = window.prompt('강제 비공개 사유 (감사 로그에 기록됩니다)');
     if (reason === null) return;
-    await api.takedown(id, reason);
+    try { await api.takedown(id, reason); }
+    catch { setError('강제 비공개에 실패했습니다. 잠시 후 다시 시도하세요.'); return; }
     load();
   }
   async function restore(id) {
-    await api.restore(id);
+    try { await api.restore(id); }
+    catch { setError('복원에 실패했습니다. 잠시 후 다시 시도하세요.'); return; }
     load();
   }
 

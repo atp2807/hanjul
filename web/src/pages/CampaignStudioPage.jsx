@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+
+import { useApiQuery } from '@hanjul/lib';
 
 import { useAuth } from '../auth/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { assignReviewer, closeCampaign, createCampaign, getApplicants, getMyCampaigns } from '../services/api/campaigns';
 import { getMyBooks } from '../services/api/studio';
 import { T } from '../theme';
-import { Avatar, Cover, EmptyState } from '../components/ui';
+import { Avatar, Cover, EmptyState, ErrorNotice } from '../components/ui';
 
 function Stat({ label, value, sub }) {
   return (
@@ -24,17 +25,22 @@ const STATUS = {
 };
 
 function Applicants({ campaignId, onAssigned }) {
-  const [list, setList] = useState(null);
-  useEffect(() => { getApplicants(campaignId).then((r) => setList(r.items)).catch(() => setList([])); }, [campaignId]);
-  if (list === null) return <div style={{ padding: 14, color: T.muted, fontSize: 13 }}>신청자 불러오는 중…</div>;
+  const { data, loading, error, reload } = useApiQuery(() => getApplicants(campaignId), [campaignId]);
+  const [actionError, setActionError] = useState(null);
+  if (loading) return <div style={{ padding: 14, color: T.muted, fontSize: 13 }}>신청자 불러오는 중…</div>;
+  if (error) return <ErrorNotice message="신청자 목록을 불러오지 못했어요." onRetry={reload} style={{ margin: '8px 0 14px' }} />;
+  const list = data.items;
   if (list.length === 0) return <div style={{ padding: 14, color: T.muted, fontSize: 13 }}>아직 신청자가 없어요.</div>;
 
   async function assign(applicantId) {
-    try { await assignReviewer(campaignId, applicantId); onAssigned(); } catch { /* noop */ }
+    setActionError(null);
+    try { await assignReviewer(campaignId, applicantId); onAssigned(); }
+    catch { setActionError('배정에 실패했어요. 잠시 후 다시 시도해 주세요.'); }
   }
   const ST = { PENDING: '신청', ASSIGNED: '배정됨', COMPLETED: '리뷰완료' };
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '8px 0 14px' }}>
+      {actionError && <ErrorNotice message={actionError} />}
       {list.map((a) => (
         <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: T.bg, borderRadius: 11 }}>
           <Avatar name={a.applicantName || '리뷰어'} size={30} />
@@ -56,11 +62,14 @@ function CreatePanel({ books, onClose, onCreated }) {
   const [reviewDays, setReviewDays] = useState(14);
   const [minChars, setMinChars] = useState(300);
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(null);
 
   async function submit() {
     if (!bookId) return;
     setBusy(true);
+    setError(null);
     try { await createCampaign({ bookId, slots, reviewDays, minChars }); onCreated(); }
+    catch { setError('캠페인 게시에 실패했어요. 잠시 후 다시 시도해 주세요.'); }
     finally { setBusy(false); }
   }
   const inp = { padding: '12px 14px', background: T.bg, border: `1px solid #dfeae5`, borderRadius: 11, fontSize: 14, color: T.textStrong, fontFamily: T.font, width: '100%', boxSizing: 'border-box' };
@@ -92,6 +101,7 @@ function CreatePanel({ books, onClose, onCreated }) {
             <button onClick={onClose} style={{ padding: '11px 20px', background: T.tint, color: T.ink, border: 'none', borderRadius: 11, fontSize: 13.5, fontWeight: 700, cursor: 'pointer' }}>취소</button>
             <button onClick={submit} disabled={busy} style={{ padding: '11px 22px', background: T.ink, color: T.inkText, border: 'none', borderRadius: 11, fontSize: 13.5, fontWeight: 700, cursor: 'pointer' }}>{busy ? '게시 중…' : '캠페인 게시'}</button>
           </div>
+          {error && <ErrorNotice message={error} style={{ marginTop: 14 }} />}
           <div style={{ fontSize: 11.5, color: '#9bb4bc', marginTop: 14 }}>증정본은 전자책으로 즉시 배포되어 인쇄·재고 비용이 없어요.</div>
         </>
       )}
@@ -101,24 +111,25 @@ function CreatePanel({ books, onClose, onCreated }) {
 
 export function CampaignStudioPage() {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const isMobile = useIsMobile();
-  const [camps, setCamps] = useState(null);
-  const [books, setBooks] = useState([]);
   const [creating, setCreating] = useState(false);
   const [openRow, setOpenRow] = useState(null);
+  const [closeError, setCloseError] = useState(null);
 
-  function load() {
-    getMyCampaigns().then((r) => setCamps(r.items)).catch(() => setCamps([]));
-  }
-  useEffect(() => {
-    if (!user) return;
-    load();
-    getMyBooks().then((r) => setBooks((r.items || r).filter((b) => b.status === 'PUBLISHED'))).catch(() => setBooks([]));
-  }, [user]);
+  const { data: campsData, loading, error, reload: load } = useApiQuery(getMyCampaigns, [], { enabled: !!user });
+  const { data: booksData, error: booksError } = useApiQuery(getMyBooks, [], { enabled: !!user });
 
   if (!user) return <div style={{ padding: 60, textAlign: 'center', color: T.muted, fontFamily: T.font }}>로그인이 필요해요.</div>;
-  if (camps === null) return <div style={{ padding: 60, textAlign: 'center', color: T.muted, fontFamily: T.font }}>불러오는 중…</div>;
+  if (loading) return <div style={{ padding: 60, textAlign: 'center', color: T.muted, fontFamily: T.font }}>불러오는 중…</div>;
+  if (error) {
+    return (
+      <div style={{ maxWidth: 560, margin: '60px auto', fontFamily: T.font }}>
+        <ErrorNotice message="캠페인 목록을 불러오지 못했어요." onRetry={load} />
+      </div>
+    );
+  }
+  const camps = campsData.items;
+  const books = booksData ? (booksData.items || booksData).filter((b) => b.status === 'PUBLISHED') : [];
 
   const ongoing = camps.filter((c) => c.status === 'OPEN').length;
   const applicants = camps.reduce((s, c) => s + c.applicants, 0);
@@ -136,7 +147,9 @@ export function CampaignStudioPage() {
           <button onClick={() => setCreating((v) => !v)} style={{ padding: '11px 20px', background: T.ink, color: T.inkText, border: 'none', borderRadius: 11, fontSize: 13.5, fontWeight: 700, cursor: 'pointer' }}>＋ 새 캠페인</button>
         </div>
 
-        {creating && <CreatePanel books={books} onClose={() => setCreating(false)} onCreated={() => { setCreating(false); load(); }} />}
+        {creating && booksError && <ErrorNotice message="출판한 책 목록을 불러오지 못했어요. 새로고침 후 다시 시도해 주세요." style={{ marginBottom: 24 }} />}
+        {creating && !booksError && <CreatePanel books={books} onClose={() => setCreating(false)} onCreated={() => { setCreating(false); load(); }} />}
+        {closeError && <ErrorNotice message={closeError} style={{ marginBottom: 16 }} />}
 
         <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(4,1fr)', gap: isMobile ? 12 : 16, marginBottom: 24 }}>
           <Stat label="진행 중 캠페인" value={ongoing} />
@@ -176,7 +189,7 @@ export function CampaignStudioPage() {
                     <span style={{ width: 96, textAlign: 'right', display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
                       <button onClick={() => setOpenRow(open ? null : c.id)} style={{ background: 'none', border: 'none', color: T.ink, fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>{open ? '닫기' : '신청자'}</button>
                       {c.status === 'OPEN' && (
-                        <button onClick={() => closeCampaign(c.id).then(load).catch(() => {})} style={{ background: 'none', border: 'none', color: T.muted, fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>마감</button>
+                        <button onClick={() => { setCloseError(null); closeCampaign(c.id).then(load).catch(() => setCloseError('캠페인 마감에 실패했어요. 잠시 후 다시 시도해 주세요.')); }} style={{ background: 'none', border: 'none', color: T.muted, fontSize: 12.5, fontWeight: 700, cursor: 'pointer' }}>마감</button>
                       )}
                     </span>
                   </div>
