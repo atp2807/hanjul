@@ -59,6 +59,7 @@ test('리더 배율(A+) 조절', async ({ page, request }) => {
   await page.goto(`/read/${id}`);
   await expect(page.getByText('배율 1.0x')).toBeVisible();
 
-  await page.getByRole('button', { name: 'A+' }).click();
+  // aria-label="글자 크게"가 접근성명 — 시각 텍스트 "A+"를 덮어씀
+  await page.getByRole('button', { name: '글자 크게' }).click();
   await expect(page.getByText('배율 1.1x')).toBeVisible();
 });
