@@ -3,11 +3,28 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import * as books from '../services/api/books';
+import * as contentRating from '../services/api/contentRating';
 import * as studio from '../services/api/studio';
 import { StudioEditorPage } from './StudioEditorPage';
 
 vi.mock('../services/api/books');
 vi.mock('../services/api/studio');
+vi.mock('../services/api/contentRating');
+
+const CRITERIA = {
+  tiers: ['ALL', 'AGE12', 'AGE15', 'AGE18'],
+  tierLabels: { ALL: '전체이용가', AGE12: '12세 이용가', AGE15: '15세 이용가', AGE18: '18세 이용가' },
+  categories: [
+    { key: 'theme', label: '주제', guide: { ALL: 'a', AGE12: 'b', AGE15: 'c', AGE18: 'd' } },
+    { key: 'violence', label: '폭력성', guide: { ALL: 'a', AGE12: 'b', AGE15: 'c', AGE18: 'd' } },
+    { key: 'sexual', label: '선정성', guide: { ALL: 'a', AGE12: 'b', AGE15: 'c', AGE18: 'd' } },
+    { key: 'language', label: '언어', guide: { ALL: 'a', AGE12: 'b', AGE15: 'c', AGE18: 'd' } },
+    { key: 'drug', label: '약물', guide: { ALL: 'a', AGE12: 'b', AGE15: 'c', AGE18: 'd' } },
+    { key: 'gambling', label: '사행성', guide: { ALL: 'a', AGE12: 'b', AGE15: 'c', AGE18: 'd' } },
+    { key: 'imitation_risk', label: '모방위험', guide: { ALL: 'a', AGE12: 'b', AGE15: 'c', AGE18: 'd' } },
+    { key: 'discrimination', label: '차별', guide: { ALL: 'a', AGE12: 'b', AGE15: 'c', AGE18: 'd' } },
+  ],
+};
 
 function renderEditor() {
   return render(
@@ -23,6 +40,7 @@ function renderEditor() {
 beforeEach(() => {
   vi.clearAllMocks();
   studio.getMyBooks.mockResolvedValue({ items: [{ id: 'b1', isbn: '9788912345678' }] });
+  contentRating.getCriteria.mockResolvedValue(CRITERIA);
 });
 
 describe('StudioEditorPage', () => {
@@ -211,5 +229,54 @@ describe('StudioEditorPage', () => {
     fireEvent.click(screen.getByRole('button', { name: '출판' }));
     await waitFor(() => expect(studio.publishBook).toHaveBeenCalledWith('b1'));
     expect(await screen.findByText('출판 완료! 스토어에 노출됩니다.')).toBeInTheDocument();
+  });
+
+  it('연령 등급 — AI 추천 클릭 후 8개 select가 추천값으로 프리필된다', async () => {
+    books.getBookContent.mockResolvedValue({ id: 'b1', title: '내 책', status: 'DRAFT', priceAmt: 0, chapters: [] });
+    contentRating.suggestRating.mockResolvedValue({
+      contentRating: 'AGE15',
+      contentRatingDetail: {
+        theme: 'ALL', violence: 'AGE15', sexual: 'ALL', language: 'AGE12',
+        drug: 'ALL', gambling: 'ALL', imitation_risk: 'ALL', discrimination: 'ALL',
+      },
+    });
+    renderEditor();
+    await screen.findByText('내 책');
+
+    fireEvent.click(screen.getByRole('button', { name: 'AI로 추천받기' }));
+    await waitFor(() => expect(contentRating.suggestRating).toHaveBeenCalledWith('b1'));
+
+    // 8개 카테고리 select 렌더 + 추천값 프리필
+    const selects = ['주제', '폭력성', '선정성', '언어', '약물', '사행성', '모방위험', '차별'].map(
+      (label) => screen.getByRole('combobox', { name: `${label} 등급` }),
+    );
+    expect(selects).toHaveLength(8);
+    expect(screen.getByRole('combobox', { name: '폭력성 등급' })).toHaveValue('AGE15');
+    expect(screen.getByRole('combobox', { name: '언어 등급' })).toHaveValue('AGE12');
+    // 최종 등급 배지 = 8개 중 최댓값 (AGE15)
+    expect(screen.getByText('최종 등급: 15세 이용가')).toBeInTheDocument();
+  });
+
+  it('연령 등급 — 저장 클릭 시 8개 값 dict로 setRating 호출', async () => {
+    books.getBookContent.mockResolvedValue({
+      id: 'b1', title: '내 책', status: 'DRAFT', priceAmt: 0, chapters: [],
+      contentRating: 'AGE18', contentRatingDetail: {
+        theme: 'ALL', violence: 'ALL', sexual: 'AGE18', language: 'ALL',
+        drug: 'ALL', gambling: 'ALL', imitation_risk: 'ALL', discrimination: 'ALL',
+      },
+    });
+    contentRating.setRating.mockResolvedValue({ contentRating: 'AGE18', contentRatingDetail: {} });
+    renderEditor();
+    await screen.findByText('내 책');
+
+    // 초기 프리필(content 응답) 확인
+    expect(await screen.findByRole('combobox', { name: '선정성 등급' })).toHaveValue('AGE18');
+
+    fireEvent.click(screen.getByRole('button', { name: '등급 저장' }));
+    await waitFor(() => expect(contentRating.setRating).toHaveBeenCalledWith('b1', {
+      theme: 'ALL', violence: 'ALL', sexual: 'AGE18', language: 'ALL',
+      drug: 'ALL', gambling: 'ALL', imitation_risk: 'ALL', discrimination: 'ALL',
+    }));
+    expect(await screen.findByText('연령 등급이 저장됐어요.')).toBeInTheDocument();
   });
 });

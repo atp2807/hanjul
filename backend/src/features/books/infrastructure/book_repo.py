@@ -85,6 +85,8 @@ class SqlBookRepository:
             status=book.status,
             price_amt=int(book.price_amt) if book.price_amt is not None else None,
             preview_limit=book.preview_limit,
+            content_rating=book.content_rating,
+            content_rating_detail=book.content_rating_detail,
             chapters=[
                 ChapterView(
                     id=c.id,
@@ -98,3 +100,11 @@ class SqlBookRepository:
                 for c in book.chapters
             ],
         )
+
+    async def set_content_rating(
+        self, book_id: UUID, rating: str, detail: dict[str, str]
+    ) -> None:
+        book = await self.session.get(Book, book_id)
+        book.content_rating = rating
+        book.content_rating_detail = detail
+        await self.session.commit()

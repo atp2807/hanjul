@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { getBookContent } from '../services/api/books';
+import { getCriteria, suggestRating, setRating as saveRating } from '../services/api/contentRating';
 import {
   distributeBook,
   downloadEpub,
@@ -36,6 +37,15 @@ const CHANNELS = [
 
 const CATEGORIES = ['소설', '에세이', '시', '자기계발', '경제경영', '인문', '과학', '판타지', '로맨스', '기타'];
 
+const RATING_TIERS = ['ALL', 'AGE12', 'AGE15', 'AGE18'];
+function maxTier(detail) {
+  let best = 'ALL';
+  for (const t of Object.values(detail || {})) {
+    if (RATING_TIERS.indexOf(t) > RATING_TIERS.indexOf(best)) best = t;
+  }
+  return best;
+}
+
 export function StudioEditorPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -53,12 +63,16 @@ export function StudioEditorPage() {
   const [scheduleAt, setScheduleAt] = useState('');
   const [channel, setChannel] = useState('KYOBO');
   const [dists, setDists] = useState([]);
+  const [criteria, setCriteria] = useState(null);
+  const [ratingDetail, setRatingDetail] = useState(null); // { 카테고리: tier }
+  const [ratingBusy, setRatingBusy] = useState(false);
   const [msg, setMsg] = useState(null);
   const [error, setError] = useState(null);
 
   async function load() {
     const c = await getBookContent(id);
     setBook(c);
+    setRatingDetail(c.contentRatingDetail || null);
     setPrice(c.priceAmt != null ? String(c.priceAmt) : '');
     // ISBN·배포이력은 content 응답 밖이라 별도 조회
     const mine = await getMyBooks();
@@ -77,6 +91,38 @@ export function StudioEditorPage() {
   useEffect(() => {
     load().catch((e) => setError(e.message));
   }, [id]);
+  useEffect(() => {
+    getCriteria().then(setCriteria).catch(() => {});
+  }, []);
+
+  const tierOf = (key) => (ratingDetail && ratingDetail[key]) || 'ALL';
+  function fullRatingDetail() {
+    const out = {};
+    (criteria?.categories || []).forEach((cat) => { out[cat.key] = tierOf(cat.key); });
+    return out;
+  }
+  async function doSuggestRating() {
+    setRatingBusy(true);
+    setError(null);
+    try {
+      const r = await suggestRating(id);
+      setRatingDetail(r.contentRatingDetail);
+      notify('AI가 등급을 추천했어요. 검토 후 저장하세요.');
+    } catch (e) {
+      setError(e.status === 503 ? '등급 자동분류가 지금은 불가해요. 잠시 후 다시 시도해 주세요.' : e.message);
+    } finally {
+      setRatingBusy(false);
+    }
+  }
+  async function doSaveRating() {
+    try {
+      const r = await saveRating(id, fullRatingDetail());
+      setRatingDetail(r.contentRatingDetail);
+      notify('연령 등급이 저장됐어요.');
+    } catch (e) {
+      setError(e.message);
+    }
+  }
 
   function notify(m) {
     setMsg(m);
@@ -220,6 +266,42 @@ export function StudioEditorPage() {
         >
           정보 저장
         </button>
+      </Section>
+
+      <Section title="연령 등급">
+        {criteria ? (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14, flexWrap: 'wrap' }}>
+              <button onClick={doSuggestRating} disabled={ratingBusy} style={{ ...btn, marginLeft: 0 }}>
+                {ratingBusy ? '분석 중…' : 'AI로 추천받기'}
+              </button>
+              <span style={{ padding: '4px 12px', background: '#eef2f7', color: T.textStrong, borderRadius: 999, fontSize: 13, fontWeight: 800 }}>
+                최종 등급: {criteria.tierLabels[maxTier(fullRatingDetail())]}
+              </span>
+            </div>
+            {criteria.categories.map((cat) => (
+              <div key={cat.key} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, flexWrap: 'wrap' }}>
+                <label style={{ width: 72, fontSize: 13, color: T.textMid }} htmlFor={`rating-${cat.key}`}>{cat.label}</label>
+                <select
+                  id={`rating-${cat.key}`}
+                  aria-label={`${cat.label} 등급`}
+                  value={tierOf(cat.key)}
+                  onChange={(e) => setRatingDetail((prev) => ({ ...(prev || {}), [cat.key]: e.target.value }))}
+                  style={{ ...inp, width: 130 }}
+                >
+                  {criteria.tiers.map((t) => (
+                    <option key={t} value={t}>{criteria.tierLabels[t]}</option>
+                  ))}
+                </select>
+                <span style={{ fontSize: 12, color: T.faint, flex: 1, minWidth: 200 }}>{cat.guide[tierOf(cat.key)]}</span>
+              </div>
+            ))}
+            <button onClick={doSaveRating} style={{ ...btn, marginLeft: 0, marginTop: 8 }}>등급 저장</button>
+            <div style={{ fontSize: 12, color: T.muted, marginTop: 8 }}>플랫폼 자율등급입니다(정부 사전승인 아님). AI 추천은 참고용이며 최종 판단은 작가가 합니다.</div>
+          </>
+        ) : (
+          <p style={{ color: T.muted, fontSize: 13 }}>기준을 불러오는 중…</p>
+        )}
       </Section>
 
       <Section title="표지">

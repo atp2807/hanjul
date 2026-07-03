@@ -9,8 +9,8 @@
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, Numeric, String, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
 
 from src.config.database import Base
@@ -39,6 +39,12 @@ class Book(Base):
     status = Column("status_cd", String(20), nullable=False, default="DRAFT")
     cover_url = Column(String(1000))
     isbn = Column(String(20))
+    # 콘텐츠 연령등급 — ALL | AGE12 | AGE15 | AGE18 (플랫폼 자율등급, 8기준 중 최댓값).
+    content_rating = Column("content_rating_cd", String(10), nullable=False, default="ALL")
+    # 8기준별 세부 등급 {theme, violence, …}. NULL = 아직 미분류.
+    content_rating_detail = Column(
+        "content_rating_detail_json", JSON().with_variant(JSONB, "postgresql")
+    )
     # 무료 미리보기로 공개할 블록 수 (미구매 독자 유입). 기본 3.
     preview_limit = Column("preview_block_cnt", Integer, nullable=False, default=3)
     # 판매가 (원 단위 정수). 출판 전엔 NULL 가능.

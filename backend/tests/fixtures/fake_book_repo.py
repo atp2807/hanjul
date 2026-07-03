@@ -73,6 +73,8 @@ class FakeBookRepository:
             status=meta["status"],
             price_amt=meta.get("price_amt"),
             preview_limit=meta.get("preview_limit", 3),
+            content_rating=meta.get("content_rating", "ALL"),
+            content_rating_detail=meta.get("content_rating_detail"),
             chapters=[
                 ChapterView(
                     id=c["id"],
@@ -83,3 +85,7 @@ class FakeBookRepository:
                 for c in self.chapters[book_id]
             ],
         )
+
+    async def set_content_rating(self, book_id: UUID, rating: str, detail: dict) -> None:
+        self.books[book_id]["content_rating"] = rating
+        self.books[book_id]["content_rating_detail"] = detail

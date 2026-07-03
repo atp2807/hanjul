@@ -76,6 +76,11 @@ class Settings(BaseSettings):
     COVER_API_URL: str = ""  # novelpotato /generate-cover
     COVER_API_KEY: str = ""
 
+    # ── 콘텐츠 연령등급 자동분류(AI) ────────────────────
+    # 데모: 외부 호출 없이 키워드 휴리스틱으로 분류 (dev/E2E). 운영은 False + API 키.
+    CONTENT_RATING_AI_DEMO: bool = False
+    ANTHROPIC_API_KEY: str = ""  # api.anthropic.com messages — 등급 분류 실어댑터용
+
     # ── 사업자등록번호 진위확인 ─────────────────────────
     NTS_BUSINESS_API_KEY: str = ""  # 공공데이터포털 odcloud 국세청 사업자등록정보 진위확인 서비스키
     # 표지 직접 업로드 — 로컬 디스크 저장 + /uploads 정적 서빙. PUBLIC_API_URL 로 절대 URL 구성.

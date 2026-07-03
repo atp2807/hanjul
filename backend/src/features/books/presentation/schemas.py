@@ -65,4 +65,16 @@ class BookContentResponse(CamelSchema):
     status: str
     price_amt: int | None = None
     is_preview: bool = False
+    content_rating: str = "ALL"
+    content_rating_detail: dict[str, str] | None = None
     chapters: list[ChapterResponse]
+
+
+class SetContentRatingRequest(CamelSchema):
+    """작가 등급 오버라이드 — 8기준 중 일부/전체 {카테고리: tier}."""
+    detail: dict[str, str]
+
+
+class ContentRatingResponse(CamelSchema):
+    content_rating: str
+    content_rating_detail: dict[str, str]

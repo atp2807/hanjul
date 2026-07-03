@@ -40,3 +40,9 @@ class BookRepository(Protocol):
     async def get_content(self, book_id: UUID) -> BookView | None:
         """책 + 장 + 블록 전체를 정렬된 뷰로 반환. 없으면 None."""
         ...
+
+    async def set_content_rating(
+        self, book_id: UUID, rating: str, detail: dict[str, str]
+    ) -> None:
+        """콘텐츠 연령등급(최종) + 8기준 세부를 저장."""
+        ...

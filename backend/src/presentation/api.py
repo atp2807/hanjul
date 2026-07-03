@@ -7,6 +7,9 @@ from src.features.billing.presentation.endpoints import payments_router
 from src.features.billing.presentation.endpoints import router as billing_router
 from src.features.billing.presentation.library import router as library_router
 from src.features.bizverify.presentation.endpoints import router as bizverify_router
+from src.features.books.presentation.content_rating_endpoints import (
+    router as content_rating_router,
+)
 from src.features.books.presentation.endpoints import router as books_router
 from src.features.campaigns.presentation.endpoints import router as campaigns_router
 from src.features.catalog.presentation.endpoints import router as catalog_router
@@ -55,3 +58,4 @@ router.include_router(potato_payouts_router, dependencies=_potato_guard)
 router.include_router(reports_router)  # 고객 신고 접수 — 게이트 없음
 router.include_router(payouts_router)  # 작가 출금 — 인증만
 router.include_router(bizverify_router)  # 사업자등록번호 진위확인 — 엔드포인트 자체 인증
+router.include_router(content_rating_router)  # 콘텐츠 연령등급 — 기준 공개·작가 도구

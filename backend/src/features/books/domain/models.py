@@ -34,6 +34,10 @@ class BookView:
     status: str
     price_amt: int | None = None
     preview_limit: int = 3
+    # 콘텐츠 연령등급 (플랫폼 자율등급, 8기준 중 최댓값). ALL|AGE12|AGE15|AGE18.
+    content_rating: str = "ALL"
+    # 8기준별 세부 등급 {theme, violence, …}. None = 아직 미분류.
+    content_rating_detail: dict | None = None
     chapters: list[ChapterView] = field(default_factory=list)
 
 
@@ -70,6 +74,23 @@ def suggest_blurb(content: BookView, limit: int = 150) -> str:
     ]
     text = re.sub(r"\s+", " ", " ".join(parts)).strip()
     return f"{text[:limit]}…" if len(text) > limit else text
+
+
+def extract_text(content: BookView) -> str:
+    """정본 전체를 평문으로 추출 (HTML 태그 제거·공백 정규화). 길이제한 없음.
+
+    등급 자동분류 입력용. suggest_blurb과 같은 방식이나 앞부분만이 아닌 전체를 반환한다 —
+    AI 프롬프트로 보낼 때의 비용 통제(최대 6000자 컷)는 상위 레이어(서비스)에서 한다.
+    """
+    import re
+
+    parts = [
+        re.sub(r"<[^>]+>", "", b.html)
+        for ch in content.chapters
+        for b in ch.blocks
+        if b.block_type != "HR"
+    ]
+    return re.sub(r"\s+", " ", " ".join(parts)).strip()
 
 
 @dataclass

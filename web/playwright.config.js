@@ -30,6 +30,7 @@ export default defineConfig({
         PAYMENT_DEMO: 'true',
         DISTRIBUTION_DEMO: 'true',
         COVER_DEMO: 'true',
+        CONTENT_RATING_AI_DEMO: 'true',
         FRONTEND_URL: FRONT,
         DEBUG: 'false',
       },
