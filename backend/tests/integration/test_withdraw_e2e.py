@@ -54,6 +54,11 @@ async def test_export_then_withdraw_anonymizes(app_db):
         data = exp.json()
         assert data["account"]["email"] == "bye@x.com"
         assert data["account"]["displayName"] == "떠날사람"
+        # 보유 개인정보 일괄 — 구매·판매정산·출금 (신규 유저 = 빈 값)
+        assert data["purchases"] == []
+        assert data["sales"]["totalOrders"] == 0
+        assert data["bankAccount"] is None
+        assert data["payouts"] == []
 
         # 탈퇴 (익명화)
         w = await c.delete("/api/me", headers=hdr)

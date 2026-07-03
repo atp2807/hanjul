@@ -11,6 +11,12 @@ from src.features.accounts.presentation.dependencies import get_account_service
 from src.features.accounts.presentation.schemas import AccountResponse
 from src.features.auth.domain.models import AccountPrincipal
 from src.features.auth.presentation.dependencies import get_current_account
+from src.features.billing.application.order_service import OrderService
+from src.features.billing.presentation.dependencies import get_order_service
+from src.features.billing.presentation.schemas import LibraryItemResponse, SalesSummaryResponse
+from src.features.payouts.application.payout_service import PayoutService
+from src.features.payouts.presentation.dependencies import get_payout_service
+from src.features.payouts.presentation.schemas import BankAccountResponse, PayoutResponse
 
 router = APIRouter(tags=["account"])
 
@@ -43,13 +49,33 @@ async def update_profile(
 async def export_my_data(
     principal: AccountPrincipal = Depends(get_current_account),
     svc: AccountService = Depends(get_account_service),
+    orders: OrderService = Depends(get_order_service),
+    payouts: PayoutService = Depends(get_payout_service),
 ) -> dict:
     """개인정보 열람/다운로드 (개인정보보호법 §35 열람권).
 
-    구매·정산 내역은 각각 /me/library, /me/sales 로 조회.
+    프로필 + 구매내역 + 판매정산 + 출금계좌(마스킹)·출금내역 — 보유 개인정보 일괄.
     """
     acc = await svc.get_profile(principal.id)
-    return {"account": AccountResponse.model_validate(acc).model_dump(by_alias=True)}
+    library = await orders.list_library(principal.id)
+    sales = await orders.author_sales(principal.id)
+    bank = await payouts.get_bank_account(principal.id)
+    payout_rows = await payouts.list_payouts(principal.id)
+    return {
+        "account": AccountResponse.model_validate(acc).model_dump(by_alias=True),
+        "purchases": [
+            LibraryItemResponse(
+                book_id=b.book_id, title=b.title, kind=b.kind, price_amt=b.price_amt,
+                cover_url=b.cover_url, order_id=b.order_id,
+            ).model_dump(by_alias=True)
+            for b in library
+        ],
+        "sales": SalesSummaryResponse.model_validate(sales).model_dump(by_alias=True),
+        "bankAccount": (
+            BankAccountResponse.model_validate(bank).model_dump(by_alias=True) if bank else None
+        ),
+        "payouts": [PayoutResponse.model_validate(p).model_dump(by_alias=True) for p in payout_rows],
+    }
 
 
 @router.delete("/me", status_code=204)
