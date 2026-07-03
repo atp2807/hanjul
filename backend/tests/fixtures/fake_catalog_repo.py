@@ -24,9 +24,6 @@ class FakeCatalogRepository:
     async def set_price(self, book_id: UUID, amount: int) -> None:
         self.books[book_id].price_amt = amount
 
-    async def set_author(self, book_id: UUID, author_id: UUID) -> None:
-        self.books[book_id].author_id = author_id
-
     async def set_isbn(self, book_id: UUID, isbn: str) -> None:
         self.books[book_id].isbn = isbn
 

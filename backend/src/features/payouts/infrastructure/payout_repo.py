@@ -103,7 +103,11 @@ class SqlPayoutRepository:
         )
 
     async def create_payout(self, author_id: UUID, account: BankAccountView) -> PayoutView | None:
-        rows = (await self.session.execute(self._unpaid_stmt(author_id))).scalars().all()
+        # 정산 행 잠금 — 동시 출금신청이 같은 정산을 두 payout 에 묶는 것(중복 지급) 방지.
+        # 잠금 대기 후 재평가되므로 늦은 쪽은 빈 집합 → NothingToPayout.
+        rows = (
+            await self.session.execute(self._unpaid_stmt(author_id).with_for_update(of=Settlement))
+        ).scalars().all()
         if not rows:
             return None
         gross = sum(int(s.gross_amt) for s in rows)
@@ -143,21 +147,34 @@ class SqlPayoutRepository:
         rows = (await self.session.execute(stmt)).scalars().all()
         return [_payout_view(p) for p in rows]
 
-    async def set_status(self, payout_id, status, operator_id, now, memo=None) -> None:
-        p = await self.session.get(Payout, payout_id)
-        p.status = status
+    async def transition(
+        self, payout_id, from_statuses, to_status, operator_id, now, memo=None
+    ) -> bool:
+        # 행 잠금 후 현재 상태 재확인 — 운영자 둘이 동시에 승인/지급해도 한 명만 성공.
+        p = (
+            await self.session.execute(
+                select(Payout)
+                .where(Payout.id == payout_id)
+                .with_for_update()
+                .execution_options(populate_existing=True)  # 잠금 후 DB 최신값으로 갱신
+            )
+        ).scalar_one_or_none()
+        if p is None or p.status not in from_statuses:
+            await self.session.rollback()
+            return False
+        p.status = to_status
         if memo is not None:
             p.memo = memo
-        if status == "APPROVED":
+        if to_status == "APPROVED":
             p.approved_at, p.approved_by = now, operator_id
-        elif status == "PAID":
+        elif to_status == "PAID":
             p.paid_at = now
             if p.approved_by is None:
                 p.approved_by = operator_id
+        elif to_status == "REJECTED":
+            # 정산분 회수까지 같은 트랜잭션 — 회수/전이 사이에 승인이 끼어들 수 없게.
+            await self.session.execute(
+                update(Settlement).where(Settlement.payout_id == payout_id).values(payout_id=None)
+            )
         await self.session.commit()
-
-    async def unlink_settlements(self, payout_id: UUID) -> None:
-        await self.session.execute(
-            update(Settlement).where(Settlement.payout_id == payout_id).values(payout_id=None)
-        )
-        await self.session.commit()
+        return True

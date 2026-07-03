@@ -81,11 +81,6 @@ class SqlCatalogRepository:
         b.price_amt = amount
         await self.session.commit()
 
-    async def set_author(self, book_id: UUID, author_id: UUID) -> None:
-        b = await self.session.get(Book, book_id)
-        b.author_id = author_id
-        await self.session.commit()
-
     async def set_isbn(self, book_id: UUID, isbn: str) -> None:
         b = await self.session.get(Book, book_id)
         b.isbn = isbn

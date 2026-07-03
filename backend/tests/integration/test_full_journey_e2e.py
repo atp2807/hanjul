@@ -105,7 +105,7 @@ async def test_author_publishes_reader_buys_and_reads(journey):
         assert content["chapters"][0]["blocks"][0]["html"] == "<h1>1장</h1>"
 
         # 6) AI 표지 생성 → 스토어 상세에 반영
-        cover = (await c.post(f"/api/books/{book_id}/cover", json={"prompt": "잔잔한 표지"})).json()
+        cover = (await c.post(f"/api/books/{book_id}/cover", json={"prompt": "잔잔한 표지"}, headers=author_auth)).json()
         assert cover["coverUrl"] == "https://img/cover.png"
         detail = (await c.get(f"/api/store/books/{book_id}")).json()
         assert detail["coverUrl"] == "https://img/cover.png"

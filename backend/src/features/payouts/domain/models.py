@@ -89,9 +89,17 @@ class PayoutRepository(Protocol):
 
     # 운영자 상태 전이
     async def list_by_status(self, status: str | None) -> list[PayoutView]: ...
-    async def set_status(
-        self, payout_id: UUID, status: str, operator_id: UUID | None, now: datetime, memo: str | None = None
-    ) -> None: ...
-    async def unlink_settlements(self, payout_id: UUID) -> None:
-        """반려 시 정산분 회수 — settlement.payout_id 를 NULL 로."""
+    async def transition(
+        self,
+        payout_id: UUID,
+        from_statuses: tuple[str, ...],
+        to_status: str,
+        operator_id: UUID | None,
+        now: datetime,
+        memo: str | None = None,
+    ) -> bool:
+        """행 잠금 후 상태 전이 (from_statuses 밖이면 False — 동시 승인/지급 방지).
+
+        REJECTED 전이는 정산분 회수(settlement.payout_id NULL)까지 같은 트랜잭션.
+        """
         ...

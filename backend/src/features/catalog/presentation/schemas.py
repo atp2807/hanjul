@@ -5,10 +5,6 @@ from uuid import UUID
 from src.presentation.schema import CamelSchema
 
 
-class AssignAuthorRequest(CamelSchema):
-    author_id: UUID
-
-
 class SetPriceRequest(CamelSchema):
     amount: int  # 원 단위 정수
 

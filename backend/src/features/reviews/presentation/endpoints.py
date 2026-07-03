@@ -11,6 +11,8 @@ from src.features.auth.domain.models import AccountPrincipal
 from src.features.auth.presentation.dependencies import get_current_account
 from src.features.billing.application.order_service import OrderService
 from src.features.billing.presentation.dependencies import get_order_service
+from src.features.campaigns.application.campaign_service import CampaignService
+from src.features.campaigns.presentation.dependencies import get_campaign_service
 from src.features.reviews.application.review_service import ReviewService
 from src.features.reviews.infrastructure.review_repo import SqlReviewRepository
 from src.features.reviews.presentation.schemas import (
@@ -33,6 +35,7 @@ async def add_review(
     body: AddReviewRequest,
     principal: AccountPrincipal = Depends(get_current_account),
     orders: OrderService = Depends(get_order_service),
+    campaigns: CampaignService = Depends(get_campaign_service),
     session: AsyncSession = Depends(get_session),
 ) -> dict:
     """리뷰·평점 작성 — 구매한 독자만. (책,계정)당 한 건(다시 쓰면 갱신)."""
@@ -46,10 +49,8 @@ async def add_review(
     # 평점 검증 실패는 ValidationError(422) → 중앙 핸들러가 매핑.
     await ReviewService(repo).add(book_id, principal.id, body.rating, body.body, source)
     if source == "REVIEW_COPY":
-        # 서평단 배정 신청을 완료 처리(완료율·자격 집계용)
-        from src.features.campaigns.infrastructure.campaign_repo import SqlCampaignRepository
-
-        await SqlCampaignRepository(session).mark_completed(book_id, principal.id)
+        # 서평단 배정 신청을 완료 처리(완료율·자격 집계용) — 포트(서비스) 경유
+        await campaigns.mark_review_done(book_id, principal.id)
     return {"ok": True}
 
 

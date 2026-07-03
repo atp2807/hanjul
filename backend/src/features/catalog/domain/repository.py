@@ -30,9 +30,6 @@ class CatalogRepository(Protocol):
     async def set_price(self, book_id: UUID, amount: int) -> None:
         ...
 
-    async def set_author(self, book_id: UUID, author_id: UUID) -> None:
-        ...
-
     async def set_isbn(self, book_id: UUID, isbn: str) -> None:
         ...
 

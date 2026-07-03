@@ -112,6 +112,12 @@ async def test_full_payout_lifecycle(app_db):
         # 신청 후 출금가능액 0 (정산분이 payout에 묶임)
         assert (await c.get("/api/me/payouts/payable", headers=hdr)).json()["netAmt"] == 0
 
+        # 개인정보 export 에 판매·계좌(마스킹)·출금내역 포함 (§35 열람권 일괄)
+        exp = (await c.get("/api/me/export", headers=hdr)).json()
+        assert exp["bankAccount"]["accountNoMasked"].endswith("7890")
+        assert exp["payouts"][0]["id"] == payout_id
+        assert exp["sales"]["totalRevenue"] == 10000
+
         # DB: 계좌번호 복호화되고 settlement가 payout에 묶임
         async with app_db() as s:
             ba = (await s.execute(select(BankAccount))).scalar_one()
@@ -148,6 +154,35 @@ async def test_reject_returns_funds(app_db):
         assert (await c.post(f"/api/potato/payouts/{payout_id}/reject", headers=op_hdr,
                              json={"reason": "계좌오류"})).status_code == 204
         assert (await c.get("/api/me/payouts/payable", headers=hdr)).json()["netAmt"] == 6769
+
+
+async def test_payout_state_machine_guards(app_db):
+    """상태기계 회귀 가드 — 중복 승인/조기 지급/지급 후 반려는 전부 409.
+
+    repo.transition 이 행 잠금 + 현재 상태 재확인으로 전이하므로
+    운영자 둘이 동시에 눌러도 한 명만 성공한다 (여기선 순차 재현).
+    """
+    async with _client() as c:
+        token, acc = await login_account(c, "google", "x")
+        hdr = {"Authorization": f"Bearer {token}"}
+        await _seed_sale(app_db, acc["id"])
+        await c.put("/api/me/bank-account", headers=hdr,
+                    json={"holderName": "작가", "bank": "004", "accountNo": "1234567890"})
+        payout_id = (await c.post("/api/me/payouts", headers=hdr)).json()["id"]
+        op_hdr = {"Authorization": f"Bearer {await _op_token(c, app_db)}"}
+
+        # 승인 전 지급 → 409
+        assert (await c.post(f"/api/potato/payouts/{payout_id}/pay", headers=op_hdr,
+                             json={"reason": "x"})).status_code == 409
+        assert (await c.post(f"/api/potato/payouts/{payout_id}/approve", headers=op_hdr)).status_code == 204
+        # 중복 승인 → 409 (두 번째 운영자)
+        assert (await c.post(f"/api/potato/payouts/{payout_id}/approve", headers=op_hdr)).status_code == 409
+        assert (await c.post(f"/api/potato/payouts/{payout_id}/pay", headers=op_hdr,
+                             json={"reason": "이체완료"})).status_code == 204
+        # 지급 후 반려 → 409 (정산 회수 불가)
+        assert (await c.post(f"/api/potato/payouts/{payout_id}/reject", headers=op_hdr,
+                             json={"reason": "x"})).status_code == 409
+        assert (await c.get("/api/me/payouts/payable", headers=hdr)).json()["netAmt"] == 0
 
 
 async def test_payout_requires_auth_and_operator(app_db):

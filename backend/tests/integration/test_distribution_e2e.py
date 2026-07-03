@@ -18,6 +18,7 @@ from tests.fixtures.fake_account_repo import FakeProvider  # noqa: E402
 from tests.integration.auth_helpers import login_account  # noqa: E402
 
 PROFILE = SocialProfile("GOOGLE", "dist-x", "d@x.com", "작가")
+OTHER = SocialProfile("NAVER", "dist-other", "o@x.com", "타인")
 
 
 @pytest.fixture
@@ -30,7 +31,9 @@ def app_db(sessionmaker):
 
     def _auth(session: AsyncSession = Depends(get_session)):
         return AuthService(
-            SqlAccountRepository(session), {"GOOGLE": FakeProvider("GOOGLE", PROFILE)}, token_issuer()
+            SqlAccountRepository(session),
+            {"GOOGLE": FakeProvider("GOOGLE", PROFILE), "NAVER": FakeProvider("NAVER", OTHER)},
+            token_issuer(),
         )
 
     app.dependency_overrides[get_session] = _session
@@ -52,15 +55,22 @@ async def test_publish_then_distribute_to_store(app_db):
         await c.put(f"/api/books/{book}/isbn", json={"isbn": "9788912345678"}, headers=auth)
         await c.post(f"/api/books/{book}/publish-now", headers=auth)
 
+        # 인가 게이트 — 무인증 401, 타인 403 (소유 작가만 배포 가능)
+        assert (await c.post(f"/api/books/{book}/distribute", json={"channel": "KYOBO"})).status_code == 401
+        other_token, _ = await login_account(c, "naver", "y")
+        other = {"Authorization": f"Bearer {other_token}"}
+        assert (await c.post(f"/api/books/{book}/distribute", json={"channel": "KYOBO"}, headers=other)).status_code == 403
+
         # 교보로 배포 (데모) → SENT
-        r = await c.post(f"/api/books/{book}/distribute", json={"channel": "KYOBO"})
+        r = await c.post(f"/api/books/{book}/distribute", json={"channel": "KYOBO"}, headers=auth)
         assert r.status_code == 201
         body = r.json()
         assert body["status"] == "SENT"
         assert body["channel"] == "KYOBO"
 
-        # 이력
-        hist = (await c.get(f"/api/books/{book}/distributions")).json()
+        # 이력 — 역시 소유 작가만 (타인 403)
+        assert (await c.get(f"/api/books/{book}/distributions", headers=other)).status_code == 403
+        hist = (await c.get(f"/api/books/{book}/distributions", headers=auth)).json()
         assert len(hist) == 1 and hist[0]["channel"] == "KYOBO"
 
 
@@ -69,5 +79,5 @@ async def test_distribute_unpublished_409(app_db):
         token, _ = await login_account(c, "google", "x")
         auth = {"Authorization": f"Bearer {token}"}
         draft = (await c.post("/api/books", json={"title": "초안"}, headers=auth)).json()["bookId"]
-        r = await c.post(f"/api/books/{draft}/distribute", json={"channel": "KYOBO"})
+        r = await c.post(f"/api/books/{draft}/distribute", json={"channel": "KYOBO"}, headers=auth)
         assert r.status_code == 409  # 출판본만 배포 가능

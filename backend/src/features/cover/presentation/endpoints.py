@@ -19,14 +19,17 @@ _MAX_BYTES = 5 * 1024 * 1024  # 5MB
 
 @router.post("/books/{book_id}/cover", response_model=CoverResponse)
 async def generate_cover(
-    book_id: UUID, body: GenerateCoverRequest, svc: CoverService = Depends(get_cover_service)
+    book_id: UUID,
+    body: GenerateCoverRequest,
+    svc: CoverService = Depends(get_cover_service),
+    _owner: None = Depends(require_book_owner),  # 소유 작가만 (없는 책 404 / 타인 403)
 ) -> CoverResponse:
     try:
         url = await svc.generate_for_book(book_id, body.prompt)
     except BookNotFound:
         raise NotFoundError("book not found")
-    except RuntimeError as e:
-        raise HTTPException(503, str(e))  # 표지 생성 비활성/장애
+    except RuntimeError:
+        raise HTTPException(503, "표지 생성이 지금은 불가해요. 잠시 후 다시 시도해 주세요.")  # 내부 사유는 로그로만
     return CoverResponse(cover_url=url)
 
 

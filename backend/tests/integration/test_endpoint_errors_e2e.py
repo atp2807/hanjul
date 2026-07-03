@@ -61,8 +61,7 @@ async def test_catalog_http_errors(app_db):
     async with _client() as c:
         token, _ = await login_account(c, "google", "x")
         auth = {"Authorization": f"Bearer {token}"}
-        # 없는 책 → 404 (author 배정은 미게이트; 나머지는 인증+소유)
-        assert (await c.put(f"/api/books/{rnd}/author", json={"authorId": str(uuid.uuid4())})).status_code == 404
+        # 없는 책 → 404 (인증+소유 게이트 뒤)
         assert (await c.put(f"/api/books/{rnd}/price", json={"amount": 1000}, headers=auth)).status_code == 404
         assert (await c.post(f"/api/books/{rnd}/submit", headers=auth)).status_code == 404
         assert (await c.get(f"/api/store/books/{rnd}")).status_code == 404  # 미출판 비공개
@@ -102,7 +101,13 @@ async def test_billing_http_errors(app_db):
 
 async def test_cover_missing_book_404(app_db):
     async with _client() as c:
-        r = await c.post(f"/api/books/{uuid.uuid4()}/cover", json={"prompt": "x"})
+        # 무인증이면 404보다 401이 먼저 (표지 생성은 소유 작가만)
+        assert (await c.post(f"/api/books/{uuid.uuid4()}/cover", json={"prompt": "x"})).status_code == 401
+        token, _ = await login_account(c, "google", "x")
+        r = await c.post(
+            f"/api/books/{uuid.uuid4()}/cover", json={"prompt": "x"},
+            headers={"Authorization": f"Bearer {token}"},
+        )
         assert r.status_code == 404
 
 

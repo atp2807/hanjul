@@ -25,10 +25,6 @@ class CatalogService:
             raise BookNotFound(book_id)
         return summary
 
-    async def assign_author(self, book_id: UUID, author_id: UUID) -> None:
-        await self._require(book_id)
-        await self.repo.set_author(book_id, author_id)
-
     async def set_price(self, book_id: UUID, amount: int) -> None:
         await self._require(book_id)
         if amount < 0:

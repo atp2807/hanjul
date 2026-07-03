@@ -18,6 +18,7 @@ from tests.fixtures.fake_account_repo import FakeProvider  # noqa: E402
 from tests.integration.auth_helpers import login_account  # noqa: E402
 
 PROFILE = SocialProfile("GOOGLE", "cover-x", "c@x.com", "작가")
+OTHER = SocialProfile("NAVER", "cover-other", "o@x.com", "타인")
 
 
 @pytest.fixture
@@ -28,7 +29,9 @@ def app_db(sessionmaker):
 
     def _auth(session: AsyncSession = Depends(get_session)):
         return AuthService(
-            SqlAccountRepository(session), {"GOOGLE": FakeProvider("GOOGLE", PROFILE)}, token_issuer()
+            SqlAccountRepository(session),
+            {"GOOGLE": FakeProvider("GOOGLE", PROFILE), "NAVER": FakeProvider("NAVER", OTHER)},
+            token_issuer(),
         )
 
     app.dependency_overrides[get_session] = _session
@@ -45,7 +48,13 @@ async def test_demo_cover_generated_and_linked(app_db):
         auth = {"Authorization": f"Bearer {token}"}
         book = (await c.post("/api/books", json={"title": "표지책"}, headers=auth)).json()["bookId"]
 
-        r = await c.post(f"/api/books/{book}/cover", json={"prompt": "잔잔한 한국 에세이"})
+        # 인가 게이트 — 무인증 401, 타인 403 (소유 작가만 생성 가능)
+        assert (await c.post(f"/api/books/{book}/cover", json={"prompt": "x"})).status_code == 401
+        other_token, _ = await login_account(c, "naver", "y")
+        other = {"Authorization": f"Bearer {other_token}"}
+        assert (await c.post(f"/api/books/{book}/cover", json={"prompt": "x"}, headers=other)).status_code == 403
+
+        r = await c.post(f"/api/books/{book}/cover", json={"prompt": "잔잔한 한국 에세이"}, headers=auth)
         assert r.status_code == 200
         url = r.json()["coverUrl"]
         assert url.startswith("data:image/svg+xml")
@@ -61,5 +70,5 @@ async def test_cover_unconfigured_returns_503(app_db):
         token, _ = await login_account(c, "google", "x")
         auth = {"Authorization": f"Bearer {token}"}
         book = (await c.post("/api/books", json={"title": "표지책2"}, headers=auth)).json()["bookId"]
-        r = await c.post(f"/api/books/{book}/cover", json={"prompt": "x"})
+        r = await c.post(f"/api/books/{book}/cover", json={"prompt": "x"}, headers=auth)
         assert r.status_code == 503

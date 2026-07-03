@@ -69,25 +69,21 @@ class PayoutService:
         return p
 
     async def approve(self, payout_id: UUID, operator_id: UUID) -> None:
-        p = await self._require(payout_id)
-        if p.status != REQUESTED:
+        await self._require(payout_id)  # 없으면 404
+        if not await self.repo.transition(payout_id, (REQUESTED,), APPROVED, operator_id, self._now()):
             raise InvalidPayoutState()
-        await self.repo.set_status(payout_id, APPROVED, operator_id, self._now())
 
     async def mark_paid(self, payout_id: UUID, operator_id: UUID, memo: str | None = None) -> None:
         """실이체 완료 후 지급확정 (이체 자체는 운영자가 수동)."""
-        p = await self._require(payout_id)
-        if p.status != APPROVED:
+        await self._require(payout_id)
+        if not await self.repo.transition(payout_id, (APPROVED,), PAID, operator_id, self._now(), memo):
             raise InvalidPayoutState()
-        await self.repo.set_status(payout_id, PAID, operator_id, self._now(), memo)
 
     async def reject(self, payout_id: UUID, operator_id: UUID, memo: str | None = None) -> None:
-        p = await self._require(payout_id)
-        if p.status not in (REQUESTED, APPROVED):
+        """반려 — 정산분 회수(다시 출금 가능)까지 repo가 한 트랜잭션으로 처리."""
+        await self._require(payout_id)
+        if not await self.repo.transition(payout_id, (REQUESTED, APPROVED), REJECTED, operator_id, self._now(), memo):
             raise InvalidPayoutState()
-        # 정산분 회수 → 다시 출금 가능
-        await self.repo.unlink_settlements(payout_id)
-        await self.repo.set_status(payout_id, REJECTED, operator_id, self._now(), memo)
 
     @staticmethod
     def _now() -> datetime:

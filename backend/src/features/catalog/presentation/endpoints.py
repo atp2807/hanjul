@@ -20,7 +20,6 @@ from src.features.catalog.application.catalog_service import CatalogService
 from src.features.catalog.domain.models import PUBLISHED
 from src.features.catalog.presentation.dependencies import get_catalog_service
 from src.features.catalog.presentation.schemas import (
-    AssignAuthorRequest,
     AuthorProfileResponse,
     BookSummaryResponse,
     SchedulePublishRequest,
@@ -80,13 +79,6 @@ async def require_book_owner(
 
 
 # ── 출판 라이프사이클 ─────────────────────────────────
-@router.put("/books/{book_id}/author", status_code=204)
-async def assign_author(
-    book_id: UUID, body: AssignAuthorRequest, svc: CatalogService = Depends(get_catalog_service)
-) -> None:
-    await svc.assign_author(book_id, body.author_id)
-
-
 @router.put("/books/{book_id}/price", status_code=204)
 async def set_price(
     book_id: UUID, body: SetPriceRequest, svc: CatalogService = Depends(get_catalog_service), _owner: None = Depends(require_book_owner)

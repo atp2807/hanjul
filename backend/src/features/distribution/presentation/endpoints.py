@@ -17,6 +17,7 @@ from src.features.books.presentation.dependencies import get_book_service
 from src.features.catalog.application.catalog_service import CatalogService
 from src.features.catalog.domain.models import BookNotFound as CatalogBookNotFound
 from src.features.catalog.presentation.dependencies import get_catalog_service
+from src.features.catalog.presentation.endpoints import require_book_owner
 from src.features.distribution.application.distribution_service import DistributionService
 from src.features.distribution.infrastructure.channels import build_channel
 from src.features.distribution.infrastructure.distribution_repo import SqlDistributionRepository
@@ -34,6 +35,7 @@ async def distribute(
     catalog_svc: CatalogService = Depends(get_catalog_service),
     acct: AccountService = Depends(get_account_service),
     session: AsyncSession = Depends(get_session),
+    _owner: None = Depends(require_book_owner),  # 소유 작가만 (없는 책 404 / 타인 403)
 ) -> DistributionResponse:
     try:
         content = await book_svc.get_content(book_id)
@@ -77,7 +79,9 @@ async def distribute(
 
 @router.get("/books/{book_id}/distributions", response_model=list[DistributionResponse])
 async def distributions(
-    book_id: UUID, session: AsyncSession = Depends(get_session)
+    book_id: UUID,
+    session: AsyncSession = Depends(get_session),
+    _owner: None = Depends(require_book_owner),  # 배포 이력도 소유 작가만
 ) -> list[DistributionResponse]:
     rows = await SqlDistributionRepository(session).list_for_book(book_id)
     return [DistributionResponse.model_validate(d) for d in rows]
