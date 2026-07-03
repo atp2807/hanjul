@@ -75,4 +75,12 @@ describe('SettingsPage', () => {
     fireEvent.click(screen.getByRole('button', { name: '내 정보 내려받기' }));
     await waitFor(() => expect(auth.exportMyData).toHaveBeenCalledTimes(1));
   });
+
+  it('바로가기 — 서재·정산·알림·스튜디오로 가는 실제 링크가 있다', () => {
+    renderSettings();
+    expect(screen.getByRole('link', { name: /내 서재/ })).toHaveAttribute('href', '/library');
+    expect(screen.getByRole('link', { name: /정산·출금/ })).toHaveAttribute('href', '/settlement');
+    expect(screen.getByRole('link', { name: /알림/ })).toHaveAttribute('href', '/notifications');
+    expect(screen.getByRole('link', { name: /작가 스튜디오/ })).toHaveAttribute('href', '/studio');
+  });
 });

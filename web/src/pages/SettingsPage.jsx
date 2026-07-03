@@ -1,9 +1,17 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../auth/AuthContext';
 import { exportMyData, withdraw } from '../services/api/auth';
+import { Icon } from '../components/Icon';
 import { T } from '../theme';
+
+const QUICK_LINKS = [
+  ['/library', 'read', '내 서재'],
+  ['/settlement', null, '정산·출금'],
+  ['/notifications', 'bell', '알림'],
+  ['/studio', 'edit', '작가 스튜디오'],
+];
 
 function Section({ title, desc, children }) {
   return (
@@ -77,9 +85,36 @@ export function SettingsPage() {
           </div>
         </Section>
 
+        <Section title="바로가기">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
+            {QUICK_LINKS.map(([to, icon, label]) => (
+              <Link
+                key={to}
+                to={to}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '10px 16px',
+                  borderRadius: T.radius.md,
+                  border: `1px solid ${T.border}`,
+                  background: T.bg,
+                  color: T.textStrong,
+                  fontSize: 13.5,
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                }}
+              >
+                {icon && <Icon name={icon} size={15} stroke={T.textMid} />}
+                {label}
+              </Link>
+            ))}
+          </div>
+        </Section>
+
         <Section
           title="내 정보 내려받기"
-          desc="회원님의 계정 정보를 JSON 파일로 내려받을 수 있어요. 구매·정산 내역은 내 서재와 스튜디오에서 확인할 수 있어요."
+          desc="회원님의 계정 정보를 JSON 파일로 내려받을 수 있어요."
         >
           <button
             onClick={download}
