@@ -13,6 +13,7 @@ function renderEditor() {
   return render(
     <MemoryRouter initialEntries={['/studio/b1']}>
       <Routes>
+        <Route path="/studio" element={<div>스튜디오</div>} />
         <Route path="/studio/:id" element={<StudioEditorPage />} />
       </Routes>
     </MemoryRouter>,
@@ -68,5 +69,147 @@ describe('StudioEditorPage', () => {
 
     await waitFor(() => expect(studio.distributeBook).toHaveBeenCalledWith('b1', 'KYOBO'));
     expect(await screen.findByText('전송됨')).toBeInTheDocument();
+  });
+
+  it('배포 실패(status!=SENT) → 실패 메시지 표시', async () => {
+    books.getBookContent.mockResolvedValue({
+      id: 'b1', title: '내 책', status: 'PUBLISHED', priceAmt: 9000, chapters: [],
+    });
+    studio.getDistributions.mockResolvedValue([]);
+    studio.distributeBook.mockResolvedValue({ status: 'FAILED', message: '채널 오류' });
+
+    renderEditor();
+    fireEvent.click(await screen.findByText('배포 전송'));
+    expect(await screen.findByText(/배포 실패: 채널 오류/)).toBeInTheDocument();
+  });
+
+  it('책 로드 실패 → 에러 화면 (빈 목록 아님)', async () => {
+    books.getBookContent.mockRejectedValue(new Error('네트워크 오류'));
+    renderEditor();
+    expect(await screen.findByText('네트워크 오류')).toBeInTheDocument();
+  });
+
+  it('가격 저장(run 성공 경로) → 메시지 표시 + 재로드', async () => {
+    books.getBookContent.mockResolvedValue({ id: 'b1', title: '내 책', status: 'DRAFT', priceAmt: 5000, chapters: [] });
+    studio.setBookPrice.mockResolvedValue(null);
+    renderEditor();
+
+    await screen.findByText('내 책');
+    fireEvent.click(screen.getByRole('button', { name: '가격 저장' }));
+    await waitFor(() => expect(studio.setBookPrice).toHaveBeenCalledWith('b1', 5000));
+    expect(await screen.findByText('가격이 저장됐어요.')).toBeInTheDocument();
+    expect(books.getBookContent).toHaveBeenCalledTimes(2); // 최초 + 저장 후 재로드
+  });
+
+  it('ISBN 저장 실패(run 실패 경로) → 에러 메시지', async () => {
+    books.getBookContent.mockResolvedValue({ id: 'b1', title: '내 책', status: 'DRAFT', priceAmt: 0, chapters: [] });
+    studio.setIsbn.mockRejectedValue(new Error('저장 실패'));
+    renderEditor();
+
+    await screen.findByText('내 책');
+    fireEvent.click(screen.getByRole('button', { name: 'ISBN 저장' }));
+    expect(await screen.findByText('저장 실패')).toBeInTheDocument();
+  });
+
+  it('원고 추가 — 빈 텍스트면 API 호출 안 함, 입력 있으면 추가 후 비움', async () => {
+    books.getBookContent.mockResolvedValue({ id: 'b1', title: '내 책', status: 'DRAFT', priceAmt: 0, chapters: [] });
+    studio.importText.mockResolvedValue({ blockCount: 3 });
+    renderEditor();
+
+    await screen.findByText('내 책');
+    const addBtn = screen.getByRole('button', { name: '장 추가' });
+    fireEvent.click(addBtn); // 빈 텍스트
+    expect(studio.importText).not.toHaveBeenCalled();
+
+    const textarea = screen.getByPlaceholderText(/장 제목/);
+    fireEvent.change(textarea, { target: { value: '# 1장\n\n본문' } });
+    fireEvent.click(addBtn);
+    await waitFor(() => expect(studio.importText).toHaveBeenCalledWith('b1', '# 1장\n\n본문'));
+    expect(await screen.findByText('3개 블록이 새 장으로 추가됐어요.')).toBeInTheDocument();
+    expect(textarea).toHaveValue('');
+  });
+
+  it('표지 업로드 실패(422) → 형식 안내, 그 외는 원문 메시지', async () => {
+    books.getBookContent.mockResolvedValue({ id: 'b1', title: '내 책', status: 'DRAFT', priceAmt: 0, chapters: [] });
+    const err = new Error('x'); err.status = 422;
+    studio.uploadCover.mockRejectedValue(err);
+    const { container } = renderEditor();
+
+    await screen.findByText('내 책');
+    const file = new File(['x'], 'cover.png', { type: 'image/png' });
+    fireEvent.change(container.querySelector('input[type="file"]'), { target: { files: [file] } });
+    expect(await screen.findByText('이미지 파일(PNG·JPG·WebP, 5MB 이하)만 올릴 수 있어요.')).toBeInTheDocument();
+  });
+
+  it('예약 발행 — 시각 미선택 시 검증 에러, 선택 시 예약', async () => {
+    books.getBookContent.mockResolvedValue({ id: 'b1', title: '내 책', status: 'DRAFT', priceAmt: 0, chapters: [] });
+    studio.schedulePublish.mockResolvedValue(null);
+    renderEditor();
+
+    await screen.findByText('내 책');
+    fireEvent.click(screen.getByRole('button', { name: '예약 발행' }));
+    expect(await screen.findByText('발행 시각을 선택하세요.')).toBeInTheDocument();
+    expect(studio.schedulePublish).not.toHaveBeenCalled();
+
+    // 기간 할인 섹션에도 datetime-local 입력이 있어 마지막(출판 섹션의 예약 발행) 것을 선택
+    const inputs = document.querySelectorAll('input[type="datetime-local"]');
+    const input = inputs[inputs.length - 1];
+    fireEvent.change(input, { target: { value: '2026-08-01T10:00' } });
+    fireEvent.click(screen.getByRole('button', { name: '예약 발행' }));
+    await waitFor(() => expect(studio.schedulePublish).toHaveBeenCalledWith('b1', new Date('2026-08-01T10:00').toISOString()));
+  });
+
+  it('소개문 추천 → 설명란에 반영', async () => {
+    books.getBookContent.mockResolvedValue({ id: 'b1', title: '내 책', status: 'DRAFT', priceAmt: 0, chapters: [] });
+    studio.suggestBlurb.mockResolvedValue({ blurb: 'AI가 뽑은 소개' });
+    renderEditor();
+
+    await screen.findByText('내 책');
+    fireEvent.click(screen.getByRole('button', { name: '소개문 추천' }));
+    await waitFor(() => expect(screen.getByPlaceholderText('책 소개 (스토어 상세에 노출)')).toHaveValue('AI가 뽑은 소개'));
+    expect(await screen.findByText(/본문에서 소개문을 추천했어요/)).toBeInTheDocument();
+  });
+
+  it('책 삭제 — 확인 취소하면 삭제 안 됨, 확인하면 삭제 후 이동', async () => {
+    books.getBookContent.mockResolvedValue({ id: 'b1', title: '내 책', status: 'DRAFT', priceAmt: 0, chapters: [] });
+    studio.deleteBook.mockResolvedValue(null);
+    const confirmSpy = vi.spyOn(window, 'confirm');
+    renderEditor();
+    await screen.findByText('내 책');
+
+    confirmSpy.mockReturnValueOnce(false);
+    fireEvent.click(screen.getByRole('button', { name: '이 책 삭제' }));
+    expect(studio.deleteBook).not.toHaveBeenCalled();
+
+    confirmSpy.mockReturnValueOnce(true);
+    fireEvent.click(screen.getByRole('button', { name: '이 책 삭제' }));
+    await waitFor(() => expect(studio.deleteBook).toHaveBeenCalledWith('b1'));
+    confirmSpy.mockRestore();
+  });
+
+  it('판매 이력 있는 책 삭제 시도(409) → 출판취소 안내', async () => {
+    books.getBookContent.mockResolvedValue({ id: 'b1', title: '내 책', status: 'PUBLISHED', priceAmt: 9000, chapters: [] });
+    studio.getDistributions.mockResolvedValue([]);
+    const err = new Error('x'); err.status = 409;
+    studio.deleteBook.mockRejectedValue(err);
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    renderEditor();
+
+    await screen.findByText('내 책');
+    fireEvent.click(screen.getByRole('button', { name: '이 책 삭제' }));
+    expect(await screen.findByText('판매 이력이 있어 삭제할 수 없어요. 출판 취소만 가능해요.')).toBeInTheDocument();
+    window.confirm.mockRestore();
+  });
+
+  it('REVIEW 상태 — 심사 제출 버튼 숨김, 출판 버튼 노출·클릭 시 출판완료', async () => {
+    books.getBookContent.mockResolvedValue({ id: 'b1', title: '내 책', status: 'REVIEW', priceAmt: 9000, chapters: [] });
+    studio.publishBook.mockResolvedValue(null);
+    renderEditor();
+
+    await screen.findByText('내 책');
+    expect(screen.queryByRole('button', { name: '심사 제출' })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '출판' }));
+    await waitFor(() => expect(studio.publishBook).toHaveBeenCalledWith('b1'));
+    expect(await screen.findByText('출판 완료! 스토어에 노출됩니다.')).toBeInTheDocument();
   });
 });
