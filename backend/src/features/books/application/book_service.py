@@ -4,9 +4,11 @@
 """
 from uuid import UUID
 
+from src.engine.imports.block_html import InvalidBlockHtml, validate_block_html
 from src.engine.imports.text_to_blocks import text_to_blocks
 from src.features.books.domain.models import BookNotFound, BookView, ImportResult, NotOwner
 from src.features.books.domain.repository import BookRepository
+from src.shared.errors import ValidationError
 
 
 class BookService:
@@ -49,6 +51,13 @@ class BookService:
             raise BookNotFound(book_id)
         if await self.repo.get_author_id(book_id) != requester_id:
             raise NotOwner(book_id)
+        # 신뢰 못 하는 클라이언트가 보낸 html — 정본 문법 검증(하나라도 걸리면 전체 거부).
+        for chapter in chapters:
+            for block in chapter["blocks"]:
+                try:
+                    validate_block_html(block["type"], block["html"])
+                except InvalidBlockHtml:
+                    raise ValidationError("본문 형식이 올바르지 않아요.") from None
         return await self.repo.replace_content(book_id, chapters)
 
     async def set_preview_limit(self, book_id: UUID, limit: int, requester_id: UUID) -> None:
