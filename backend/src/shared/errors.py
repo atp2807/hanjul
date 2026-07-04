@@ -33,6 +33,11 @@ class ValidationError(DomainError):
     default_detail = "입력을 확인해 주세요."
 
 
+class InvalidPdfFile(ValidationError):
+    """PDF 파싱 실패(손상 파일·미지원 형식). 상태 없는 파싱 엔드포인트에서 422."""
+    default_detail = "PDF 파일을 읽을 수 없어요. 손상되었거나 지원하지 않는 형식이에요."
+
+
 class ForbiddenError(DomainError):
     status_code = 403
     default_detail = "권한이 없어요."
