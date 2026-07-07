@@ -1,32 +1,18 @@
 import { expect, test } from '@playwright/test';
 
-import { login } from './helpers.js';
-
-async function tokenFor(request, email, name = '긴글작가') {
-  const res = await request.get(
-    `/api/auth/test-login?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`,
-    { maxRedirects: 0 },
-  );
-  return new URLSearchParams(res.headers()['location'].split('#')[1]).get('token');
-}
+import { login, seedBook } from './helpers.js';
 
 // 여러 장·다수 문단의 무료 출판본 시드 → 리더에서 2페이지 이상 나온다.
-// (무료책=가격0은 소유 없이 전체 열람 → 미리보기 제한을 타지 않는다.)
-async function seedLongFreeBook(request, { authorEmail, title }) {
-  const auth = { Authorization: `Bearer ${await tokenFor(request, authorEmail)}` };
-  const book = await (await request.post('/api/books', { headers: auth, data: { title } })).json();
-  const id = book.bookId;
-
+// (무료책=가격0은 소유 없이 전체 열람 → 미리보기 제한을 타지 않는다. price:0은 null이 아니라서
+// seedBook의 publish 기본값(price!==null)이 그대로 true가 되어 항상 발행된다.)
+function seedLongFreeBook(request, { authorEmail, title }) {
   const para =
     '한줄은 작가가 직접 글을 쓰고 출판하며 판매와 정산까지 스스로 해내는 셀프퍼블리싱 플랫폼입니다. ' +
     '이 문단은 리더 페이지네이션을 확인하기 위해 넉넉히 길게 작성된 본문으로, 여러 줄에 걸쳐 흐르도록 만들어졌습니다.';
   const chapter = (n) => `# ${n}장\n\n` + Array.from({ length: 15 }, () => para).join('\n\n');
   const rawText = [1, 2, 3].map(chapter).join('\n\n');
 
-  await request.post(`/api/books/${id}/import`, { headers: auth, data: { rawText } });
-  await request.put(`/api/books/${id}/price`, { headers: auth, data: { amount: 0 } });
-  await request.post(`/api/books/${id}/publish-now`, { headers: auth });
-  return id;
+  return seedBook(request, { authorEmail, title, rawText, price: 0 });
 }
 
 // N / M 형태의 현재 페이지 표시 (툴바 우측). 슬래시 양쪽이 숫자인 텍스트는 이것뿐.

@@ -1,22 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { login } from './helpers.js';
-
-async function tokenFor(request, email, name = '유저') {
-  const res = await request.get(
-    `/api/auth/test-login?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`,
-    { maxRedirects: 0 },
-  );
-  return new URLSearchParams(res.headers()['location'].split('#')[1]).get('token');
-}
-
-async function seedBook(request, { authorEmail, title, rawText }) {
-  const auth = { Authorization: `Bearer ${await tokenFor(request, authorEmail)}` };
-  const book = await (await request.post('/api/books', { headers: auth, data: { title } })).json();
-  const id = book.bookId;
-  await request.post(`/api/books/${id}/import`, { headers: auth, data: { rawText } });
-  return id;
-}
+import { login, seedBook } from './helpers.js';
 
 // AI 추천(데모=키워드 휴리스틱) → 8기준 노출 → 작가가 한 기준 조정 → 저장 → 새로고침해도 유지.
 test('작가: 연령 등급 AI 추천 → 조정 → 저장 → 새로고침 후 유지', async ({ page, request }) => {

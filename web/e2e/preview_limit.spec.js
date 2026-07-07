@@ -1,11 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { login } from './helpers.js';
-
-async function tokenFor(request, email) {
-  const res = await request.get(`/api/auth/test-login?email=${encodeURIComponent(email)}`, { maxRedirects: 0 });
-  return new URLSearchParams(res.headers()['location'].split('#')[1]).get('token');
-}
+import { login, tokenFor } from './helpers.js';
 
 // 유입: 작가가 무료 공개 분량을 정하면 미구매 독자가 그만큼만 본다.
 test('무료 미리보기 분량 설정 → 미구매 독자 미리보기 블록 수', async ({ page, request }) => {

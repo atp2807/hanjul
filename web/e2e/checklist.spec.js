@@ -1,11 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { login } from './helpers.js';
-
-async function tokenFor(request, email) {
-  const res = await request.get(`/api/auth/test-login?email=${encodeURIComponent(email)}`, { maxRedirects: 0 });
-  return new URLSearchParams(res.headers()['location'].split('#')[1]).get('token');
-}
+import { login, tokenFor } from './helpers.js';
 
 // 출판 전 점검: 누락 항목을 친절히 안내(가격·표지·소개·ISBN).
 test('출판 전 체크리스트 — 누락 → 설정 후 충족', async ({ page, request }) => {

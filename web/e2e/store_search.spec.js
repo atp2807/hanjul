@@ -1,23 +1,11 @@
 import { expect, test } from '@playwright/test';
 
-import { seedPublishedBook } from './helpers.js';
+import { seedBook } from './helpers.js';
 
-async function tokenFor(request, email, name = '테스트작가') {
-  const res = await request.get(
-    `/api/auth/test-login?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`,
-    { maxRedirects: 0 },
-  );
-  return new URLSearchParams(res.headers()['location'].split('#')[1]).get('token');
-}
-
-// 출판본 시드 + 분류(category) 지정 — 스토어 검색·장르 필터의 전제.
-async function seedWithCategory(request, { authorEmail, title, price, category }) {
-  const id = await seedPublishedBook(request, { authorEmail, title, price });
-  if (category) {
-    const auth = { Authorization: `Bearer ${await tokenFor(request, authorEmail)}` };
-    await request.put(`/api/books/${id}/meta`, { headers: auth, data: { category } });
-  }
-  return id;
+// 출판본 시드 + 분류(category) 지정 — 스토어 검색·장르 필터의 전제. seedPublishedBook과 같은
+// 원고 본문을 쓰되 category까지 seedBook에 그대로 넘긴다(publish 기본값=price!==null=true).
+function seedWithCategory(request, { authorEmail, title, price, category }) {
+  return seedBook(request, { authorEmail, title, rawText: '# 1장\n\n본문입니다.', price, category });
 }
 
 // 스토어 제목 검색: 입력한 단어가 든 책만 남는다.

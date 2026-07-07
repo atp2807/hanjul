@@ -1,14 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { login, seedPublishedBook } from './helpers.js';
-
-async function tokenFor(request, email, name = '테스트작가') {
-  const res = await request.get(
-    `/api/auth/test-login?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`,
-    { maxRedirects: 0 },
-  );
-  return new URLSearchParams(res.headers()['location'].split('#')[1]).get('token');
-}
+import { login, seedPublishedBook, tokenFor } from './helpers.js';
 
 // 사회적 증거: 구매한 독자만 평점·리뷰. 상세에 평균·목록 노출.
 test('구매자 리뷰 작성 → 평균·목록 노출', async ({ page, request }) => {

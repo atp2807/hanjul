@@ -1,14 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { login, seedPublishedBook } from './helpers.js';
-
-async function tokenFor(request, email, name = '유저') {
-  const res = await request.get(
-    `/api/auth/test-login?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`,
-    { maxRedirects: 0 },
-  );
-  return new URLSearchParams(res.headers()['location'].split('#')[1]).get('token');
-}
+import { login, seedPublishedBook, tokenFor } from './helpers.js';
 
 // 한 명의 유저가 작가이자 독자 — 자기가 쓴 책은 스튜디오에만, 산 책은 서재에만.
 // (다른 spec들은 작가/독자 이메일을 분리하지만 여기선 의도적으로 한 세션.)

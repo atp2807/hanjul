@@ -1,23 +1,10 @@
 import { expect, test } from '@playwright/test';
 
-import { login } from './helpers.js';
-
-async function tokenFor(request, email, name = '유저') {
-  const res = await request.get(
-    `/api/auth/test-login?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`,
-    { maxRedirects: 0 },
-  );
-  return new URLSearchParams(res.headers()['location'].split('#')[1]).get('token');
-}
+import { login, seedBook } from './helpers.js';
 
 // 미출판(DRAFT) + 가격 설정된 책을 시드 (예약 발행 전제 — 가격 필수).
-async function seedDraftBook(request, { authorEmail, title, price }) {
-  const auth = { Authorization: `Bearer ${await tokenFor(request, authorEmail)}` };
-  const book = await (await request.post('/api/books', { headers: auth, data: { title } })).json();
-  const id = book.bookId;
-  await request.post(`/api/books/${id}/import`, { headers: auth, data: { rawText: '# 1장\n\n본문.' } });
-  await request.put(`/api/books/${id}/price`, { headers: auth, data: { amount: price } });
-  return id;
+function seedDraftBook(request, { authorEmail, title, price }) {
+  return seedBook(request, { authorEmail, title, rawText: '# 1장\n\n본문.', price, publish: false });
 }
 
 // 예약 발행 — 미래 시각 입력 → "예약 발행" → 성공 메시지까지. (스케줄러 발동은 스코프 밖)

@@ -1,22 +1,10 @@
 import { expect, test } from '@playwright/test';
 
-import { login, seedPublishedBook } from './helpers.js';
+import { login, seedBook, seedPublishedBook, tokenFor } from './helpers.js';
 
-async function tokenFor(request, email, name = '유저') {
-  const res = await request.get(
-    `/api/auth/test-login?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`,
-    { maxRedirects: 0 },
-  );
-  return new URLSearchParams(res.headers()['location'].split('#')[1]).get('token');
-}
-
-async function seedDraftBook(request, { authorEmail, title, price }) {
-  const auth = { Authorization: `Bearer ${await tokenFor(request, authorEmail)}` };
-  const book = await (await request.post('/api/books', { headers: auth, data: { title } })).json();
-  const id = book.bookId;
-  await request.post(`/api/books/${id}/import`, { headers: auth, data: { rawText: '# 1장\n\n본문.' } });
-  await request.put(`/api/books/${id}/price`, { headers: auth, data: { amount: price } });
-  return id;
+// 미출판(DRAFT) + 가격 설정된 책을 시드.
+function seedDraftBook(request, { authorEmail, title, price }) {
+  return seedBook(request, { authorEmail, title, rawText: '# 1장\n\n본문.', price, publish: false });
 }
 
 // 판매 이력 없는 책 → 삭제(확인 다이얼로그 수락) → 스튜디오 목록에서 사라짐.

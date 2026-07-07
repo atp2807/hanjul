@@ -1,11 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { login } from './helpers.js';
-
-async function tokenFor(request, email) {
-  const res = await request.get(`/api/auth/test-login?email=${encodeURIComponent(email)}`, { maxRedirects: 0 });
-  return new URLSearchParams(res.headers()['location'].split('#')[1]).get('token');
-}
+import { login, tokenFor } from './helpers.js';
 
 // 소개문 추천: 본문에서 소개문을 뽑아 소개 칸을 채움.
 test('소개문 추천 → 본문 발췌로 소개 채움', async ({ page, request }) => {

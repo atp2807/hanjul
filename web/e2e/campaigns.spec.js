@@ -1,14 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { login, seedPublishedBook } from './helpers.js';
-
-async function tokenFor(request, email, name = '유저') {
-  const res = await request.get(
-    `/api/auth/test-login?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`,
-    { maxRedirects: 0 },
-  );
-  return new URLSearchParams(res.headers()['location'].split('#')[1]).get('token');
-}
+import { login, seedPublishedBook, tokenFor } from './helpers.js';
 
 // 작가가 스튜디오에서 서평단 캠페인을 만든다 → 관리 테이블에 노출.
 test('작가 서평단 캠페인 생성 (스튜디오)', async ({ page, request }) => {

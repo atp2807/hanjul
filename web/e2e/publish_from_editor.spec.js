@@ -1,11 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { login } from './helpers.js';
-
-async function tokenFor(request, email) {
-  const res = await request.get(`/api/auth/test-login?email=${encodeURIComponent(email)}`, { maxRedirects: 0 });
-  return new URLSearchParams(res.headers()['location'].split('#')[1]).get('token');
-}
+import { login, tokenFor } from './helpers.js';
 
 // 제품 핵심 루프: 에디터에서 쓴 글이 원클릭으로 정본→출판→스토어까지 반영.
 test('에디터 원클릭 출판 → 정본(챕터 분리) + 스토어 노출', async ({ page, request }) => {

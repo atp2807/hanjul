@@ -1,11 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { login, seedPublishedBook } from './helpers.js';
-
-async function tokenFor(request, email) {
-  const res = await request.get(`/api/auth/test-login?email=${encodeURIComponent(email)}`, { maxRedirects: 0 });
-  return new URLSearchParams(res.headers()['location'].split('#')[1]).get('token');
-}
+import { login, seedPublishedBook, tokenFor } from './helpers.js';
 
 // 작가 브랜드: 스튜디오에서 소개 작성 → 공개 작가 페이지에 소개+출판작 노출.
 test('작가 프로필 — 소개 작성 + 출판작 노출', async ({ page, request }) => {

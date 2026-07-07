@@ -1,21 +1,12 @@
 import { expect, test } from '@playwright/test';
 
-import { login } from './helpers.js';
+import { authorSession, login, seedBook } from './helpers.js';
 
-async function tokenFor(request, email) {
-  const res = await request.get(`/api/auth/test-login?email=${encodeURIComponent(email)}`, { maxRedirects: 0 });
-  return new URLSearchParams(res.headers()['location'].split('#')[1]).get('token');
-}
-
-// 작가 계정 + 가격만 매긴 DRAFT 책(아직 미출판) 시드 → (작가id, 책id) 반환.
+// 작가 계정 + 가격만 매긴 DRAFT 책(아직 미출판) 시드 → (작가id, 책id, auth) 반환.
 async function seedAuthorWithDraft(request, email, title, price) {
-  const token = await tokenFor(request, email);
-  const auth = { Authorization: `Bearer ${token}` };
-  const me = await (await request.get('/api/me', { headers: auth })).json();
-  const book = await (await request.post('/api/books', { headers: auth, data: { title } })).json();
-  await request.post(`/api/books/${book.bookId}/import`, { headers: auth, data: { rawText: '# 1장\n\n본문' } });
-  await request.put(`/api/books/${book.bookId}/price`, { headers: auth, data: { amount: price } });
-  return { authorId: me.id, bookId: book.bookId, auth };
+  const { authorId, auth } = await authorSession(request, email);
+  const bookId = await seedBook(request, { auth, title, rawText: '# 1장\n\n본문', price, publish: false });
+  return { authorId, bookId, auth };
 }
 
 // D6 작가 팔로우 → 신간 알림: 팔로우한 독자만 출판 시 알림함에 신간이 뜬다.
@@ -64,20 +55,16 @@ test('작가 팔로우 → 언팔로우 → 버튼 라벨 복귀', async ({ page
 // 안읽은 알림 여럿 → '모두 읽음' 클릭 시 배지가 사라진다(0).
 test('여러 안읽은 알림 → 모두 읽음 → 배지 0', async ({ page, request }) => {
   // 작가 + 미출판 책 2권
-  const token = await tokenFor(request, 'markall-author@x.com');
-  const auth = { Authorization: `Bearer ${token}` };
-  const me = await (await request.get('/api/me', { headers: auth })).json();
+  const { authorId, auth } = await authorSession(request, 'markall-author@x.com');
   const drafts = [];
   for (const title of ['모두읽음신간A', '모두읽음신간B']) {
-    const book = await (await request.post('/api/books', { headers: auth, data: { title } })).json();
-    await request.post(`/api/books/${book.bookId}/import`, { headers: auth, data: { rawText: '# 1장\n\n본문' } });
-    await request.put(`/api/books/${book.bookId}/price`, { headers: auth, data: { amount: 3000 } });
-    drafts.push(book.bookId);
+    const bookId = await seedBook(request, { auth, title, rawText: '# 1장\n\n본문', price: 3000, publish: false });
+    drafts.push(bookId);
   }
 
   // 독자가 팔로우한 뒤 두 권 모두 출판 → 안읽은 알림 2건
   await login(page, 'markall-reader@x.com');
-  await page.goto(`/authors/${me.id}`);
+  await page.goto(`/authors/${authorId}`);
   await page.getByTestId('follow-btn').click();
   await expect(page.getByTestId('follow-btn')).toHaveText('팔로잉');
 
