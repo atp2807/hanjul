@@ -68,6 +68,48 @@ describe('createApiClient', () => {
     });
   });
 
+  describe('request() — options.headers 병합 순서 (options 스프레드에 headers가 지워지면 안 됨)', () => {
+    // get/post/put/del은 지금 options.headers를 절대 넘기지 않아 이 경로가 도달 불가능하지만,
+    // request()는 향후 커스텀 헤더를 받는 API 확장의 기반이 된다. 과거엔
+    // `{ headers: {...병합}, ...options }` 순서라 options.headers가 있으면(향후 확장 시)
+    // Content-Type/Authorization을 통째로 덮어썼다 — 이제 `{ ...options, headers: {...병합} }`
+    // 순서로 고쳐 options의 나머지 필드는 살리되 headers만 항상 마지막에 병합되게 한다.
+    it('커스텀 헤더 + 기존 Authorization/Content-Type이 모두 살아있는다', async () => {
+      client.setToken('tok-123');
+      fetch.mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({}) });
+
+      await client.request('/things', { headers: { 'X-Custom': '1' } });
+
+      const [url, opts] = fetch.mock.calls[0];
+      expect(url).toBe('/api/things');
+      expect(opts.headers).toEqual({
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer tok-123',
+        'X-Custom': '1',
+      });
+    });
+
+    it('options의 다른 필드(method, body)도 headers와 함께 그대로 전달된다', async () => {
+      client.setToken('tok-123');
+      fetch.mockResolvedValueOnce({ ok: true, status: 200, json: async () => ({}) });
+
+      await client.request('/things', {
+        method: 'POST',
+        body: JSON.stringify({ a: 1 }),
+        headers: { 'X-Custom': '1' },
+      });
+
+      const [, opts] = fetch.mock.calls[0];
+      expect(opts.method).toBe('POST');
+      expect(opts.body).toBe(JSON.stringify({ a: 1 }));
+      expect(opts.headers).toEqual({
+        'Content-Type': 'application/json',
+        Authorization: 'Bearer tok-123',
+        'X-Custom': '1',
+      });
+    });
+  });
+
   describe('에러 파싱 (toError)', () => {
     it('401 — 문자열 detail이면 err.status/err.detail/message 전부 detail', async () => {
       fetch.mockResolvedValueOnce({

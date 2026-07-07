@@ -3,7 +3,7 @@
 
 /**
  * @param {string} tokenKey localStorage 토큰 키 (web='hanjul_token', potato='potato_token')
- * @returns {{ getToken, setToken, get, post, put, del, upload, download }}
+ * @returns {{ getToken, setToken, get, post, put, del, upload, download, request }}
  */
 export function createApiClient(tokenKey) {
   const BASE = import.meta.env.VITE_API_BASE_URL || '';
@@ -31,12 +31,12 @@ export function createApiClient(tokenKey) {
   async function request(path, options = {}) {
     const token = getToken();
     const res = await fetch(`${BASE}/api${path}`, {
+      ...options,
       headers: {
         'Content-Type': 'application/json',
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(options.headers || {}),
       },
-      ...options,
     });
     if (!res.ok) throw await toError(res, path);
     if (res.status === 204) return null; // No Content
@@ -84,5 +84,8 @@ export function createApiClient(tokenKey) {
     del: (path) => request(path, { method: 'DELETE' }),
     upload,
     download,
+    // get/post/put/del은 아직 options.headers를 안 받지만(도달 불가), request()는 커스텀 헤더
+    // 확장을 이미 지원한다. 향후 그 확장 지점을 쓰는 API·회귀테스트를 위해 직접 노출.
+    request,
   };
 }
