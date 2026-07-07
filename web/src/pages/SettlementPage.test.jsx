@@ -70,7 +70,9 @@ describe('SettlementPage', () => {
   it('출금 신청 실패(그 외) → 일반 실패 문구', async () => {
     payoutsApi.requestPayout.mockRejectedValue(new Error('network'));
     renderPage();
-    fireEvent.click(await screen.findByText('출금 신청'));
+    const btn = await screen.findByText('출금 신청');
+    await waitFor(() => expect(btn).not.toBeDisabled());
+    fireEvent.click(btn);
     expect(await screen.findByText('신청 실패')).toBeInTheDocument();
   });
 
