@@ -1,0 +1,16 @@
+{
+  "name": "@hanjul/ide-core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "한줄 IDE 웹뷰 앱 — 에디터(packages/doc mountEditor)+챕터 사이드바+호스트 브리지 클라이언트. \"웹뷰 앱은 하나, 호스트는 둘\"(dc-73539bba) — 데스크탑(pywebview)/모바일(RN WebView) 양쪽 호스트가 동일 번들을 로드한다. React 비의존(packages/doc 코어를 상대경로로 직접 import — desktop/webapp P0 스파이크 계승).",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0",
+    "vitest": "^2.1.8"
+  }
+}

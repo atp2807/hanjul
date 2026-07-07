@@ -1,4 +1,2 @@
 .venv/
-webapp/node_modules/
-webapp/dist/
-spike_data/
+data/

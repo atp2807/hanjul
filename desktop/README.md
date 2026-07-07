@@ -1,23 +1,33 @@
-# 한줄 IDE — P0 스파이크 ⓐ
+# 한줄 IDE — 데스크탑 (P1, Host Port v0)
 
-목적: **macOS WKWebView(pywebview)에서 한글 IME 입력이 정상인가**를 사람이 손으로
-확인할 수 있는 최소 실행물. `packages/doc`(한줄독 코어)의 `mountEditor` contenteditable
-에디터를 pywebview 셸 안에 그대로 띄우고, JS↔Python 브리지(자동저장) 왕복을 확인한다.
+한줄 IDE 웹뷰 앱(`packages/ide-core`)을 macOS(pywebview/WKWebView) 위에 띄우고,
+SQLite 기반 Host Port v0(`desktop/store.py`)로 책/챕터를 영속한다.
 
-이 디렉터리는 루트 npm workspaces(`packages/*`, `web`, `potato`)에 편입되지 않은
-독립 프로젝트다. 루트 `package.json`/lockfile 은 건드리지 않는다.
+설계 정본: LinkLore `dc-73539bba`("웹뷰 앱은 하나, 호스트는 둘" — 데스크탑(pywebview)과
+모바일(RN WebView, P2)이 `packages/ide-core` 동일 번들을 로드하고, 호스트(저장/동기화)만
+플랫폼별로 교체). Host Port 계약 전문은 `packages/ide-core/HOST_PORT.md`.
+
+이전 P0 스파이크(`desktop/webapp/` — 파일 하나짜리 저장, react 없는 최소 vite 앱)는
+`packages/ide-core` 로 대체되어 삭제됐다(git 이력에는 남아있음).
 
 ## 준비
 
 ```bash
+# 1) 웹뷰 앱 빌드 — 저장소 루트에서 (packages/* 는 루트 workspaces 에 편입됨)
+cd /path/to/hanjul
+npm install
+npm run build -w packages/ide-core   # packages/ide-core/dist/ 산출 — pywebview 가 이걸 로드
+
+# 2) 데스크탑 파이썬 환경
 cd desktop
 python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
-
-cd webapp
-npm install
-npm run build      # dist/ 산출 — pywebview 가 이걸 로드한다
+.venv/bin/pip install -r requirements.txt          # 런타임(pywebview)
+.venv/bin/pip install -r requirements-dev.txt       # + pytest(테스트용)
 ```
+
+`packages/ide-core/src/`를 고치면 `npm run build -w packages/ide-core` 를 다시 돌려야
+`app.py` 가 보는 `dist/`에 반영된다(pywebview 는 `dist/index.html` 을 직접 로드하지,
+vite dev 서버를 띄우지 않는다).
 
 ## 실행
 
@@ -25,24 +35,44 @@ npm run build      # dist/ 산출 — pywebview 가 이걸 로드한다
 cd desktop
 .venv/bin/python app.py            # GUI 창 — 아래 IME 체크리스트를 수행
 .venv/bin/python app.py --smoke    # 자동 스모크(수 초 내 종료, stdout 에 SMOKE_RESULT 한 줄)
+.venv/bin/python app.py --db /tmp/foo.db  # 대체 DB 경로(검증/반복 실행용, 기본은 data/ide.db)
 ```
 
-`webapp/src/`를 고치면 `npm run build` 를 다시 돌려야 `app.py` 가 보는 `dist/`에 반영된다
-(pywebview 는 `webapp/dist/index.html` 을 직접 로드하지, vite dev 서버를 띄우지 않는다).
+데이터는 `desktop/data/ide.db`(SQLite, gitignore)에 쌓인다. 첫 실행 시 기본 책 1권 +
+빈 챕터 1개가 자동 생성된다(`store.py` 의 `_ensure_seed`, 멱등 — 재실행해도 중복 생성 안 함).
+
+## 테스트
+
+```bash
+cd desktop && .venv/bin/pip install -r requirements-dev.txt   # 최초 1회
+.venv/bin/python -m pytest desktop/tests -q   # 저장소 루트에서, 또는
+cd desktop && .venv/bin/python -m pytest tests -q   # desktop/ 에서
+```
+
+`desktop/conftest.py` 가 `desktop/`를 sys.path 에 등록해 `import store` 가 되게 한다
+(패키지화 없이 stdlib 스타일 모듈 하나로 유지하기 위함).
 
 ## 구조
 
-- `webapp/` — 최소 vite 프로젝트(React 없음). `packages/doc/src/editor.js` 의
-  `mountEditor(el, opts)` 를 상대경로로 직접 import 해서 씁니다(워크스페이스 편입 없이).
-- `app.py` — pywebview 앱. `js_api=Api()` 로 `save_chapter(html)` 을 JS 쪽에
-  `window.pywebview.api.save_chapter` 로 노출. 저장은 `spike_data/chapter.html` 파일
-  하나에 덮어쓰기(SQLite 는 P1 — 스파이크는 파일로 충분).
-- `spike_data/` — 실행 시 생성되는 저장 산출물(gitignore, 커밋 안 함).
+- `packages/ide-core/` — 웹뷰 앱 본체(에디터+챕터 사이드바+호스트 브리지 클라이언트).
+  `@hanjul/doc` 의 `mountEditor` 를 상대경로로 직접 import 한다(react 배럴을 거치지
+  않기 위해 — P0 스파이크와 동일 이유). 자세한 계약은 `packages/ide-core/HOST_PORT.md`.
+- `store.py` — SQLite 저장소. 테이블: `book(id, title, created_ts, updated_ts)`,
+  `chapter(id, book_id, title, synopsis, status_cd, order_no, html, created_ts,
+  updated_ts)`. 마이그레이션은 `CREATE TABLE IF NOT EXISTS` 멱등.
+- `app.py` — pywebview 셸. `js_api=Api(store)` 로 Host Port v0 7개 메서드
+  (`get_book`/`list_chapters`/`load_chapter`/`save_chapter`/`create_chapter`/
+  `delete_chapter`/`reorder_chapters`)를 노출. 웹앱 로드 대상은
+  `packages/ide-core/dist/index.html`.
+- `tests/test_store.py` — `store.py` CRUD/재배열/시드 멱등성 단위 테스트(pytest,
+  tmp_path 로 격리된 sqlite 파일 사용 — `data/ide.db` 를 건드리지 않음).
+- `data/` — 실행 시 생성되는 SQLite 파일(gitignore, 커밋 안 함).
 
 ## 한글 IME 수동 체크리스트 (GUI 창에서)
 
 에디터 영역을 클릭해 포커스를 준 뒤 아래를 순서대로 확인하고, 이상 있으면 정확히
-어떤 단계에서 어떻게 깨졌는지 기록한다.
+어떤 단계에서 어떻게 깨졌는지 기록한다. (P0 스파이크에서 이미 통과 확인됨 — 회귀
+여부만 눈으로 재확인하면 된다.)
 
 1. **조합 입력** — "안녕하세요"를 타이핑. 자모가 정상적으로 결합되는가(ㅇ+ㅏ+ㄴ→안
    처럼 중간 조합 상태가 자연스럽게 넘어가는가), 완성형이 아닌 낱자모가 남지 않는가.
@@ -58,27 +88,30 @@ cd desktop
 6. **서식 후 이어서 입력** — 툴바에서 굵게(B)/기울임(I) 을 누른 뒤 바로 이어서 한글을
    입력. 서식 토글 직후에도 IME 조합이 정상 동작하는가(포커스/커서 유실 없는가).
 
-문제가 재현되면: 어떤 단계 · 어떤 문자열 · 재현 빈도(매번/가끔) · 캡처 가능하면 화면
-녹화를 남겨서 다음 스파이크(ⓑ 등)에 근거로 넘긴다.
-
 ## 자동 스모크가 확인하는 것 / 확인하지 않는 것
 
-`--smoke` 는 다음만 결정적으로 확인한다:
-- 마운트: `[contenteditable]` 요소가 DOM 에 존재하는가, `mountEditor` 컨트롤러
-  (`window.__editorCtrl`)가 만들어졌는가.
-- 브리지 왕복: JS 에서 `window.pywebview.api.save_chapter(...)` 를 호출해 Python
-  쪽 `Api.save_chapter` 가 실제로 실행되고(`spike_data/chapter.html` 생성), 그 반환값이
-  JS 로 되돌아오는가.
+`--smoke` 는 다음을 결정적으로 확인한다:
+- **마운트**: `mountApp()` 완료(`window.__ideApp` 존재) 및 `[contenteditable]`
+  요소가 DOM 에 존재하는가.
+- **Host Port CRUD 왕복**: `createChapter` → `saveChapter(html)` →
+  `reorderChapters` → (프로세스 재시작 없이) `listChapters` 로 순서 재확인,
+  `loadChapter` 로 상태/내용 재확인까지 전부 실제 SQLite 왕복으로 검증한다.
 
 IME 조합 자체(자모 결합·타이밍·커서 이동)는 **사람 손으로만** 확인 가능하다 —
-헤드리스로 키 이벤트를 흉내내는 건 실제 OS IME 엔진 경로를 타지 않아 스파이크의
-목적(WKWebView 실환경 검증)과 어긋난다. 그래서 자동화하지 않았다.
+헤드리스로 키 이벤트를 흉내내는 건 실제 OS IME 엔진 경로를 타지 않아 목적(WKWebView
+실환경 검증)과 어긋난다. 그래서 자동화하지 않았다.
 
-## 브리지 비동기 관련 메모
+## 브리지 비동기 관련 메모 (lr-9a45e6e4)
 
-`window.pywebview.api.save_chapter(html)` 는 JS 쪽에서 **Promise** 를 반환하고, 실제
-Python 메서드는 별도 스레드에서 실행된다(pywebview `util.js_bridge_call`). `app.py`
-의 스모크는 이 때문에 `evaluate_js` 로 Promise 를 즉시 동기 확인하지 않고, JS 쪽에
-완료 플래그(`window.__bridgeDone`/`__bridgeResult`)를 심어 폴링한다 — 그렇지 않으면
-Python 처리가 끝나기 전에 확인해버리는 레이스가 생긴다(최초 구현에서 실제로 겪음:
-`chapter_file_exists: false` 오탐).
+`window.pywebview.api.*` 호출은 JS 쪽에서 **Promise** 를 반환하고, 실제 Python
+메서드는 별도 스레드에서 실행된다(pywebview `util.js_bridge_call`). `evaluate_js` 로
+그 Promise 를 콜백 없이 동기 확인하면 처리가 끝나기 전에 빈 값("{}")을 읽어버리는
+레이스가 생긴다 — 그래서 `app.py` 의 스모크는 JS 쪽에 완료 플래그
+(`window.__smokeDone`/`window.__smokeResult`, 마운트 확인용 `window.__ideApp`)를
+심어 그 플래그가 설 때까지 폴링한다. 앞으로 Host Port 브리지 코드를 건드릴 때도
+이 규칙을 그대로 따른다 — evaluate_js 로 async 결과를 직접 받지 말 것.
+
+`packages/ide-core/src/host.js` 자체는 이 문제와 무관하다 — 거기서
+`window.pywebview.api.xxx(...)` 를 직접 `await` 하는 건 pywebview 가 제공하는 정상
+Promise 경로다. 레이스는 오직 "Python(app.py) 쪽에서 evaluate_js 로 그 비동기 결과를
+훔쳐보려 할 때"만 발생한다.
