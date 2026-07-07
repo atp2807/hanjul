@@ -1,4 +1,25 @@
-/* ide-core 최소 레이아웃 — 단일 화면(상단바 + 사이드바 + 에디터), 패널 추가 없음. */
+/* ide-core 최소 레이아웃 — 단일 화면(상단바 + 사이드바 + 에디터), 패널 추가 없음.
+ * 색/보더/반경은 @hanjul/ui 토큰(theme.js 가 --hj-* CSS 변수로 주입, main.js 에서 적용)을
+ * 참조한다 — 레이아웃 자체는 그대로, "정합"만(재설계 금지).
+ */
+
+/* ── 본문(캔버스) 서체 — Noto Serif KR, 로컬 번들(SIL OFL, src/assets/fonts) ──────
+ * 오프라인 데스크탑 앱이라 CDN 금지. 서브셋(한국어만, 400/700)만 번들해 용량 절제.
+ */
+@font-face {
+  font-family: 'Noto Serif KR';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('./assets/fonts/noto-serif-kr-korean-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Noto Serif KR';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('./assets/fonts/noto-serif-kr-korean-700-normal.woff2') format('woff2');
+}
 
 * {
   box-sizing: border-box;
@@ -6,13 +27,8 @@
 
 body {
   margin: 0;
-  font-family:
-    'IBM Plex Sans KR',
-    -apple-system,
-    BlinkMacSystemFont,
-    system-ui,
-    sans-serif;
-  color: #17313a;
+  font-family: var(--hj-font-ui);
+  color: var(--hj-text-strong);
 }
 
 #app {
@@ -26,8 +42,8 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 10px 16px;
-  background: #0e4a5c;
-  color: #eafaf5;
+  background: var(--hj-ink);
+  color: var(--hj-ink-text);
   font-size: 14px;
   flex: 0 0 auto;
 }
@@ -48,8 +64,8 @@ body {
 
 #sidebar {
   flex: 0 0 260px;
-  border-right: 1px solid #dbe7e4;
-  background: #f6faf9;
+  border-right: 1px solid var(--hj-border);
+  background: var(--hj-bg);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -71,17 +87,17 @@ body {
   align-items: center;
   gap: 2px 8px;
   padding: 8px 10px;
-  border-bottom: 1px solid #e8f0ee;
+  border-bottom: 1px solid var(--hj-border-soft);
   cursor: pointer;
 }
 
 .chapter-row.selected {
-  background: #e3f3ee;
+  background: var(--hj-tint);
 }
 
 .chapter-drag-handle {
   grid-area: handle;
-  color: #9db3ae;
+  color: var(--hj-muted);
   cursor: grab;
 }
 
@@ -91,21 +107,21 @@ body {
   height: 12px;
   padding: 0;
   border-radius: 50%;
-  border: 1px solid #7a8f8a;
+  border: 1px solid var(--hj-muted);
   background: transparent;
   cursor: pointer;
 }
 
 .status-dot.status-DRAFT {
-  background: #cbd5d1;
+  background: var(--hj-faint);
 }
 
 .status-dot.status-REVISING {
-  background: #f0b429;
+  background: var(--hj-warn);
 }
 
 .status-dot.status-DONE {
-  background: #1a936f;
+  background: var(--hj-ok);
 }
 
 .chapter-title {
@@ -122,21 +138,21 @@ body {
   border: none;
   background: transparent;
   font-size: 12px;
-  color: #5b6f6a;
+  color: var(--hj-text);
   padding: 0;
   width: 100%;
 }
 
 .chapter-synopsis:focus {
-  background: #fff;
-  outline: 1px solid #1a936f;
+  background: var(--hj-surface);
+  outline: 1px solid var(--hj-ok);
 }
 
 #new-chapter-btn {
   margin: 10px;
   padding: 8px;
-  border: 1px dashed #7a8f8a;
-  border-radius: 6px;
+  border: 1px dashed var(--hj-muted);
+  border-radius: var(--hj-radius-sm);
   background: transparent;
   cursor: pointer;
 }
@@ -145,4 +161,70 @@ body {
   flex: 1 1 auto;
   overflow-y: auto;
   padding: 24px 32px;
+}
+
+/* ── 캔버스(본문) 조판 — "첫 실행 10초에 느껴지는 쓰는 맛" ──────────────────────
+ * 대상은 packages/doc 이 마운트하는 article[data-juldoc](.juldoc-editor, doc.css 정의).
+ * packages/doc 은 절대 수정 금지라 여기서 오버라이드만 한다. 속성 셀렉터를 더해 특정도를
+ * 올려(0,2,0 > doc.css 의 0,1,0) import 순서와 무관하게 항상 이긴다.
+ * 텍스트 컬럼은 max-width 대신 padding-inline 계산식으로 좁혀 toolbar(.juldoc-toolbar,
+ * doc.css) 와의 이어붙은 박스 모양(위 라운드/아래 라운드)은 그대로 유지한다
+ * (article 자체에 max-width+margin:auto 를 주면 폭이 좁아져 위 toolbar 와 어긋난다).
+ */
+article[data-juldoc].juldoc-editor {
+  padding-block: 64px 96px;
+  padding-inline: max(40px, calc((100% - 720px) / 2));
+  font-family: var(--hj-font-serif);
+  font-size: 18px;
+  line-height: 1.85;
+  color: var(--hj-text-strong);
+  background: var(--hj-bg);
+  word-break: keep-all;
+}
+
+article[data-juldoc].juldoc-editor p {
+  margin: 0 0 1.3em;
+}
+
+article[data-juldoc].juldoc-editor h1,
+article[data-juldoc].juldoc-editor h2,
+article[data-juldoc].juldoc-editor h3 {
+  font-family: var(--hj-font-serif);
+  font-weight: 700;
+  color: var(--hj-text-strong);
+  line-height: 1.4;
+  margin: 1.6em 0 0.7em;
+}
+
+article[data-juldoc].juldoc-editor h1:first-child,
+article[data-juldoc].juldoc-editor h2:first-child,
+article[data-juldoc].juldoc-editor h3:first-child {
+  margin-top: 0;
+}
+
+article[data-juldoc].juldoc-editor h1 {
+  font-size: 1.6em;
+}
+
+article[data-juldoc].juldoc-editor h2 {
+  font-size: 1.35em;
+}
+
+article[data-juldoc].juldoc-editor h3 {
+  font-size: 1.15em;
+}
+
+article[data-juldoc].juldoc-editor blockquote {
+  font-style: italic;
+  border-left: 3px solid var(--hj-border);
+  color: var(--hj-text);
+  margin: 1.6em 0;
+  padding: 0.2em 1.4em;
+}
+
+article[data-juldoc].juldoc-editor hr {
+  border: none;
+  border-top: 1px solid var(--hj-border);
+  margin: 2.4em auto;
+  width: 120px;
 }

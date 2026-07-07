@@ -3,8 +3,12 @@
 // window.__editorCtrl 대신 window.__ideApp(mountApp 반환값)을 심어둔다.
 import { createHost } from './host.js';
 import { mountApp } from './app.js';
+import { applyThemeTokens } from './theme.js';
 import '../../doc/src/doc.css';
 import './style.css';
+
+// @hanjul/ui 토큰 → --hj-* CSS 변수. style.css 가 이 변수들을 참조하므로 마운트 전에 적용.
+applyThemeTokens();
 
 const host = createHost({ kind: 'pywebview' });
 const root = document.getElementById('app');

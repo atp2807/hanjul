@@ -90,6 +90,21 @@ def run_smoke(window, timeout_s=5.0, poll_interval_s=0.1):
         )
         results["contenteditable_present"] = bool(has_editor)
 
+        # 캔버스(본문) 서체 확인 — P1 슬라이스2: article[data-juldoc] 에 Noto Serif KR
+        # (ide-core/src/style.css 오버라이드 + theme.js 의 --hj-font-serif) 가 실제
+        # computed style 에 반영됐는지. font-family 문자열에 'Noto Serif KR' 이 있으면 적용.
+        canvas_font_family = window.evaluate_js(
+            "(function () {"
+            "  var el = document.querySelector('article[data-juldoc]');"
+            "  if (!el) return null;"
+            "  return getComputedStyle(el).fontFamily;"
+            "})()"
+        )
+        results["canvasFontFamily"] = canvas_font_family
+        results["canvasFontApplied"] = bool(
+            canvas_font_family and "Noto Serif KR" in canvas_font_family
+        )
+
         # 브리지 CRUD 왕복 — 실제 완료/결과는 JS 쪽 전역 플래그에 남긴다(폴링 대상).
         window.evaluate_js(
             """
@@ -145,6 +160,7 @@ def run_smoke(window, timeout_s=5.0, poll_interval_s=0.1):
         results["ok"] = bool(
             app_mounted
             and results.get("contenteditable_present")
+            and results.get("canvasFontApplied")
             and done
             and smoke_result
             and not smoke_error
