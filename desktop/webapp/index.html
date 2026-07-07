@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>한줄 IDE 스파이크</title>
+    <style>
+      body {
+        margin: 0;
+        font-family:
+          'IBM Plex Sans KR',
+          -apple-system,
+          BlinkMacSystemFont,
+          system-ui,
+          sans-serif;
+        background: #f3faf8;
+      }
+      #status-bar {
+        padding: 10px 16px;
+        background: #0e4a5c;
+        color: #eafaf5;
+        font-size: 14px;
+      }
+      #status-bar #status {
+        font-weight: 600;
+      }
+      #shell {
+        max-width: 900px;
+        margin: 24px auto;
+        padding: 0 16px 40px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="status-bar">저장 상태: <span id="status">대기 중</span></div>
+    <div id="shell">
+      <div id="editor"></div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
