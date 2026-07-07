@@ -50,4 +50,25 @@ describe('services/api/books', () => {
   it('flattenBlocks → 장이 없으면 빈 배열', () => {
     expect(flattenBlocks({ chapters: [] })).toEqual([]);
   });
+
+  it('flattenBlocks → 장 제목이 있으면 H1 블록으로 되살아나 목차/가독성에 씀', () => {
+    const content = {
+      chapters: [
+        { title: '1장 시작', blocks: [{ id: 'b1', blockType: 'p', html: '<p>본문</p>' }] },
+        { title: null, blocks: [{ id: 'b2', blockType: 'p', html: '<p>무제 챕터 본문</p>' }] },
+      ],
+    };
+    expect(flattenBlocks(content)).toEqual([
+      { id: 'ch-title-0', type: 'H1', html: '<h1>1장 시작</h1>' },
+      { id: 'b1', type: 'p', html: '<p>본문</p>' },
+      { id: 'b2', type: 'p', html: '<p>무제 챕터 본문</p>' },
+    ]);
+  });
+
+  it('flattenBlocks → 장 제목의 특수문자는 이스케이프', () => {
+    const content = { chapters: [{ title: '<script> & "장"', blocks: [] }] };
+    expect(flattenBlocks(content)).toEqual([
+      { id: 'ch-title-0', type: 'H1', html: '<h1>&lt;script&gt; &amp; "장"</h1>' },
+    ]);
+  });
 });

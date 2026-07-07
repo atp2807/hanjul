@@ -31,6 +31,7 @@ export default defineConfig({
         DISTRIBUTION_DEMO: 'true',
         COVER_DEMO: 'true',
         CONTENT_RATING_AI_DEMO: 'true',
+        PUBLIC_API_URL: API,
         FRONTEND_URL: FRONT,
         DEBUG: 'false',
       },

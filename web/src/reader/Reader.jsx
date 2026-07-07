@@ -53,7 +53,15 @@ function Fragment({ frag, scale, color }) {
   );
 }
 
+// H1 블록(장 제목 — flattenBlocks가 되살린 것)에서 목차 항목을 뽑는다. 태그 제거는 표시용.
+function tocFromBlocks(blocks) {
+  return (blocks || [])
+    .filter((b) => b.type === 'H1')
+    .map((b) => ({ id: b.id, label: b.html.replace(/<[^>]+>/g, '') }));
+}
+
 export function Reader({ blocks, bookId }) {
+  const [tocOpen, setTocOpen] = useState(false);
   const [scale, setScale] = useState(() => parseFloat(readLS(SCALE_KEY, '1')) || 1);
   const [themeKey, setThemeKey] = useState(() =>
     READER_THEMES[readLS(THEME_KEY, 'light')] ? readLS(THEME_KEY, 'light') : 'light',
@@ -81,9 +89,25 @@ export function Reader({ blocks, bookId }) {
   const idx = Math.min(pageIdx, Math.max(0, pages.length - 1));
   const currentFrags = pages[idx] || [];
 
+  const toc = useMemo(() => tocFromBlocks(blocks), [blocks]);
+  // 목차 항목(장 제목 블록)이 실제로 어느 페이지에 걸렸는지 — 조판 결과(pages)에서 첫 등장 페이지를 찾는다.
+  const pageForBlock = useMemo(() => {
+    const map = new Map();
+    pages.forEach((frags, pageNo) => {
+      for (const f of frags) if (!map.has(f.blockId)) map.set(f.blockId, pageNo);
+    });
+    return map;
+  }, [pages]);
+
   function goPage(next) {
     setPageIdx(next);
     if (bookId) writeLS(posKey(bookId), next); // 읽던 위치 이어보기
+  }
+
+  function jumpToChapter(blockId) {
+    const p = pageForBlock.get(blockId);
+    if (p != null) goPage(p);
+    setTocOpen(false);
   }
 
   const btn = { padding: '4px 10px', borderRadius: 6, border: `1px solid ${theme.fg}33`, background: 'transparent', color: theme.fg, cursor: 'pointer' };
@@ -91,6 +115,42 @@ export function Reader({ blocks, bookId }) {
   return (
     <div style={{ fontFamily, color: theme.fg }}>
       <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+        {toc.length > 0 && (
+          <span style={{ position: 'relative' }}>
+            <button
+              style={btn}
+              data-testid="toc-toggle"
+              aria-expanded={tocOpen}
+              onClick={() => setTocOpen((v) => !v)}
+            >
+              목차
+            </button>
+            {tocOpen && (
+              <ul
+                data-testid="toc-list"
+                style={{
+                  position: 'absolute', top: '100%', left: 0, marginTop: 4, zIndex: 10,
+                  listStyle: 'none', padding: 6, minWidth: 180, maxHeight: 260, overflowY: 'auto',
+                  background: theme.bg, border: `1px solid ${theme.fg}33`, borderRadius: 8,
+                }}
+              >
+                {toc.map((t) => (
+                  <li key={t.id}>
+                    <button
+                      onClick={() => jumpToChapter(t.id)}
+                      style={{
+                        display: 'block', width: '100%', textAlign: 'left', padding: '6px 8px',
+                        border: 'none', background: 'transparent', color: theme.fg, cursor: 'pointer', fontSize: 14,
+                      }}
+                    >
+                      {t.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </span>
+        )}
         <button style={btn} aria-label="글자 작게" onClick={() => setScale((s) => Math.max(0.7, +(s - 0.1).toFixed(2)))}>A-</button>
         <button style={btn} aria-label="글자 크게" onClick={() => setScale((s) => Math.min(2, +(s + 0.1).toFixed(2)))}>A+</button>
         <span style={{ fontSize: 13, opacity: 0.7 }}>배율 {scale.toFixed(1)}x</span>
