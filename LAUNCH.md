@@ -39,6 +39,9 @@
 ### 완료 ✅
 - [x] 인증(Google OAuth→JWT) · 유저 프로필(accounts)
 - [x] 정본 엔진(EPUB·ONIX) · 리더(Pretext) · 저작툴(블록 에디터)
+- [x] **한줄독**(구 juldoc 편입, 문서 열람·편집) — 엔진(`engine/doc`, 파서 10종) + 코어
+  (`packages/doc`, dialect/measure/paginate) + 백엔드 `features/doc` + 프론트 `/doc` 3라우트 +
+  e2e(`doc_typeset.spec.js`·`doc_flow.spec.js`). 비로그인 허용(ownerless)·공유링크·EPUB/DOCX 수출.
 - [x] 카탈로그/스토어(탐색·**검색**·카테고리·상세) · 예약발행 · 책 삭제
 - [x] 리뷰/평점 · 서평단 매칭(campaigns) · 팔로우/알림
 - [x] **실결제 코드**(Toss confirm/cancel/조회 + 위젯 + **웹훅 대사**) — `PAYMENT_DEMO=False` 기본, 실키만
@@ -75,7 +78,7 @@
 ### 나중 🟢
 - [ ] novelpotato·서점배포 **운영 URL/계정 세팅**(코드 완료, 설정만) · Portone refund/lookup 구현
 - [ ] 거래 메일 발송 인프라 · 라우트별 동적 SEO 메타·sitemap/robots
-- [ ] 종이책 POD · 구독 · 후원 · 에디터 매칭(범위확정) · 웹소설→웹툰 AI
+- [ ] 종이책 POD · 구독 · **책 전용 선주문 크라우드펀딩**(와디즈/텀블벅식 — 목표인원 달성 시 출간, prj-base idea `book_crowdfunding_absorb_wadiz`) · 에디터 매칭(범위확정) · 웹소설→웹툰 AI
 
 ---
 

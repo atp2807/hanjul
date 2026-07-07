@@ -15,7 +15,7 @@ hanjul/
 
 ```
 입력 (TXT/MD/DOCX/HWP/PDF)
-   │  변환 (juldoc / pymupdf)
+   │  변환 (한줄독 엔진 / pymupdf)
 정본 HTML/XHTML  ← 단일 진실 소스
    │
    ├─▶ 웹 리더 (프론트 Pretext 조판 — 페이지네이션·재조판)
@@ -23,7 +23,7 @@ hanjul/
    └─▶ PDF export
 ```
 
-- **juldoc** = 렌더 ("무엇을 그릴지")
+- **한줄독**(구 juldoc, `backend/src/engine/doc/`·`packages/doc/`) = 렌더 ("무엇을 그릴지")
 - **Pretext** = 조판 ("어떻게 페이지로 나눌지", 프론트엔드 텍스트 전담)
 
 설계 기록: LinkLore `dc-d362244d`(비전) · `dc-f8acfa26`(기능리스트) ·

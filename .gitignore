@@ -31,6 +31,9 @@ backend/htmlcov/
 # 업로드 표지(로컬 디스크 저장)
 backend/uploads/
 
+# doc 엔진 파서 테스트용 실문서 — 로컬 전용, CI엔 없어 skipif로 스킵
+backend/tests/engine/doc/reference_data/
+
 # 테스트 커버리지 산출물
 .coverage
 coverage/

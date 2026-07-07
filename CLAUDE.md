@@ -9,7 +9,10 @@
 - 백엔드 `backend/`: FastAPI + SQLAlchemy 2.0 async + PostgreSQL(asyncpg), 런타임 Python 3.12.
 - 프론트 `web/`: React 19 + Vite + **순수 JS/JSX (TypeScript 금지)**. 리더는 Pretext.js(CJK keep-all).
 - **헥사고날**: feature별 `domain/ application/ infrastructure/ presentation/`. 외부 연동은 포트 뒤 + Fake 테스트.
-- DB 스키마: `pub`(book/chapter/block) · `usr`(account/credential) · `bill`(주문/정산) · `dist`(배포). 마이그레이션 alembic 0001~.
+- DB 스키마: `pub`(book/chapter/block) · `usr`(account/credential) · `bill`(주문/정산) · `dist`(배포) · `doc`(한줄독 document/share_link). 마이그레이션 alembic 0001~.
+- 한줄독(문서 열람·편집, 구 juldoc 편입): 엔진 `backend/src/engine/doc/` · 기능
+  `backend/src/features/doc/` · 코어 `packages/doc/`(dialect/measure/paginate, `@hanjul/doc`) ·
+  프론트 `/doc`·`/doc/:id`·`/doc/s/:token`. 비로그인 허용(ownerless 문서).
 
 ## 명령어
 ```bash
@@ -39,4 +42,4 @@ cd web && npm run e2e   # Playwright: 실 백엔드(28100)+프론트(35200)+post
 
 ## 작업 위임 (홈 CLAUDE.md 규칙 따름)
 - 탐색/전수조사/단순반복 → Haiku/Explore. 코드리뷰/경량판단 → Codex. 아키텍처/복잡버그 → Opus.
-- 스펙·사고·lore는 LinkLore(`mcp__llre__*`), 아이디어·결정은 prj-base(`mcp__prj-base__*`).
+- 의사결정 등 기록은 LinkLore(`mcp__llre__*`)에.
