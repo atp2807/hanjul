@@ -2,6 +2,9 @@
 
 haedream 컨벤션을 따르되, MVP 단계라 RDS/SSL/멀티엔진 설정은 생략.
 """
+from typing import Literal
+
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -111,6 +114,54 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     # E2E/로컬 전용 로그인 우회(/api/auth/test-login) 허용. 운영은 반드시 False(fail-closed).
     E2E_LOGIN_ENABLED: bool = False
+
+    # 실행 환경 — prod로 명시하면 아래 model_validator가 데모게이트 잔존/기본 시크릿을
+    # fail-closed로 막는다(CLAUDE.md "데모 게이트는 fail-closed" 원칙을 기동 자체에 적용).
+    # 미설정(dev)이면 기존 동작 그대로 — 이 필드는 inert 상태로 켜지 않는 한 아무 영향 없음.
+    ENV: Literal["dev", "test", "prod"] = "dev"
+
+    @model_validator(mode="after")
+    def _guard_prod_misconfig(self) -> "Settings":
+        """ENV=prod인데 데모게이트가 켜져 있거나 시크릿이 기본값이면 기동 자체를 거부.
+
+        운영 배포 스크립트나 .env 설정 실수로 데모 모드/기본 시크릿이 그대로 prod에
+        올라가는 사고를 기동 시점에 막는다. dev/test(ENV 미설정 포함)에는 전혀 관여하지
+        않는다.
+        """
+        if self.ENV != "prod":
+            return self
+
+        problems: list[str] = []
+
+        demo_flags = {
+            "DEBUG": self.DEBUG,
+            "PAYMENT_DEMO": self.PAYMENT_DEMO,
+            "DISTRIBUTION_DEMO": self.DISTRIBUTION_DEMO,
+            "COVER_DEMO": self.COVER_DEMO,
+            "CONTENT_RATING_AI_DEMO": self.CONTENT_RATING_AI_DEMO,
+            "E2E_LOGIN_ENABLED": self.E2E_LOGIN_ENABLED,
+        }
+        for name, value in demo_flags.items():
+            if value:
+                problems.append(f"{name}=True (운영은 반드시 False)")
+
+        default_secrets = {
+            "JWT_SECRET_KEY": "dev-insecure-change-me",
+            "POTATO_JWT_SECRET_KEY": "dev-insecure-potato-change-me",
+        }
+        for name, default in default_secrets.items():
+            if getattr(self, name) == default:
+                problems.append(f"{name} 가 dev 기본값 그대로임")
+
+        if not self.SETTLEMENT_ENC_KEY:
+            problems.append("SETTLEMENT_ENC_KEY 미설정 (정산 계좌 암호화 키 필수)")
+
+        if problems:
+            raise ValueError(
+                "ENV=prod 인데 운영 기준을 어기는 설정이 있어 기동을 거부함:\n  - "
+                + "\n  - ".join(problems)
+            )
+        return self
 
     @property
     def auth_provider_list(self) -> list[str]:

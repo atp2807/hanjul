@@ -16,3 +16,37 @@ ignore = ["B008", "E501", "B904", "SIM117"]
 
 [tool.ruff.format]
 quote-style = "double"
+
+# 아키텍처 경계 — import-linter (헥사고날 레이어 방향 + engine/features 분리 하드가드)
+[tool.importlinter]
+root_package = "src"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "features 헥사고날 레이어 — presentation → infrastructure → application → domain"
+type = "layers"
+containers = ["src.features.*"]
+layers = [
+    "presentation",
+    "infrastructure",
+    "application",
+    "domain",
+]
+
+[[tool.importlinter.contracts]]
+name = "domain 계층은 FastAPI/SQLAlchemy를 모른다 (순수 도메인)"
+type = "forbidden"
+source_modules = ["src.features.*.domain"]
+forbidden_modules = ["fastapi", "sqlalchemy"]
+
+[[tool.importlinter.contracts]]
+name = "application 계층은 FastAPI/SQLAlchemy를 모른다 (포트 뒤 유스케이스)"
+type = "forbidden"
+source_modules = ["src.features.*.application"]
+forbidden_modules = ["fastapi", "sqlalchemy"]
+
+[[tool.importlinter.contracts]]
+name = "engine은 features를 모른다 (순수 엔진, feature 비의존)"
+type = "forbidden"
+source_modules = ["src.engine"]
+forbidden_modules = ["src.features"]
