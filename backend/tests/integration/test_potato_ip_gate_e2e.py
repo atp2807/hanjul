@@ -4,7 +4,6 @@
 """
 import httpx
 import pytest
-
 from src.config.settings import settings
 
 settings.DEBUG = False

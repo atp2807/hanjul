@@ -1,5 +1,6 @@
 """인메모리 Follow/Notification 리포지토리 — 서비스 단위 테스트용."""
 import uuid
+from datetime import UTC
 from uuid import UUID
 
 from src.features.notifications.domain.models import NotificationView
@@ -31,7 +32,7 @@ class FakeNotificationRepository:
         for r in recipient_ids:
             if (r, book_id, kind) in existing:
                 continue
-            from datetime import datetime, timezone
+            from datetime import datetime
 
             self.rows.append(
                 NotificationView(
@@ -40,14 +41,14 @@ class FakeNotificationRepository:
                     book_id=book_id,
                     title=title,
                     is_read=False,
-                    created_at=datetime.now(timezone.utc),
+                    created_at=datetime.now(UTC),
                 )
             )
             # recipient_id 를 뷰에 보관 (테스트 편의)
             self.rows[-1].recipient_id = r
 
     async def relight_for_recipients(self, recipient_ids, kind, book_id, title) -> None:
-        from datetime import datetime, timezone
+        from datetime import datetime
 
         for r in recipient_ids:
             cur = next(
@@ -58,12 +59,12 @@ class FakeNotificationRepository:
             if cur is not None:
                 cur.is_read = False
                 cur.title = title
-                cur.created_at = datetime.now(timezone.utc)
+                cur.created_at = datetime.now(UTC)
             else:
                 self.rows.append(
                     NotificationView(
                         id=uuid.uuid4(), kind=kind, book_id=book_id, title=title,
-                        is_read=False, created_at=datetime.now(timezone.utc),
+                        is_read=False, created_at=datetime.now(UTC),
                     )
                 )
                 self.rows[-1].recipient_id = r

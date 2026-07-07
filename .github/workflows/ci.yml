@@ -20,7 +20,7 @@ jobs:
           cache: pip
           cache-dependency-path: backend/requirements-dev.txt
       - run: pip install -r requirements-dev.txt
-      - run: ruff check src
+      - run: ruff check src tests
       - run: lint-imports
       - run: python scripts/lint_naming.py
       - run: python -m pytest -q

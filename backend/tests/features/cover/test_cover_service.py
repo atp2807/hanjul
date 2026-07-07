@@ -2,9 +2,9 @@
 import uuid
 
 import pytest
-
 from src.features.cover.application.cover_service import CoverService
 from src.features.cover.domain.ports import BookNotFound
+
 from tests.fixtures.fake_cover import FakeCoverGenerator, FakeCoverRepository
 
 

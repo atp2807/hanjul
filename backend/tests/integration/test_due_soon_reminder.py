@@ -1,13 +1,13 @@
 """서평단 마감임박 리마인더 — 기한 N일 내 ASSIGNED 리뷰어에게 ⏰ 알림(멱등)."""
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from main import remind_due_soon
 from src.features.campaigns.infrastructure.campaign_repo import SqlCampaignRepository
 from src.features.notifications.infrastructure.notification_repo import SqlNotificationRepository
 from src.infrastructure.db.models.account import Account
 
-UTC = timezone.utc
+UTC = UTC
 
 
 async def _assign(repo, reader_id, deadline):

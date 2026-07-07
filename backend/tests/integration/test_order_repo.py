@@ -1,8 +1,7 @@
 """billing 통합 — 실 DB(SQLite)에서 출판본 구매→결제확인→정산 영속."""
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
-
 from src.features.auth.domain.models import SocialProfile
 from src.features.auth.infrastructure.account_repo import SqlAccountRepository
 from src.features.billing.application.order_service import OrderService
@@ -11,6 +10,7 @@ from src.features.billing.infrastructure.order_repo import SqlOrderRepository
 from src.features.books.infrastructure.book_repo import SqlBookRepository
 from src.features.catalog.infrastructure.catalog_repo import SqlCatalogRepository
 from src.infrastructure.db.models.order import Settlement
+
 from tests.fixtures.fake_order_repo import FakeGateway
 
 
@@ -23,7 +23,7 @@ async def test_paid_order_persists_settlement(sessionmaker):
         book_id = await SqlBookRepository(s).create_book(title="책", kind="BOOK", language="ko")
         cat = SqlCatalogRepository(s)
         await cat.set_price(book_id, 10000)
-        await cat.set_status(book_id, "PUBLISHED", datetime.now(timezone.utc))
+        await cat.set_status(book_id, "PUBLISHED", datetime.now(UTC))
 
     # 구매 (금액은 서버가 가격에서 도출) + 결제확인
     async with sessionmaker() as s:

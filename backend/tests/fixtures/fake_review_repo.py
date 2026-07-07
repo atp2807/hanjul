@@ -1,6 +1,6 @@
 """인메모리 ReviewRepository — 서비스 단위 테스트용."""
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from src.features.reviews.domain.models import ReviewSummary, ReviewView
 
@@ -21,7 +21,7 @@ class FakeReviewRepository:
 
     async def list_for_book(self, book_id):
         return [
-            ReviewView(id=uuid.uuid4(), rating=r, body=b, account_id=ac, created_at=datetime.now(timezone.utc), source=s)
+            ReviewView(id=uuid.uuid4(), rating=r, body=b, account_id=ac, created_at=datetime.now(UTC), source=s)
             for (bk, ac), (r, b, s) in self.reviews.items()
             if bk == book_id
         ]

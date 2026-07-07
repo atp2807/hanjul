@@ -2,10 +2,10 @@
 import uuid
 
 import pytest
-
 from src.features.reviews.application.review_service import ReviewService
 from src.features.reviews.domain.models import BookNotFound
 from src.shared.errors import ValidationError
+
 from tests.fixtures.fake_review_repo import FakeReviewRepository
 
 

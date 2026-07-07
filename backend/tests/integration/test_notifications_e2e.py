@@ -5,7 +5,6 @@ import httpx
 import pytest
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.config.settings import settings
 
 settings.DEBUG = False
@@ -20,6 +19,7 @@ from src.features.billing.application.order_service import OrderService  # noqa:
 from src.features.billing.infrastructure.book_pricing import SqlBookPricing  # noqa: E402
 from src.features.billing.infrastructure.order_repo import SqlOrderRepository  # noqa: E402
 from src.features.billing.presentation.dependencies import get_order_service  # noqa: E402
+
 from tests.fixtures.fake_account_repo import FakeProvider  # noqa: E402
 from tests.fixtures.fake_order_repo import FakeGateway  # noqa: E402
 from tests.integration.auth_helpers import login_account  # noqa: E402
@@ -174,7 +174,7 @@ async def test_revision_notifies_buyers_and_relights(app_db):
 
 async def test_scheduled_publish_notifies_followers(app_db, sessionmaker):
     """예약발행(스케줄러 자동 게시) 경로도 팔로워에게 신간 알림."""
-    from datetime import datetime, timedelta, timezone
+    from datetime import UTC, datetime, timedelta
 
     from main import publish_due_and_notify
 
@@ -189,7 +189,7 @@ async def test_scheduled_publish_notifies_followers(app_db, sessionmaker):
         # 과거 시각으로 예약 (아직 DRAFT, 게시 안 됨)
         book = (await c.post("/api/books", json={"title": "예약신간"}, headers=author_auth)).json()["bookId"]
         await c.put(f"/api/books/{book}/price", json={"amount": 4000}, headers=author_auth)
-        past = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
+        past = (datetime.now(UTC) - timedelta(hours=1)).isoformat()
         await c.post(f"/api/books/{book}/schedule", json={"publishAt": past}, headers=author_auth)
 
         # 아직 알림 없음
@@ -197,7 +197,7 @@ async def test_scheduled_publish_notifies_followers(app_db, sessionmaker):
 
         # 스케줄러 본체 실행 → 게시 + 신간 알림
         async with sessionmaker() as s:
-            n = await publish_due_and_notify(s, datetime.now(timezone.utc))
+            n = await publish_due_and_notify(s, datetime.now(UTC))
         assert n == 1
 
         inbox = (await c.get("/api/me/notifications", headers=follower_auth)).json()

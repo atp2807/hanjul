@@ -2,8 +2,8 @@
 import uuid
 
 import pytest
-
 from src.features.notifications.application.notification_service import NotificationService
+
 from tests.fixtures.fake_notification_repo import FakeFollowRepository, FakeNotificationRepository
 
 

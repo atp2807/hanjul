@@ -1,11 +1,10 @@
 """운영자 모더레이션 E2E — 책 takedown → 스토어에서 사라짐 → 복원 + 감사로그."""
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
 
 import httpx
 import pytest
 from sqlalchemy import select
-
 from src.config.settings import settings
 
 settings.DEBUG = False
@@ -54,7 +53,7 @@ async def _make_published_book(sessionmaker, title="문제의 책") -> str:
                 language="ko",
                 status="PUBLISHED",
                 price_amt=1000,
-                published_at=datetime.now(timezone.utc),
+                published_at=datetime.now(UTC),
             )
         )
         await s.commit()

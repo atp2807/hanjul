@@ -101,7 +101,7 @@ def app_db_orders(app_db, order_gateway):
         return OrderService(SqlOrderRepository(session), order_gateway, SqlBookPricing(session))
 
     app.dependency_overrides[get_order_service] = _order
-    yield app_db
+    return app_db
 
 
 @pytest.fixture

@@ -2,7 +2,6 @@
 import uuid
 
 import pytest
-
 from src.features.doc.application.document_service import DocumentService
 from src.features.doc.application.share_service import ShareService
 from src.features.doc.domain.models import (
@@ -12,17 +11,18 @@ from src.features.doc.domain.models import (
     ShareNotFound,
     UnknownCapability,
 )
-from tests.fixtures.fake_doc_repo import InMemoryDocumentRepo, InMemoryShareRepo
+
+from tests.fixtures.fake_doc_repo import FakeDocumentRepo, FakeShareRepo
 
 
 @pytest.fixture
 def documents() -> DocumentService:
-    return DocumentService(InMemoryDocumentRepo())
+    return DocumentService(FakeDocumentRepo())
 
 
 @pytest.fixture
 def shares(documents) -> ShareService:
-    return ShareService(InMemoryShareRepo(), documents)
+    return ShareService(FakeShareRepo(), documents)
 
 
 async def _doc(documents: DocumentService, title: str = "Doc"):

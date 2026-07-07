@@ -1,6 +1,6 @@
 """DistributionService — 전송 성공/실패를 항상 기록 (Fake 채널/레포)."""
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from src.features.distribution.application.distribution_service import DistributionService
 from src.features.distribution.domain.models import DistributionView
@@ -25,7 +25,7 @@ class FakeDistRepo:
     async def record(self, book_id, channel, status, message):
         v = DistributionView(
             id=uuid.uuid4(), book_id=book_id, channel=channel,
-            status=status, message=message, created_at=datetime.now(timezone.utc),
+            status=status, message=message, created_at=datetime.now(UTC),
         )
         self.records.append(v)
         return v

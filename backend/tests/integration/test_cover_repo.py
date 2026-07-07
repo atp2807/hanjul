@@ -1,10 +1,10 @@
 """cover 통합 — 실 DB(SQLite)에서 표지 URL 영속."""
 from sqlalchemy import select
-
 from src.features.books.infrastructure.book_repo import SqlBookRepository
 from src.features.cover.application.cover_service import CoverService
 from src.features.cover.infrastructure.cover_repo import SqlCoverRepository
 from src.infrastructure.db.models.book import Book
+
 from tests.fixtures.fake_cover import FakeCoverGenerator
 
 

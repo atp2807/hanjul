@@ -1,11 +1,10 @@
 """자동발행 — 즉시출간(심사 생략) + 예약발행(due 자동 게시)."""
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import httpx
 import pytest
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.config.settings import settings
 
 settings.DEBUG = False
@@ -18,6 +17,7 @@ from src.features.auth.infrastructure.account_repo import SqlAccountRepository  
 from src.features.auth.presentation.dependencies import get_auth_service, token_issuer  # noqa: E402
 from src.features.books.infrastructure.book_repo import SqlBookRepository  # noqa: E402
 from src.features.catalog.infrastructure.catalog_repo import SqlCatalogRepository  # noqa: E402
+
 from tests.fixtures.fake_account_repo import FakeProvider  # noqa: E402
 from tests.integration.auth_helpers import login_account  # noqa: E402
 
@@ -62,10 +62,10 @@ async def test_scheduled_due_is_published(sessionmaker):
         bid = await SqlBookRepository(s).create_book(title="예약책", kind="BOOK", language="ko")
         cat = SqlCatalogRepository(s)
         await cat.set_price(bid, 1000)
-        await cat.set_scheduled(bid, datetime.now(timezone.utc) - timedelta(hours=1))  # 이미 지남
+        await cat.set_scheduled(bid, datetime.now(UTC) - timedelta(hours=1))  # 이미 지남
 
     async with sessionmaker() as s:
-        published = await SqlCatalogRepository(s).publish_due(datetime.now(timezone.utc))
+        published = await SqlCatalogRepository(s).publish_due(datetime.now(UTC))
         assert len(published) == 1 and published[0][0] == bid
 
     async with sessionmaker() as s2:
@@ -78,10 +78,10 @@ async def test_future_scheduled_not_yet_published(sessionmaker):
         bid = await SqlBookRepository(s).create_book(title="미래책", kind="BOOK", language="ko")
         cat = SqlCatalogRepository(s)
         await cat.set_price(bid, 1000)
-        await cat.set_scheduled(bid, datetime.now(timezone.utc) + timedelta(days=1))  # 미래
+        await cat.set_scheduled(bid, datetime.now(UTC) + timedelta(days=1))  # 미래
 
     async with sessionmaker() as s:
-        assert await SqlCatalogRepository(s).publish_due(datetime.now(timezone.utc)) == []
+        assert await SqlCatalogRepository(s).publish_due(datetime.now(UTC)) == []
 
     async with sessionmaker() as s2:
         assert (await SqlCatalogRepository(s2).get_summary(bid)).status != "PUBLISHED"

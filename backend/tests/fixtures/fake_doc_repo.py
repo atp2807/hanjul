@@ -3,7 +3,6 @@
 도메인 Protocol 을 구조적으로 만족한다(Protocol 이라 상속 불필요). juldoc InMemory repo
 이식 — id 는 UUID(hanjul 규약), soft delete·ownerless 가시성·멱등 회수 의미 동일.
 """
-from dataclasses import replace
 from datetime import UTC, datetime
 from uuid import UUID
 
@@ -14,7 +13,7 @@ def _now() -> datetime:
     return datetime.now(UTC)
 
 
-class InMemoryDocumentRepo:
+class FakeDocumentRepo:
     def __init__(self) -> None:
         self._store: dict[UUID, Document] = {}
 
@@ -45,19 +44,19 @@ class InMemoryDocumentRepo:
         doc = self._store.get(doc_id)
         if doc is None or doc.deleted_at is not None:
             return None
-        updated = replace(doc, html=html, updated_at=_now())
-        self._store[doc_id] = updated
-        return updated
+        doc.html = html
+        doc.updated_at = _now()
+        return doc
 
     async def soft_delete(self, doc_id: UUID) -> bool:
         doc = self._store.get(doc_id)
         if doc is None or doc.deleted_at is not None:
             return False
-        self._store[doc_id] = replace(doc, deleted_at=_now())
+        doc.deleted_at = _now()
         return True
 
 
-class InMemoryShareRepo:
+class FakeShareRepo:
     def __init__(self) -> None:
         self._store: dict[UUID, ShareLink] = {}
         self._by_token: dict[str, UUID] = {}
@@ -87,4 +86,4 @@ class InMemoryShareRepo:
         share = self._store.get(share_id)
         if share is None or share.revoked_at is not None:
             return  # 부재/이미 회수 → no-op (멱등)
-        self._store[share_id] = replace(share, revoked_at=_now())
+        share.revoked_at = _now()

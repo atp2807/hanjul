@@ -1,5 +1,5 @@
 """작가 출금 인프라 E2E — 계좌등록 → 판매 → 출금가능액 → 신청 → 운영자 승인·지급."""
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 import httpx
@@ -7,7 +7,6 @@ import pytest
 from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.config.settings import settings
 
 settings.DEBUG = False
@@ -25,6 +24,7 @@ from src.features.potato.infrastructure.operator_repo import SqlOperatorReposito
 from src.infrastructure.db.models.book import Book  # noqa: E402
 from src.infrastructure.db.models.order import Order, Settlement  # noqa: E402
 from src.infrastructure.db.models.payout import BankAccount, Payout  # noqa: E402
+
 from tests.fixtures.fake_account_repo import FakeProvider  # noqa: E402
 from tests.integration.auth_helpers import login_account  # noqa: E402
 
@@ -64,7 +64,7 @@ async def _seed_sale(sessionmaker, author_id, gross=7000, wh=231, payout=6769) -
         s.add(book)
         await s.flush()
         order = Order(book_id=book.id, buyer_account_id=uuid4(), amount_amt=10000, channel="SELF",
-                      status="PAID", paid_at=datetime.now(timezone.utc))
+                      status="PAID", paid_at=datetime.now(UTC))
         s.add(order)
         await s.flush()
         s.add(Settlement(order_id=order.id, channel="SELF", gross_amt=gross, platform_fee_amt=3000,

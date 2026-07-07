@@ -2,10 +2,10 @@
 import uuid
 
 import pytest
-
 from src.features.books.application.content_rating_service import ContentRatingService
 from src.features.books.domain.content_rating import InvalidRatingInput, category_keys
 from src.features.books.domain.models import BookNotFound, NotOwner
+
 from tests.fixtures.fake_book_repo import FakeBookRepository
 from tests.fixtures.fake_rating_classifier import FakeContentRatingClassifier
 

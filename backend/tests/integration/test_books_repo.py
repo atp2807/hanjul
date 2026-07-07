@@ -1,5 +1,4 @@
 """SqlBookRepository 통합 테스트 — 실 DB 엔진(SQLite)에 대해 영속성 검증."""
-import pytest
 
 from src.features.books.infrastructure.book_repo import SqlBookRepository
 

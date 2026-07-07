@@ -1,15 +1,14 @@
 """서평단 자격회수 — 미작성(EXPIRED) 누적 → 신청 제한."""
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
-
 from src.features.campaigns.application.campaign_service import CampaignService
 from src.features.campaigns.domain.models import ReviewerBlocked
 from src.features.campaigns.infrastructure.campaign_repo import SqlCampaignRepository
 from src.infrastructure.db.models.account import Account
 
-UTC = timezone.utc
+UTC = UTC
 
 
 async def _expire_one(repo, reader_id, base):

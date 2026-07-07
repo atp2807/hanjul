@@ -3,7 +3,6 @@ import httpx
 import pytest
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.config.settings import settings
 
 settings.DEBUG = False
@@ -17,6 +16,7 @@ from src.features.auth.presentation.dependencies import get_auth_service, token_
 from src.features.cover.application.cover_service import CoverService  # noqa: E402
 from src.features.cover.infrastructure.cover_repo import SqlCoverRepository  # noqa: E402
 from src.features.cover.presentation.dependencies import get_cover_service  # noqa: E402
+
 from tests.fixtures.fake_account_repo import FakeProvider  # noqa: E402
 from tests.fixtures.fake_cover import FakeCoverGenerator, FakeCoverStorage  # noqa: E402
 from tests.integration.auth_helpers import login_account  # noqa: E402

@@ -3,7 +3,6 @@
 content-type 헤더/파일명을 신뢰하지 않고 매직바이트만으로 형식을 판정하는지 검증.
 """
 import pytest
-
 from src.features.doc.application.uploads import (
     MAX_IMAGE_BYTES,
     content_type_for_key,

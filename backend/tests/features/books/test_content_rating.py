@@ -1,6 +1,5 @@
 """콘텐츠 등급 도메인 + 데모 분류기 단위테스트."""
 import pytest
-
 from src.features.books.domain.content_rating import (
     TIERS,
     category_keys,

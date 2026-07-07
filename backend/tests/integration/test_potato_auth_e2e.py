@@ -6,9 +6,6 @@ from uuid import uuid4
 
 import httpx
 import pytest
-from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.config.settings import settings
 
 settings.DEBUG = False

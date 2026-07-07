@@ -3,7 +3,6 @@ import httpx
 import pytest
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.config.settings import settings
 
 settings.DEBUG = False
@@ -18,6 +17,7 @@ from src.features.billing.application.order_service import OrderService  # noqa:
 from src.features.billing.infrastructure.book_pricing import SqlBookPricing  # noqa: E402
 from src.features.billing.infrastructure.order_repo import SqlOrderRepository  # noqa: E402
 from src.features.billing.presentation.dependencies import get_order_service  # noqa: E402
+
 from tests.fixtures.fake_account_repo import FakeProvider  # noqa: E402
 from tests.fixtures.fake_order_repo import FakeGateway  # noqa: E402
 from tests.integration.auth_helpers import login_account  # noqa: E402
@@ -48,8 +48,7 @@ def app_db(sessionmaker):
 
 async def test_purchased_book_appears_in_library(app_db):
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
-        token, me = await login_account(c, "google", "x")
-        me_id = me["id"]
+        token, _me = await login_account(c, "google", "x")
         auth = {"Authorization": f"Bearer {token}"}
 
         # 미로그인 → 401

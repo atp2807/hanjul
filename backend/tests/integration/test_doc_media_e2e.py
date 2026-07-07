@@ -8,7 +8,6 @@ import io
 
 import httpx
 import pytest
-
 from src.config.settings import settings
 
 settings.DEBUG = False
@@ -34,81 +33,90 @@ async def _client():
     return httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t")
 
 
-class TestUploadEndpoint:
-    async def test_post_media_returns_201_and_contract(self, media):
-        data = make_png(600, 400, noise=True)
-        async with await _client() as c:
-            resp = await c.post(
-                "/api/media", files={"file": ("pic.png", io.BytesIO(data), "image/png")}
-            )
-        assert resp.status_code == 201
-        body = resp.json()
-        assert set(body) == {
-            "url", "displayUrl", "thumbUrl", "bytes", "contentType", "width", "height"
-        }
-        assert body["url"].startswith("/media/")
-        assert body["displayUrl"].startswith("/media/")
-        assert body["thumbUrl"].startswith("/media/")
-        assert body["contentType"] == "image/png"
-        assert body["bytes"] == len(data)
-        assert (body["width"], body["height"]) == (600, 400)
+# ── 업로드 엔드포인트 ──────────────────────────────────────────
 
-    async def test_get_media_serves_original_bytes(self, media):
-        data = make_png(300, 200, noise=True)
-        async with await _client() as c:
-            post = await c.post(
-                "/api/media", files={"file": ("p.png", io.BytesIO(data), "image/png")}
-            )
-            url = post.json()["url"]
-            got = await c.get(f"/api{url}")  # /media/{key} → /api/media/{key}
-        assert got.status_code == 200
-        assert got.content == data  # 로컬 폴백: 원본 바이트 그대로 프록시
 
-    async def test_get_display_variant_is_webp(self, media):
-        data = make_png(800, 600, noise=True)
-        async with await _client() as c:
-            post = await c.post(
-                "/api/media", files={"file": ("p.png", io.BytesIO(data), "image/png")}
-            )
-            display_url = post.json()["displayUrl"]
-            got = await c.get(f"/api{display_url}")
-        assert got.status_code == 200
-        assert got.content[:4] == b"RIFF" and got.content[8:12] == b"WEBP"
+async def test_post_media_returns_201_and_contract(media):
+    data = make_png(600, 400, noise=True)
+    async with await _client() as c:
+        resp = await c.post(
+            "/api/media", files={"file": ("pic.png", io.BytesIO(data), "image/png")}
+        )
+    assert resp.status_code == 201
+    body = resp.json()
+    assert set(body) == {
+        "url", "displayUrl", "thumbUrl", "bytes", "contentType", "width", "height"
+    }
+    assert body["url"].startswith("/media/")
+    assert body["displayUrl"].startswith("/media/")
+    assert body["thumbUrl"].startswith("/media/")
+    assert body["contentType"] == "image/png"
+    assert body["bytes"] == len(data)
+    assert (body["width"], body["height"]) == (600, 400)
 
-    async def test_get_missing_key_404(self, media):
-        async with await _client() as c:
-            resp = await c.get("/api/media/" + "0" * 64 + ".png")
-        assert resp.status_code == 404
-        assert "detail" in resp.json()
 
-    async def test_forged_upload_422(self, media):
-        async with await _client() as c:
-            resp = await c.post(
-                "/api/media", files={"file": ("fake.png", io.BytesIO(b"not an image"), "image/png")}
-            )
-        assert resp.status_code == 422
+async def test_get_media_serves_original_bytes(media):
+    data = make_png(300, 200, noise=True)
+    async with await _client() as c:
+        post = await c.post(
+            "/api/media", files={"file": ("p.png", io.BytesIO(data), "image/png")}
+        )
+        url = post.json()["url"]
+        got = await c.get(f"/api{url}")  # /media/{key} → /api/media/{key}
+    assert got.status_code == 200
+    assert got.content == data  # 로컬 폴백: 원본 바이트 그대로 프록시
 
-    async def test_decompression_bomb_returns_422_not_500(self, media):
-        data = make_png(15000, 15000)  # 종전 img.load() 에서 500 나던 경로 → 이제 422
-        async with await _client() as c:
-            resp = await c.post(
-                "/api/media", files={"file": ("bomb.png", io.BytesIO(data), "image/png")}
-            )
-        assert resp.status_code == 422
 
-    async def test_over_max_edge_returns_422(self, media):
-        data = make_png(4097, 100)
-        async with await _client() as c:
-            resp = await c.post(
-                "/api/media", files={"file": ("wide.png", io.BytesIO(data), "image/png")}
-            )
-        assert resp.status_code == 422
+async def test_get_display_variant_is_webp(media):
+    data = make_png(800, 600, noise=True)
+    async with await _client() as c:
+        post = await c.post(
+            "/api/media", files={"file": ("p.png", io.BytesIO(data), "image/png")}
+        )
+        display_url = post.json()["displayUrl"]
+        got = await c.get(f"/api{display_url}")
+    assert got.status_code == 200
+    assert got.content[:4] == b"RIFF" and got.content[8:12] == b"WEBP"
 
-    async def test_over_body_size_limit_returns_413(self, media):
-        # 12MB 초과 요청은 엔드포인트 len 검사가 413 으로 막는다(books import 관례).
-        oversized = b"\x89PNG\r\n\x1a\n" + b"\x00" * (12 * 1024 * 1024 + 4096)
-        async with await _client() as c:
-            resp = await c.post(
-                "/api/media", files={"file": ("huge.png", io.BytesIO(oversized), "image/png")}
-            )
-        assert resp.status_code == 413
+
+async def test_get_missing_key_404(media):
+    async with await _client() as c:
+        resp = await c.get("/api/media/" + "0" * 64 + ".png")
+    assert resp.status_code == 404
+    assert "detail" in resp.json()
+
+
+async def test_forged_upload_422(media):
+    async with await _client() as c:
+        resp = await c.post(
+            "/api/media", files={"file": ("fake.png", io.BytesIO(b"not an image"), "image/png")}
+        )
+    assert resp.status_code == 422
+
+
+async def test_decompression_bomb_returns_422_not_500(media):
+    data = make_png(15000, 15000)  # 종전 img.load() 에서 500 나던 경로 → 이제 422
+    async with await _client() as c:
+        resp = await c.post(
+            "/api/media", files={"file": ("bomb.png", io.BytesIO(data), "image/png")}
+        )
+    assert resp.status_code == 422
+
+
+async def test_over_max_edge_returns_422(media):
+    data = make_png(4097, 100)
+    async with await _client() as c:
+        resp = await c.post(
+            "/api/media", files={"file": ("wide.png", io.BytesIO(data), "image/png")}
+        )
+    assert resp.status_code == 422
+
+
+async def test_over_body_size_limit_returns_413(media):
+    # 12MB 초과 요청은 엔드포인트 len 검사가 413 으로 막는다(books import 관례).
+    oversized = b"\x89PNG\r\n\x1a\n" + b"\x00" * (12 * 1024 * 1024 + 4096)
+    async with await _client() as c:
+        resp = await c.post(
+            "/api/media", files={"file": ("huge.png", io.BytesIO(oversized), "image/png")}
+        )
+    assert resp.status_code == 413

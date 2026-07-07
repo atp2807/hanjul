@@ -1,5 +1,4 @@
 """TossPaymentGateway 단위 — confirm 응답 매핑(네트워크 없음)."""
-import pytest
 
 from src.features.billing.infrastructure.toss_client import PaymentError
 from src.features.billing.infrastructure.toss_gateway import TossPaymentGateway

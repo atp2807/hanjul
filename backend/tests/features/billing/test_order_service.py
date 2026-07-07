@@ -2,7 +2,6 @@
 import uuid
 
 import pytest
-
 from src.features.billing.application.order_service import OrderService
 from src.features.billing.domain.models import (
     PAID,
@@ -12,6 +11,7 @@ from src.features.billing.domain.models import (
     OrderNotFound,
     PaymentFailed,
 )
+
 from tests.fixtures.fake_order_repo import FakeGateway, FakeOrderRepository, FakePricing
 
 

@@ -6,7 +6,6 @@ import httpx
 import pytest
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.config.settings import settings
 
 settings.DEBUG = False
@@ -17,6 +16,7 @@ from src.features.auth.application.auth_service import AuthService  # noqa: E402
 from src.features.auth.domain.models import SocialProfile  # noqa: E402
 from src.features.auth.infrastructure.account_repo import SqlAccountRepository  # noqa: E402
 from src.features.auth.presentation.dependencies import get_auth_service, token_issuer  # noqa: E402
+
 from tests.fixtures.fake_account_repo import FakeProvider  # noqa: E402
 from tests.fixtures.hwpx_builder import build_hwpx  # noqa: E402
 from tests.integration.auth_helpers import login_account  # noqa: E402

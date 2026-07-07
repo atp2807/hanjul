@@ -7,19 +7,19 @@ import uuid
 import zipfile
 
 import pytest
-
 from src.features.doc.application.document_service import DocumentService
 from src.features.doc.domain.models import (
     CannotDetectFormat,
     DocumentNotFound,
     UnsupportedDocumentFormat,
 )
-from tests.fixtures.fake_doc_repo import InMemoryDocumentRepo
+
+from tests.fixtures.fake_doc_repo import FakeDocumentRepo
 
 
 @pytest.fixture
 def service() -> DocumentService:
-    return DocumentService(InMemoryDocumentRepo())
+    return DocumentService(FakeDocumentRepo())
 
 
 class TestUpload:
@@ -172,7 +172,7 @@ _PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 16
 
 
 def _service_with(objects: dict[str, bytes]) -> DocumentService:
-    return DocumentService(InMemoryDocumentRepo(), _StubStorage(objects))
+    return DocumentService(FakeDocumentRepo(), _StubStorage(objects))
 
 
 def _read(data: bytes) -> zipfile.ZipFile:
@@ -213,7 +213,7 @@ class TestExportImageResolution:
         assert "pic" in zf.read("word/document.xml").decode()  # alt 텍스트 폴백
 
     async def test_no_storage_falls_back_to_alt(self):
-        svc = DocumentService(InMemoryDocumentRepo())
+        svc = DocumentService(FakeDocumentRepo())
         doc = await self._doc_with_image(svc)
         _title, data = await svc.export_epub(doc.id)
         zf = _read(data)

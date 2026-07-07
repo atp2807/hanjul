@@ -1,7 +1,7 @@
 """doc 리포지토리 포트(Protocol) — 도메인이 요구하는 영속성 계약.
 
 구현체: infrastructure.doc_repo.SqlDocumentRepository/SqlShareRepository (운영) /
-tests 의 InMemoryDocumentRepo·InMemoryShareRepo (Fake). 서비스는 이 Protocol 에만
+tests 의 FakeDocumentRepo·FakeShareRepo (Fake). 서비스는 이 Protocol 에만
 의존한다(SQLAlchemy·SQL·_cd/_ts 컬럼 지식은 구현체에만).
 """
 from typing import Protocol

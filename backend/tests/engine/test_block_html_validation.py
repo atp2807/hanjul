@@ -3,12 +3,11 @@
 정본 문법(text_to_blocks.py/serialize.js 와 동일)만 통과해야 한다.
 """
 import pytest
-
 from src.engine.imports.block_html import InvalidBlockHtml, validate_block_html
 
 
 @pytest.mark.parametrize(
-    "block_type,html",
+    ("block_type", "html"),
     [
         ("P", "<p>순수 텍스트입니다.</p>"),
         ("H1", "<h1>제목</h1>"),
@@ -29,7 +28,7 @@ def test_valid_passes(block_type, html):
 
 
 @pytest.mark.parametrize(
-    "block_type,html,why",
+    ("block_type", "html", "why"),
     [
         ("P", "<p><script>alert(1)</script></p>", "script 태그"),
         ("P", '<p onclick="x">y</p>', "속성 있음"),

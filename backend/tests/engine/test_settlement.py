@@ -1,6 +1,5 @@
 """정산 엔진 — 분배율/원천징수 (순수)."""
 import pytest
-
 from src.engine.settlement.calculate import EXTERNAL, SELF, calculate_settlement
 
 

@@ -7,7 +7,6 @@ import httpx
 import pytest
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.config.settings import settings
 
 settings.DEBUG = False
@@ -25,6 +24,7 @@ from src.features.billing.presentation.dependencies import get_order_service  # 
 from src.features.cover.application.cover_service import CoverService  # noqa: E402
 from src.features.cover.infrastructure.cover_repo import SqlCoverRepository  # noqa: E402
 from src.features.cover.presentation.dependencies import get_cover_service  # noqa: E402
+
 from tests.fixtures.fake_account_repo import FakeProvider  # noqa: E402
 from tests.fixtures.fake_cover import FakeCoverGenerator  # noqa: E402
 from tests.fixtures.fake_order_repo import FakeGateway  # noqa: E402

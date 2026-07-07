@@ -1,7 +1,6 @@
 """auth HTTP E2E — 엔드포인트 배선 검증 (Fake provider 주입, 네트워크/DB 없음)."""
 import httpx
 import pytest
-
 from src.config.settings import settings
 
 settings.DEBUG = False
@@ -11,6 +10,7 @@ from src.features.auth.application.auth_service import AuthService  # noqa: E402
 from src.features.auth.application.token import JwtTokenIssuer  # noqa: E402
 from src.features.auth.domain.models import SocialProfile  # noqa: E402
 from src.features.auth.presentation.dependencies import get_auth_service  # noqa: E402
+
 from tests.fixtures.fake_account_repo import FakeAccountRepository, FakeProvider  # noqa: E402
 from tests.integration.auth_helpers import login_token  # noqa: E402
 
@@ -62,6 +62,7 @@ async def test_callback_exchange_failure_redirects_with_error():
     from src.features.auth.application.token import JwtTokenIssuer
     from src.features.auth.domain.models import OAuthExchangeError
     from src.features.auth.presentation.dependencies import get_auth_service
+
     from tests.fixtures.fake_account_repo import FakeAccountRepository
 
     class BoomProvider:

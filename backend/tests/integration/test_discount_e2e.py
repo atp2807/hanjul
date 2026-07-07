@@ -1,11 +1,10 @@
 """기간 할인 E2E — 주문 금액이 서버에서 할인 반영(클라 못 건드림) + 만료 처리."""
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import httpx
 import pytest
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.config.settings import settings
 
 settings.DEBUG = False
@@ -17,6 +16,7 @@ from src.features.auth.application.auth_service import AuthService  # noqa: E402
 from src.features.auth.domain.models import SocialProfile  # noqa: E402
 from src.features.auth.infrastructure.account_repo import SqlAccountRepository  # noqa: E402
 from src.features.auth.presentation.dependencies import get_auth_service, token_issuer  # noqa: E402
+
 from tests.fixtures.fake_account_repo import FakeProvider  # noqa: E402
 from tests.integration.auth_helpers import login_account  # noqa: E402
 
@@ -53,7 +53,7 @@ async def test_active_discount_applies_to_order(app_db):
         auth = {"Authorization": f"Bearer {token}"}
         book = await _publish(c, auth, 10000)
 
-        until = (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()
+        until = (datetime.now(UTC) + timedelta(days=1)).isoformat()
         assert (await c.put(f"/api/books/{book}/discount", json={"amount": 6000, "until": until}, headers=auth)).status_code == 204
 
         # 스토어 상세에 할인 노출
@@ -70,7 +70,7 @@ async def test_expired_discount_uses_original(app_db):
         token, _ = await login_account(c, "google", "x")
         auth = {"Authorization": f"Bearer {token}"}
         book = await _publish(c, auth, 10000)
-        past = (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()
+        past = (datetime.now(UTC) - timedelta(days=1)).isoformat()
         await c.put(f"/api/books/{book}/discount", json={"amount": 6000, "until": past}, headers=auth)
 
         order = (await c.post("/api/orders", json={"bookId": book, "withdrawalConsent": True}, headers=auth)).json()

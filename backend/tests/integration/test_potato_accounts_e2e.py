@@ -1,10 +1,9 @@
 """운영자 계정 조치(정지·서평단차단) + 대시보드 E2E."""
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
 
 import httpx
 import pytest
-
 from src.config.settings import settings
 
 settings.DEBUG = False
@@ -101,10 +100,10 @@ async def test_dashboard_stats(app_db):
         # 출판 책 1 + 차단 책 1
         async with app_db() as s:
             s.add(Book(id=uuid4(), title="공개", kind="BOOK", language="ko", status="PUBLISHED",
-                       price_amt=1000, published_at=datetime.now(timezone.utc)))
+                       price_amt=1000, published_at=datetime.now(UTC)))
             s.add(Book(id=uuid4(), title="차단", kind="BOOK", language="ko", status="PUBLISHED",
-                       price_amt=1000, published_at=datetime.now(timezone.utc),
-                       blocked_at=datetime.now(timezone.utc)))
+                       price_amt=1000, published_at=datetime.now(UTC),
+                       blocked_at=datetime.now(UTC)))
             await s.commit()
 
         stats = (await c.get("/api/potato/dashboard/stats", headers=hdr)).json()

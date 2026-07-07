@@ -7,7 +7,6 @@ import httpx
 import pytest
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.config.settings import settings
 
 settings.DEBUG = False  # lifespan 의 엔진 생성 회피
@@ -21,6 +20,7 @@ from src.features.auth.presentation.dependencies import (  # noqa: E402
     get_auth_service,
     token_issuer,
 )
+
 from tests.fixtures.fake_account_repo import FakeProvider  # noqa: E402
 from tests.integration.auth_helpers import login_account  # noqa: E402
 

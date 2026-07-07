@@ -2,18 +2,18 @@
 import uuid
 
 import pytest
-
 from src.features.catalog.application.catalog_service import CatalogService
 from src.features.catalog.domain.models import (
+    DRAFT,
+    PUBLISHED,
+    REVIEW,
     BookNotFound,
     BookSummary,
     InvalidTransition,
     PriceRequired,
-    DRAFT,
-    PUBLISHED,
-    REVIEW,
 )
 from src.shared.errors import ValidationError
+
 from tests.fixtures.fake_catalog_repo import FakeCatalogRepository
 
 

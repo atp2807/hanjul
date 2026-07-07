@@ -4,7 +4,6 @@
 """
 import pytest
 from fastapi.testclient import TestClient
-
 from src.config.settings import settings
 
 # 테스트는 DEBUG off — lifespan 의 DB 엔진 생성/테이블 생성 스킵
@@ -15,6 +14,7 @@ from src.features.billing.application.order_service import OrderService  # noqa:
 from src.features.billing.presentation.dependencies import get_order_service  # noqa: E402
 from src.features.books.application.book_service import BookService  # noqa: E402
 from src.features.books.presentation.dependencies import get_book_service  # noqa: E402
+
 from tests.fixtures.fake_book_repo import FakeBookRepository  # noqa: E402
 from tests.fixtures.fake_order_repo import FakeGateway, FakeOrderRepository, FakePricing  # noqa: E402
 

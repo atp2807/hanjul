@@ -2,7 +2,6 @@
 import uuid
 
 import pytest
-
 from src.features.books.application.book_service import BookService
 from src.features.books.domain.models import (
     BlockView,
@@ -12,6 +11,7 @@ from src.features.books.domain.models import (
     NotOwner,
     suggest_blurb,
 )
+
 from tests.fixtures.fake_book_repo import FakeBookRepository
 
 

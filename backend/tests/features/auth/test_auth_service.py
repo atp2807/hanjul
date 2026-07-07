@@ -1,9 +1,9 @@
 """AuthService — 소셜 로그인 find-or-create 로직 (Fake provider/repo)."""
 import pytest
-
 from src.features.auth.application.auth_service import AuthService
 from src.features.auth.application.token import JwtTokenIssuer
 from src.features.auth.domain.models import SocialProfile, UnknownProvider
+
 from tests.fixtures.fake_account_repo import FakeAccountRepository, FakeProvider
 
 PROFILE = SocialProfile("GOOGLE", "sub-123", "a@b.com", "박작가")

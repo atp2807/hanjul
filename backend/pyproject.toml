@@ -6,13 +6,15 @@ src = ["src"]
 extend-exclude = ["migrations", ".venv", ".venv312"]
 
 [tool.ruff.lint]
-# E/F=pycodestyle+pyflakes, I=isort, B=bugbear, UP=pyupgrade, SIM=simplify
-select = ["E", "F", "I", "B", "UP", "SIM"]
+# E/F=pycodestyle+pyflakes, I=isort, B=bugbear, UP=pyupgrade, SIM=simplify, PT=pytest-style, ASYNC=async 함정
+select = ["E", "F", "I", "B", "UP", "SIM", "PT", "ASYNC"]
 # B008: FastAPI Depends() 관용 · E501: 길이는 format 담당 · B904: 예외 from 체이닝(점진 채택)
 ignore = ["B008", "E501", "B904", "SIM117"]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["E501"]
+# PT018: `assert a and b` 복합 단언이 27개 파일에 48건 산재(이번 정리 범위 밖 기존 스타일) —
+# 전부 쪼개면 무관 파일 대량 리팩터라 점진 채택 보류, 신규 코드는 분리 지향.
+"tests/**" = ["E501", "B008", "PT011", "PT018"]
 
 [tool.ruff.format]
 quote-style = "double"

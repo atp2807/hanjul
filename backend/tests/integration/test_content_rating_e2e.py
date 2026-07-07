@@ -3,7 +3,6 @@ import httpx
 import pytest
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.config.settings import settings
 
 settings.DEBUG = False
@@ -20,6 +19,7 @@ from src.features.books.infrastructure.anthropic_rating_classifier import (  # n
 )
 from src.features.books.infrastructure.book_repo import SqlBookRepository  # noqa: E402
 from src.features.books.presentation.dependencies import get_content_rating_service  # noqa: E402
+
 from tests.fixtures.fake_account_repo import FakeProvider  # noqa: E402
 from tests.fixtures.fake_rating_classifier import FakeContentRatingClassifier  # noqa: E402
 from tests.integration.auth_helpers import login_account  # noqa: E402

@@ -4,7 +4,6 @@ import pytest
 from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.config.settings import settings
 
 settings.DEBUG = False
@@ -17,6 +16,7 @@ from src.features.auth.infrastructure.account_repo import SqlAccountRepository  
 from src.features.auth.presentation.dependencies import get_auth_service, token_issuer  # noqa: E402
 from src.infrastructure.db.models.book import Block, Book, Chapter  # noqa: E402
 from src.infrastructure.db.models.order import Order  # noqa: E402
+
 from tests.fixtures.fake_account_repo import FakeProvider  # noqa: E402
 from tests.integration.auth_helpers import login_token  # noqa: E402
 

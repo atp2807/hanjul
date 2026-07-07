@@ -1,7 +1,7 @@
 """HWP/HWPX 가져오기 파서 단위 테스트 — 즉석 HWPX 버퍼로 실제 파싱까지 검증."""
 import pytest
-
 from src.engine.imports.hwp_import import InvalidHwpFile, hwp_to_neutral_blocks
+
 from tests.fixtures.hwpx_builder import build_hwpx
 
 
