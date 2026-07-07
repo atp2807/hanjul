@@ -1,0 +1,25 @@
+{
+  "name": "@hanjul/doc",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "한줄독(juldoc) 문서 코어 — 방언 정규화·텍스트 측정·페이지 분할·에디터/리더 마운트 + React 래퍼 (순수 JS/JSX)",
+  "exports": {
+    ".": "./src/index.js",
+    "./doc.css": "./src/doc.css",
+    "./reader": "./src/reader.js"
+  },
+  "scripts": {
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "dependencies": {
+    "@chenglou/pretext": "^0.0.8"
+  },
+  "devDependencies": {
+    "jsdom": "^25.0.1",
+    "vitest": "^2.1.8"
+  }
+}

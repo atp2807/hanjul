@@ -1,0 +1,93 @@
+/*
+ * 한줄독(juldoc) 에디터·리더 스타일 — demo/index.html·share.html 의 인라인 CSS 를
+ * 단일 시트로 통합. 색·spacing 은 @hanjul/ui theme.js(T) 팔레트(민트/딥틸)에 맞춤.
+ * 클래스 훅(.juldoc-*)은 코어(editor.js/reader.js)가 생성하는 그대로 유지.
+ *
+ * 팔레트 대응(theme.js T):
+ *   surface #ffffff · bg #f3faf8 · border #e3efea · borderSoft #eef2f0
+ *   ink(accent) #0e4a5c · inkText #eafaf5 · textStrong #143e4a · text #3f6b78 · muted #7d949c
+ */
+
+/* ── 에디터 툴바 (core editor 가 .juldoc-toolbar 생성) ───────────── */
+.juldoc-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px;
+  background: #ffffff;
+  border: 1px solid #e3efea;
+  border-radius: 10px 10px 0 0;
+}
+.juldoc-toolbar button {
+  font: inherit;
+  padding: 4px 8px;
+  border: 1px solid #e3efea;
+  background: #ffffff;
+  color: #143e4a;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.juldoc-toolbar button:hover {
+  background: #eef8f4;
+}
+
+/* ── 에디터 본문 (core 가 article 에 .juldoc-editor) ─────────────── */
+.juldoc-editor {
+  display: block;
+  background: #ffffff;
+  border: 1px solid #e3efea;
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  padding: 24px;
+  min-height: 60vh;
+  outline: none;
+  line-height: 1.7;
+  color: #143e4a;
+  font-family: 'IBM Plex Sans KR', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  word-break: keep-all;
+}
+.juldoc-editor:focus {
+  border-color: #0e4a5c;
+}
+/* 표·이미지 편집 표시 — 방언 정본 요소를 편집 중에도 눈에 보이게. */
+.juldoc-editor table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 8px 0;
+}
+.juldoc-editor th,
+.juldoc-editor td {
+  border: 1px solid #e3efea;
+  padding: 4px 8px;
+  min-width: 3ch;
+}
+.juldoc-editor thead th {
+  background: #f3faf8;
+  font-weight: 600;
+}
+.juldoc-editor img {
+  max-width: 100%;
+  height: auto;
+}
+.juldoc-editor blockquote {
+  margin: 12px 0;
+  padding: 4px 16px;
+  border-left: 3px solid #cfe3dc;
+  color: #3f6b78;
+}
+
+/* ── 리더 (core reader 가 .juldoc-reader / .juldoc-page 생성) ─────── */
+.juldoc-reader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 8px 0;
+}
+.juldoc-page {
+  background: #ffffff;
+  box-shadow: 0 2px 16px rgba(12, 58, 50, 0.14);
+  border-radius: 2px;
+  color: #143e4a;
+  max-width: 100%;
+}

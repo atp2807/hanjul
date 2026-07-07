@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@chenglou/pretext": "^0.0.8",
+    "@hanjul/doc": "*",
     "@tosspayments/payment-sdk": "^1.9.3",
     "jszip": "^3.10.1",
     "mammoth": "^1.12.0",

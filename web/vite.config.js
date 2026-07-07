@@ -16,10 +16,11 @@ export default defineConfig({
   resolve: {
     alias: { '@': '/src' },
   },
-  // jszip(EPUB 가져오기)를 초기 최적화 패스에 포함 — 런타임 늦은 발견 시 발생하는
-  // vite 재-최적화(모노레포에서 hoist된 react 경로 오인 → 504 Outdated Optimize Dep) 회피.
+  // jszip(EPUB 가져오기)·@chenglou/pretext(@hanjul/doc 조판 코어의 의존성 — 워크스페이스
+  // 링크 패키지라 스캔에서 늦게 발견됨)를 초기 최적화 패스에 포함 — 런타임 늦은 발견 시
+  // 발생하는 vite 재-최적화(모노레포에서 hoist된 react 경로 오인 → 504 Outdated Optimize Dep) 회피.
   optimizeDeps: {
-    include: ['jszip'],
+    include: ['jszip', '@chenglou/pretext', '@chenglou/pretext/rich-inline'],
   },
   test: {
     environment: 'jsdom',

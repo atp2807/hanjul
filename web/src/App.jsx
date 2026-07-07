@@ -14,6 +14,9 @@ import { B2BPlanPage } from './pages/B2BPlanPage';
 import { BookDetailPage } from './pages/BookDetailPage';
 import { CampaignDetailPage } from './pages/CampaignDetailPage';
 import { CampaignStudioPage } from './pages/CampaignStudioPage';
+import { DocsPage } from './pages/DocsPage';
+import { DocPage } from './pages/DocPage';
+import { DocSharePage } from './pages/DocSharePage';
 import { ReviewCopyReviewPage } from './pages/ReviewCopyReviewPage';
 import { LibraryPage } from './pages/LibraryPage';
 import { LoginPage } from './pages/LoginPage';
@@ -59,6 +62,9 @@ export default function App() {
         <Route path="/campaigns/:id/review" element={<ReviewCopyReviewPage />} />
         <Route path="/reviewer/activity" element={<ReviewerActivityPage />} />
         <Route path="/write/:id" element={<WritePage />} />
+        <Route path="/doc" element={<DocsPage />} />
+        <Route path="/doc/s/:token" element={<DocSharePage />} />
+        <Route path="/doc/:id" element={<DocPage />} />
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/payment/result" element={<PaymentResultPage />} />

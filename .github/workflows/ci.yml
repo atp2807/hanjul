@@ -41,6 +41,7 @@ jobs:
       - run: npm run lint
       - run: npm run test -w web
       - run: npm run test -w potato
+      - run: npm run test -w packages/doc
 
   e2e:
     name: 브라우저 E2E (Playwright)
