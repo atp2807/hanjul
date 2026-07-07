@@ -1,18 +1,18 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
+import { sharedTestConfig } from '@hanjul/test-utils/vitest-shared';
+
 // 운영자 앱(potato.hanjul.io) — web/ 와 완전 분리된 별도 빌드/배포.
 export default defineConfig({
   plugins: [react()],
   test: {
-    environment: 'jsdom',
-    globals: true,
-    setupFiles: ['./src/test/setup.js'],
+    ...sharedTestConfig,
     exclude: ['**/node_modules/**'],
     coverage: {
       provider: 'v8',
       include: ['src/**/*.{js,jsx}'],
-      exclude: ['src/**/*.test.{js,jsx}', 'src/test/**', 'src/main.jsx', 'src/App.jsx'],
+      exclude: ['src/**/*.test.{js,jsx}', 'src/main.jsx', 'src/App.jsx'],
     },
   },
   server: {

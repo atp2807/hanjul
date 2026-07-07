@@ -9,5 +9,15 @@
   },
   "peerDependencies": {
     "react": ">=19"
+  },
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@hanjul/test-utils": "*",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "jsdom": "^25.0.1",
+    "vitest": "^2.1.8"
   }
 }

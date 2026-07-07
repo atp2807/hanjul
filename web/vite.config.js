@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
+import { sharedTestConfig } from '@hanjul/test-utils/vitest-shared';
+
 export default defineConfig({
   plugins: [react()],
   server: {
@@ -23,9 +25,7 @@ export default defineConfig({
     include: ['jszip', '@chenglou/pretext', '@chenglou/pretext/rich-inline'],
   },
   test: {
-    environment: 'jsdom',
-    globals: true,
-    setupFiles: ['./src/test/setup.js'],
+    ...sharedTestConfig,
     exclude: ['**/node_modules/**', '**/e2e/**'],
     coverage: {
       provider: 'v8',
@@ -35,7 +35,6 @@ export default defineConfig({
       include: ['src/**/*.{js,jsx}'],
       exclude: [
         'src/**/*.test.{js,jsx}',
-        'src/test/**',
         'src/main.jsx',
         'src/App.jsx',
         'src/sampleBook.js',

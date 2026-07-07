@@ -1,0 +1,19 @@
+{
+  "name": "@hanjul/test-utils",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "한줄 공용 프론트 테스트 유틸 — renderWithProviders·authFixture·mockApiClient·httpError·docStubs + 공유 vitest 설정",
+  "exports": {
+    ".": "./src/index.js",
+    "./setup": "./src/setup.js",
+    "./vitest-shared": "./vitest.shared.js"
+  },
+  "peerDependencies": {
+    "react": ">=19",
+    "react-router-dom": ">=7"
+  },
+  "scripts": {
+    "test": "vitest run"
+  }
+}

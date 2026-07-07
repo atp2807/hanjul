@@ -13,5 +13,6 @@
     "rootDir": "./src",
     "outDir": "./dist"
   },
-  "include": ["src/**/*.js", "src/**/*.jsx"]
+  "include": ["src/**/*.js", "src/**/*.jsx"],
+  "exclude": ["src/**/*.test.js", "src/**/*.test.jsx"]
 }
