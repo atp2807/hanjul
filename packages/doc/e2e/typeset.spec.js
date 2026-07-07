@@ -1,12 +1,14 @@
 // 실제 브라우저(chromium) 조판 검증 — Pretext 실측정 정본.
 // juldoc(../../juldoc/web/e2e/typeset.spec.js)에서 이식. vitest(jsdom)는 canvas 가 없어
 // 근사/파서만 검증하므로, 표 실측 행 높이·인라인 굵기 줄 수·헤더 반복 같은 "측정 결과"는
-// 여기서 실측 assert 한다. assertion 본문은 원본과 동일 — beforeEach 의 하니스 경로만
-// hanjul 배치(web/e2e/doc-typeset-harness.html, vite 가 /e2e/... 로 서빙)에 맞춰 바뀌었다.
+// 여기서 실측 assert 한다. assertion 본문은 원본과 동일 — packages/doc 소유 독립 Playwright
+// 프로젝트로 이전(원래 web/e2e/doc_typeset.spec.js)하면서 beforeEach 의 하니스 경로만 바뀌었다:
+// vite.harness.config.js 가 root='./e2e' 로 이 디렉터리를 서빙하므로 harness 는 사이트
+// 루트('/doc-typeset-harness.html')에 위치한다(이전 web 배치에서는 '/e2e/...' 프리픽스였다).
 import { test, expect } from '@playwright/test';
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/e2e/doc-typeset-harness.html');
+  await page.goto('/doc-typeset-harness.html');
   await page.waitForFunction('window.__ready === true');
 });
 

@@ -1,17 +1,10 @@
 // 한줄독(/doc) 사용자 플로우 e2e — 업로드→읽기, 편집 자동저장, 공유링크, 수출, 소유권.
 // backend/src/features/doc + web DocsPage/DocPage/DocSharePage 실제 라우트·셀렉터 기준
-// (packages/doc 조판 코어 자체의 실측 검증은 doc_typeset.spec.js 가 담당 — 역할 분리).
+// (packages/doc 조판 코어 자체의 실측 검증은 packages/doc/e2e/typeset.spec.js 가
+// 독립 Playwright 프로젝트로 담당 — 역할 분리).
 import { expect, test } from '@playwright/test';
 
-import { login } from './helpers.js';
-
-async function tokenFor(request, email, name = '문서주인') {
-  const res = await request.get(
-    `/api/auth/test-login?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`,
-    { maxRedirects: 0 },
-  );
-  return new URLSearchParams(res.headers()['location'].split('#')[1]).get('token');
-}
+import { login, tokenFor } from './helpers.js';
 
 // ① 비로그인 업로드(md) → 읽기 — ownerless 문서(owner_id NULL) 허용을 검증.
 test('비로그인으로 md 업로드 후 바로 읽을 수 있다', async ({ page }) => {

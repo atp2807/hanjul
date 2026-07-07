@@ -26,7 +26,7 @@ jobs:
       - run: python -m pytest -q
 
   frontend:
-    name: 프론트 컴포넌트 (vitest — web·potato)
+    name: 프론트 컴포넌트 (vitest — web·potato) + 조판 e2e (packages/doc)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -43,6 +43,17 @@ jobs:
       - run: npm run test -w web
       - run: npm run test -w potato
       - run: npm run test -w packages/doc
+      # 조판(typeset) 실측 e2e — @hanjul/doc 단독, 백엔드/DB 불요라 가벼운 이 잡에 둔다.
+      - name: Playwright 브라우저 (packages/doc — chromium)
+        run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e -w packages/doc
+      - name: 조판 e2e 리포트 업로드 (실패 시)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: doc-playwright-report
+          path: packages/doc/playwright-report/
+          retention-days: 7
 
   e2e:
     name: 브라우저 E2E (Playwright)
