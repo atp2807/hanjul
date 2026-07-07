@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>한줄독 — 조판 e2e 하니스</title>
+  <!-- juldoc 원본(juldoc/web/e2e/harness.html)과 달리 importmap 불필요 — vite dev 서버가
+       @hanjul/doc(workspace 패키지, node_modules 심볼릭링크)를 bare import 로 그대로 해석한다. -->
+  <style>
+    body { margin: 0; font-family: -apple-system, sans-serif; }
+    #stage { padding: 16px; }
+  </style>
+</head>
+<body>
+  <div id="stage"></div>
+  <script type="module">
+    // 코어 조판 모듈을 실제 브라우저에서 그대로 로드(캔버스 측정 경로 포함).
+    import {
+      createMeasurer, parseInlineSegments, parseTableModel, PAGE_SIZES,
+    } from '@hanjul/doc';
+    import { paginateLines } from '@hanjul/doc';
+    import { mountReader } from '@hanjul/doc/reader';
+
+    // 테스트가 page.evaluate 로 호출할 수 있도록 전역에 노출.
+    window.juldoc = {
+      createMeasurer, paginateLines, mountReader, parseInlineSegments, parseTableModel, PAGE_SIZES,
+
+      // 블록 1개를 measureLines 로 측정(HTML 문자열 → block).
+      measureBlock(type, html, contentWidth) {
+        const measure = createMeasurer({ contentWidth, scale: 1 });
+        const doc = new DOMParser().parseFromString(`<div>${html}</div>`, 'text/html');
+        const div = doc.body.firstChild;
+        return measure({ type, html, text: div.textContent || '' });
+      },
+
+      // 표 노드를 만들어 measureLines 로 측정.
+      measureTable(tableHtml, contentWidth) {
+        const measure = createMeasurer({ contentWidth, scale: 1 });
+        const doc = new DOMParser().parseFromString(tableHtml, 'text/html');
+        const node = doc.querySelector('table');
+        return measure({ type: 'TABLE', node, rowCount: node.querySelectorAll('tr').length });
+      },
+
+      // reader 를 stage 에 마운트하고 결과 통계를 반환.
+      mount(html, opts) {
+        const stage = document.getElementById('stage');
+        const ctl = mountReader(stage, html === undefined ? opts : { html, ...(opts || {}) });
+        return ctl.pageCount;
+      },
+    };
+    window.__ready = true;
+  </script>
+</body>
+</html>
