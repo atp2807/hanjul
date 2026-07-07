@@ -40,3 +40,23 @@ backend/tests/engine/doc/reference_data/
 # 테스트 커버리지 산출물
 .coverage
 coverage/
+
+# LinkLore — token 보호 (디바이스별 환경)
+.linklore/.space/
+.linklore/external/
+
+# LinkLore — 런타임 파생 파일 (자동 생성)
+.linklore/system/linklore.db
+.linklore/system/linklore.db-wal
+.linklore/system/linklore.db-shm
+.linklore/system/codemap.json
+.linklore/system/embed_index.json
+.linklore/system/embed_doc_index.json
+.linklore/system/embeddings.npz
+.linklore/system/embed_doc.npz
+.linklore/system/hook_log.json
+.linklore/system/versions/blobs/
+.linklore/model/index.db
+.linklore/model/index.db-shm
+.linklore/model/index.db-wal
+.linklore/model/index.db-journal
