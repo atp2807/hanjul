@@ -1,7 +1,7 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { renderWithProviders, httpError } from '@hanjul/test-utils';
 import * as books from '../services/api/books';
 import * as contentRating from '../services/api/contentRating';
 import * as studio from '../services/api/studio';
@@ -27,14 +27,7 @@ const CRITERIA = {
 };
 
 function renderEditor() {
-  return render(
-    <MemoryRouter initialEntries={['/studio/b1']}>
-      <Routes>
-        <Route path="/studio" element={<div>스튜디오</div>} />
-        <Route path="/studio/:id" element={<StudioEditorPage />} />
-      </Routes>
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<StudioEditorPage />, { path: '/studio/:id', at: '/studio/b1' });
 }
 
 beforeEach(() => {
@@ -149,8 +142,7 @@ describe('StudioEditorPage', () => {
 
   it('표지 업로드 실패(422) → 형식 안내, 그 외는 원문 메시지', async () => {
     books.getBookContent.mockResolvedValue({ id: 'b1', title: '내 책', status: 'DRAFT', priceAmt: 0, chapters: [] });
-    const err = new Error('x'); err.status = 422;
-    studio.uploadCover.mockRejectedValue(err);
+    studio.uploadCover.mockRejectedValue(httpError(422));
     const { container } = renderEditor();
 
     await screen.findByText('내 책');
@@ -208,8 +200,7 @@ describe('StudioEditorPage', () => {
   it('판매 이력 있는 책 삭제 시도(409) → 출판취소 안내', async () => {
     books.getBookContent.mockResolvedValue({ id: 'b1', title: '내 책', status: 'PUBLISHED', priceAmt: 9000, chapters: [] });
     studio.getDistributions.mockResolvedValue([]);
-    const err = new Error('x'); err.status = 409;
-    studio.deleteBook.mockRejectedValue(err);
+    studio.deleteBook.mockRejectedValue(httpError(409));
     vi.spyOn(window, 'confirm').mockReturnValue(true);
     renderEditor();
 

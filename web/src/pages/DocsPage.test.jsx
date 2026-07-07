@@ -1,7 +1,7 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { renderWithProviders, authFixture, httpError } from '@hanjul/test-utils';
 import * as docsApi from '../services/api/docs';
 import { DocsPage } from './DocsPage';
 
@@ -9,10 +9,10 @@ vi.mock('../services/api/docs');
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async (o) => ({ ...(await o()), useNavigate: () => mockNavigate }));
 let mockUser = null;
-vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ user: mockUser }) }));
+vi.mock('../auth/AuthContext', () => ({ useAuth: () => authFixture({ user: mockUser }) }));
 
 function renderPage() {
-  return render(<MemoryRouter><DocsPage /></MemoryRouter>);
+  return renderWithProviders(<DocsPage />);
 }
 
 const LIST = {
@@ -92,8 +92,7 @@ describe('DocsPage', () => {
 
   it('삭제 403 → 소유자 안내', async () => {
     vi.spyOn(window, 'confirm').mockReturnValue(true);
-    const err = new Error('x'); err.status = 403;
-    docsApi.deleteDocument.mockRejectedValue(err);
+    docsApi.deleteDocument.mockRejectedValue(httpError(403));
     renderPage();
     await screen.findByText('보고서');
     fireEvent.click(screen.getByLabelText('보고서 삭제'));

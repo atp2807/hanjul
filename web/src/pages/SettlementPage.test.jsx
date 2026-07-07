@@ -1,20 +1,16 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { renderWithProviders, authFixture, httpError } from '@hanjul/test-utils';
 import * as payoutsApi from '../services/api/payouts';
 import { SettlementPage } from './SettlementPage';
 
 let mockUser = { id: 'a1', email: 'me@x.com' };
 vi.mock('../services/api/payouts');
-vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ user: mockUser }) }));
+vi.mock('../auth/AuthContext', () => ({ useAuth: () => authFixture({ user: mockUser }) }));
 
 function renderPage() {
-  return render(
-    <MemoryRouter>
-      <SettlementPage />
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<SettlementPage />);
 }
 
 describe('SettlementPage', () => {
@@ -60,8 +56,7 @@ describe('SettlementPage', () => {
   });
 
   it('출금 신청 실패(잔액·계좌 없음 422) → 안내 문구', async () => {
-    const err = new Error('x'); err.status = 422;
-    payoutsApi.requestPayout.mockRejectedValue(err);
+    payoutsApi.requestPayout.mockRejectedValue(httpError(422));
     renderPage();
     fireEvent.click(await screen.findByText('출금 신청'));
     expect(await screen.findByText('출금 가능한 정산 잔액이 없거나 계좌가 없어요.')).toBeInTheDocument();
@@ -93,8 +88,7 @@ describe('SettlementPage', () => {
 
   it('계좌 등록 실패(422) → 계좌 확인 안내', async () => {
     payoutsApi.getBankAccount.mockResolvedValue(null);
-    const err = new Error('x'); err.status = 422;
-    payoutsApi.setBankAccount.mockRejectedValue(err);
+    payoutsApi.setBankAccount.mockRejectedValue(httpError(422));
     renderPage();
 
     fireEvent.change(await screen.findByPlaceholderText('홍길동'), { target: { value: '나' } });

@@ -1,27 +1,15 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { renderWithProviders, docStubs, httpError } from '@hanjul/test-utils';
 import * as docsApi from '../services/api/docs';
 import { DocPage } from './DocPage';
 
 vi.mock('../services/api/docs');
-vi.mock('@hanjul/doc', () => ({
-  DocReader: ({ html }) => <div data-testid="doc-reader">{html}</div>,
-  DocEditor: ({ html, onSave }) => (
-    <div data-testid="doc-editor">
-      <button onClick={() => onSave('<article data-juldoc="1">편집됨</article>')}>발화-저장</button>
-      <span>{html}</span>
-    </div>
-  ),
-}));
+vi.mock('@hanjul/doc', () => docStubs());
 
 function renderPage() {
-  return render(
-    <MemoryRouter initialEntries={['/doc/d1']}>
-      <Routes><Route path="/doc/:id" element={<DocPage />} /></Routes>
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<DocPage />, { path: '/doc/:id', at: '/doc/d1' });
 }
 
 describe('DocPage', () => {
@@ -80,8 +68,7 @@ describe('DocPage', () => {
   });
 
   it('EPUB 수출 실패(403, mine 문서 인증 누락 회귀) → 안내 문구', async () => {
-    const err = new Error('403'); err.status = 403;
-    docsApi.exportEpub.mockRejectedValue(err);
+    docsApi.exportEpub.mockRejectedValue(httpError(403));
     renderPage();
     await screen.findByText('내 보고서');
     fireEvent.click(screen.getByText('EPUB'));

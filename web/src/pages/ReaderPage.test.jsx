@@ -1,7 +1,7 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
+import { renderWithProviders, authFixture, httpError } from '@hanjul/test-utils';
 import * as booksApi from '../services/api/books';
 import * as ordersApi from '../services/api/orders';
 import { ReaderPage } from './ReaderPage';
@@ -11,7 +11,7 @@ vi.mock('../services/api/orders', async (o) => ({ ...(await o()), createOrder: v
 vi.mock('../reader/Reader', () => ({ Reader: ({ blocks }) => <div data-testid="reader-view">{blocks.length}블록</div> }));
 
 let mockUser = { id: 'u1' };
-vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ user: mockUser }) }));
+vi.mock('../auth/AuthContext', () => ({ useAuth: () => authFixture({ user: mockUser }) }));
 
 const CONTENT = {
   isPreview: false,
@@ -20,11 +20,7 @@ const CONTENT = {
 };
 
 function renderPage() {
-  return render(
-    <MemoryRouter initialEntries={['/read/book1']}>
-      <Routes><Route path="/read/:id" element={<ReaderPage />} /></Routes>
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<ReaderPage />, { path: '/read/:id', at: '/read/book1' });
 }
 
 describe('ReaderPage', () => {
@@ -73,8 +69,7 @@ describe('ReaderPage', () => {
     booksApi.getBookContent
       .mockResolvedValueOnce({ ...CONTENT, isPreview: true })
       .mockResolvedValueOnce({ ...CONTENT, isPreview: false });
-    const err = new Error('conflict'); err.status = 409;
-    ordersApi.createOrder.mockRejectedValue(err);
+    ordersApi.createOrder.mockRejectedValue(httpError(409));
     renderPage();
 
     fireEvent.click(await screen.findByRole('button', { name: '구매하고 계속 읽기' }));

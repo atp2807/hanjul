@@ -1,18 +1,14 @@
-import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
+import { renderWithProviders } from '@hanjul/test-utils';
 import * as books from '../services/api/books';
 import { StorePage } from './StorePage';
 
 vi.mock('../services/api/books');
 
 function renderStore() {
-  return render(
-    <MemoryRouter>
-      <StorePage />
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<StorePage />);
 }
 
 describe('StorePage', () => {

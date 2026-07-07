@@ -1,7 +1,7 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
+import { renderWithProviders, authFixture, httpError } from '@hanjul/test-utils';
 import * as campaigns from '../services/api/campaigns';
 import * as books from '../services/api/books';
 import { CampaignDetailPage } from './CampaignDetailPage';
@@ -13,16 +13,12 @@ vi.mock('../services/api/campaigns', async (o) => ({
   applyCampaign: vi.fn(),
 }));
 vi.mock('../services/api/books');
-vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ user: { id: 'u1' } }) }));
+vi.mock('../auth/AuthContext', () => ({ useAuth: () => authFixture({ user: { id: 'u1' } }) }));
 
 const CAMP = { id: 'c1', bookId: 'b1', bookTitle: '밤의 편집자', slots: 30, filled: 23, remaining: 7, reviewDays: 14, minChars: 300, status: 'OPEN' };
 
 function renderPage() {
-  return render(
-    <MemoryRouter initialEntries={['/campaigns/c1']}>
-      <Routes><Route path="/campaigns/:id" element={<CampaignDetailPage />} /></Routes>
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<CampaignDetailPage />, { path: '/campaigns/:id', at: '/campaigns/c1' });
 }
 
 describe('CampaignDetailPage', () => {
@@ -44,9 +40,7 @@ describe('CampaignDetailPage', () => {
   it('신청 실패(409) — 서버 detail 문구를 그대로 표시', async () => {
     campaigns.getCampaign.mockResolvedValue(CAMP);
     campaigns.getMyApplications.mockResolvedValue({ items: [] });
-    const err = new Error('마감됐거나 신청할 수 없는 모집이에요.');
-    err.status = 409; err.detail = '마감됐거나 신청할 수 없는 모집이에요.';
-    campaigns.applyCampaign.mockRejectedValue(err);
+    campaigns.applyCampaign.mockRejectedValue(httpError(409, '마감됐거나 신청할 수 없는 모집이에요.'));
     books.getStoreDetail.mockResolvedValue({});
     renderPage();
 

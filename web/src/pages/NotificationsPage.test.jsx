@@ -1,18 +1,18 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
+import { renderWithProviders, authFixture } from '@hanjul/test-utils';
 import * as notifApi from '../services/api/notifications';
 import { NotificationsPage } from './NotificationsPage';
 
 vi.mock('../services/api/notifications');
-vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ user: { id: 'u1' } }) }));
+vi.mock('../auth/AuthContext', () => ({ useAuth: () => authFixture({ user: { id: 'u1' } }) }));
 
 const navigate = vi.fn();
 vi.mock('react-router-dom', async (orig) => ({ ...(await orig()), useNavigate: () => navigate }));
 
 function renderPage() {
-  return render(<MemoryRouter><NotificationsPage /></MemoryRouter>);
+  return renderWithProviders(<NotificationsPage />);
 }
 
 describe('NotificationsPage', () => {

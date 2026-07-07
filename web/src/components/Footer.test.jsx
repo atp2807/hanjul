@@ -1,16 +1,12 @@
-import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
+import { renderWithProviders } from '@hanjul/test-utils';
 import { BUSINESS } from '../config/business';
 import { Footer } from './Footer';
 
 function renderFooter() {
-  return render(
-    <MemoryRouter>
-      <Footer />
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<Footer />);
 }
 
 describe('Footer', () => {

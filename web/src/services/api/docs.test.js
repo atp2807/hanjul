@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { mockApiClient } from '@hanjul/test-utils';
 import { apiClient } from './api_client';
 import { exportDocx, exportEpub, uploadMedia } from './docs';
 
 vi.mock('./api_client', () => ({
-  apiClient: { get: vi.fn(), post: vi.fn(), put: vi.fn(), del: vi.fn(), upload: vi.fn(), download: vi.fn() },
+  apiClient: mockApiClient(),
   getToken: vi.fn(),
   apiBase: '',
 }));

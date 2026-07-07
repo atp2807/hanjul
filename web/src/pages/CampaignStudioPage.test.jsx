@@ -1,7 +1,7 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { renderWithProviders, authFixture } from '@hanjul/test-utils';
 import * as campaigns from '../services/api/campaigns';
 import * as studio from '../services/api/studio';
 import { CampaignStudioPage } from './CampaignStudioPage';
@@ -15,10 +15,10 @@ vi.mock('../services/api/campaigns', async (o) => ({
   closeCampaign: vi.fn(),
 }));
 vi.mock('../services/api/studio');
-vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ user: { id: 'u1' } }) }));
+vi.mock('../auth/AuthContext', () => ({ useAuth: () => authFixture({ user: { id: 'u1' } }) }));
 
 function renderPage() {
-  return render(<MemoryRouter><CampaignStudioPage /></MemoryRouter>);
+  return renderWithProviders(<CampaignStudioPage />);
 }
 
 describe('CampaignStudioPage', () => {

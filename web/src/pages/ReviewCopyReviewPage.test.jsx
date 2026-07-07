@@ -1,24 +1,17 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
+import { renderWithProviders, authFixture } from '@hanjul/test-utils';
 import * as campaigns from '../services/api/campaigns';
 import * as reviews from '../services/api/reviews';
 import { ReviewCopyReviewPage } from './ReviewCopyReviewPage';
 
 vi.mock('../services/api/campaigns', async (orig) => ({ ...(await orig()), getCampaign: vi.fn(), getMyApplications: vi.fn() }));
 vi.mock('../services/api/reviews');
-vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ user: { id: 'u1' } }) }));
+vi.mock('../auth/AuthContext', () => ({ useAuth: () => authFixture({ user: { id: 'u1' } }) }));
 
 function renderPage() {
-  return render(
-    <MemoryRouter initialEntries={['/campaigns/c1/review']}>
-      <Routes>
-        <Route path="/campaigns/:id/review" element={<ReviewCopyReviewPage />} />
-        <Route path="/books/:id" element={<div>책 상세</div>} />
-      </Routes>
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<ReviewCopyReviewPage />, { path: '/campaigns/:id/review', at: '/campaigns/c1/review' });
 }
 
 describe('ReviewCopyReviewPage', () => {

@@ -1,7 +1,7 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { renderWithProviders, authFixture } from '@hanjul/test-utils';
 import * as auth from '../services/api/auth';
 import { SettingsPage } from './SettingsPage';
 
@@ -11,7 +11,7 @@ let mockUser = { displayName: '나', email: 'me@x.com' };
 
 vi.mock('../services/api/auth');
 vi.mock('../auth/AuthContext', () => ({
-  useAuth: () => ({ user: mockUser, logout: mockLogout }),
+  useAuth: () => authFixture({ user: mockUser, logout: mockLogout }),
 }));
 vi.mock('react-router-dom', async (orig) => ({
   ...(await orig()),
@@ -19,11 +19,7 @@ vi.mock('react-router-dom', async (orig) => ({
 }));
 
 function renderSettings() {
-  return render(
-    <MemoryRouter>
-      <SettingsPage />
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<SettingsPage />);
 }
 
 describe('SettingsPage', () => {

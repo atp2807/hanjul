@@ -1,7 +1,7 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { renderWithProviders, httpError } from '@hanjul/test-utils';
 import * as ordersApi from '../services/api/orders';
 import { PaymentResultPage } from './PaymentResultPage';
 
@@ -10,11 +10,7 @@ const navigate = vi.fn();
 vi.mock('react-router-dom', async (orig) => ({ ...(await orig()), useNavigate: () => navigate }));
 
 function renderAt(query) {
-  return render(
-    <MemoryRouter initialEntries={[`/payment/result${query}`]}>
-      <PaymentResultPage />
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<PaymentResultPage />, { at: `/payment/result${query}` });
 }
 
 describe('PaymentResultPage', () => {
@@ -34,7 +30,7 @@ describe('PaymentResultPage', () => {
   });
 
   it('승인 실패(402): 사유 표시', async () => {
-    ordersApi.confirmPayment.mockRejectedValue(Object.assign(new Error('x'), { status: 402 }));
+    ordersApi.confirmPayment.mockRejectedValue(httpError(402));
     renderAt('?paymentKey=pk_1&orderId=order-9&bookId=book-1');
     await waitFor(() => expect(screen.getByTestId('payment-result')).toHaveTextContent('승인에 실패'));
   });

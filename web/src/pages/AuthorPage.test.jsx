@@ -1,7 +1,7 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
+import { renderWithProviders, authFixture, httpError } from '@hanjul/test-utils';
 import * as authors from '../services/api/authors';
 import * as notifications from '../services/api/notifications';
 import { AuthorPage } from './AuthorPage';
@@ -15,7 +15,7 @@ vi.mock('../services/api/notifications', async (o) => ({
 }));
 
 let mockUser = { id: 'u1' };
-vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ user: mockUser }) }));
+vi.mock('../auth/AuthContext', () => ({ useAuth: () => authFixture({ user: mockUser }) }));
 
 const AUTHOR = {
   id: 'a1',
@@ -25,11 +25,7 @@ const AUTHOR = {
 };
 
 function renderPage() {
-  return render(
-    <MemoryRouter initialEntries={['/authors/a1']}>
-      <Routes><Route path="/authors/:id" element={<AuthorPage />} /></Routes>
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<AuthorPage />, { path: '/authors/:id', at: '/authors/a1' });
 }
 
 describe('AuthorPage', () => {
@@ -45,8 +41,7 @@ describe('AuthorPage', () => {
   });
 
   it('작가를 찾을 수 없으면 404 안내 (일반 에러와 구분)', async () => {
-    const err = new Error('not found'); err.status = 404;
-    authors.getAuthor.mockRejectedValue(err);
+    authors.getAuthor.mockRejectedValue(httpError(404));
     renderPage();
     expect(await screen.findByText('작가를 찾을 수 없어요.')).toBeInTheDocument();
   });

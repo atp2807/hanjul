@@ -1,7 +1,7 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
+import { renderWithProviders, authFixture } from '@hanjul/test-utils';
 import * as campaigns from '../services/api/campaigns';
 import { ReviewerActivityPage } from './ReviewerActivityPage';
 
@@ -11,7 +11,7 @@ vi.mock('../services/api/campaigns', async (o) => ({
   getReviewerStatus: vi.fn(),
   cancelApplication: vi.fn(),
 }));
-vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ user: { id: 'u1' } }) }));
+vi.mock('../auth/AuthContext', () => ({ useAuth: () => authFixture({ user: { id: 'u1' } }) }));
 
 const APPS = [
   { id: 'a1', campaignId: 'c1', bookId: 'b1', bookTitle: '배정책', status: 'ASSIGNED', deadlineAt: '2099-01-01T00:00:00Z' },
@@ -21,7 +21,7 @@ const APPS = [
 ];
 
 function renderPage() {
-  return render(<MemoryRouter><ReviewerActivityPage /></MemoryRouter>);
+  return renderWithProviders(<ReviewerActivityPage />);
 }
 
 describe('ReviewerActivityPage', () => {

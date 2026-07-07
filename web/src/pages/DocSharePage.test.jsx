@@ -1,27 +1,15 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { renderWithProviders, docStubs, httpError } from '@hanjul/test-utils';
 import * as docsApi from '../services/api/docs';
 import { DocSharePage } from './DocSharePage';
 
 vi.mock('../services/api/docs');
-vi.mock('@hanjul/doc', () => ({
-  DocReader: ({ html }) => <div data-testid="doc-reader">{html}</div>,
-  DocEditor: ({ html, onSave }) => (
-    <div data-testid="doc-editor">
-      <button onClick={() => onSave('<article data-juldoc="1">편집됨</article>')}>발화-저장</button>
-      <span>{html}</span>
-    </div>
-  ),
-}));
+vi.mock('@hanjul/doc', () => docStubs());
 
 function renderPage() {
-  return render(
-    <MemoryRouter initialEntries={['/doc/s/tok1']}>
-      <Routes><Route path="/doc/s/:token" element={<DocSharePage />} /></Routes>
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<DocSharePage />, { path: '/doc/s/:token', at: '/doc/s/tok1' });
 }
 
 describe('DocSharePage', () => {
@@ -67,9 +55,8 @@ describe('DocSharePage', () => {
   });
 
   it('회수/부재(404) → 안내 문구', async () => {
-    const err = new Error('gone'); err.status = 404;
-    docsApi.getShareMeta.mockRejectedValue(err);
-    docsApi.getShareHtml.mockRejectedValue(err);
+    docsApi.getShareMeta.mockRejectedValue(httpError(404));
+    docsApi.getShareHtml.mockRejectedValue(httpError(404));
     renderPage();
     expect(await screen.findByText('링크를 찾을 수 없습니다')).toBeInTheDocument();
   });

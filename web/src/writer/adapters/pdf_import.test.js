@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { mockApiClient } from '@hanjul/test-utils';
 import { apiClient } from '../../services/api/api_client';
 import { pdfToNeutral } from './pdf_import';
 
 vi.mock('../../services/api/api_client', () => ({
-  apiClient: { upload: vi.fn() },
+  apiClient: mockApiClient(),
 }));
 
 describe('pdfToNeutral', () => {

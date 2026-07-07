@@ -1,22 +1,18 @@
-import { render, screen } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { renderWithProviders, authFixture } from '@hanjul/test-utils';
 import { AuthCallbackPage } from './AuthCallbackPage';
 
 const login = vi.fn();
-vi.mock('../auth/AuthContext', () => ({ useAuth: () => ({ login }) }));
+vi.mock('../auth/AuthContext', () => ({ useAuth: () => authFixture({ login }) }));
 
 const navigate = vi.fn();
 vi.mock('react-router-dom', async (orig) => ({ ...(await orig()), useNavigate: () => navigate }));
 
 function renderAt(hash) {
   window.location.hash = hash;
-  return render(
-    <MemoryRouter initialEntries={[`/auth/callback${hash}`]}>
-      <Routes><Route path="/auth/callback" element={<AuthCallbackPage />} /></Routes>
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<AuthCallbackPage />, { path: '/auth/callback', at: `/auth/callback${hash}` });
 }
 
 describe('AuthCallbackPage', () => {

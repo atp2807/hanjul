@@ -1,7 +1,7 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { renderWithProviders, authFixture } from '@hanjul/test-utils';
 import * as authorsApi from '../services/api/authors';
 import * as studioApi from '../services/api/studio';
 import { StudioPage } from './StudioPage';
@@ -15,13 +15,13 @@ vi.mock('../services/api/studio', async (o) => ({
 vi.mock('../services/api/authors', async (o) => ({ ...(await o()), updateProfile: vi.fn() }));
 
 let mockAuth = { user: { id: 'u1', displayName: '박작가', bio: '' }, loading: false };
-vi.mock('../auth/AuthContext', () => ({ useAuth: () => mockAuth }));
+vi.mock('../auth/AuthContext', () => ({ useAuth: () => authFixture(mockAuth) }));
 
 const navigate = vi.fn();
 vi.mock('react-router-dom', async (orig) => ({ ...(await orig()), useNavigate: () => navigate }));
 
 function renderPage() {
-  return render(<MemoryRouter><StudioPage /></MemoryRouter>);
+  return renderWithProviders(<StudioPage />);
 }
 
 const SALES = { totalPayout: 67690, totalOrders: 12, totalRevenue: 120000, books: [{ bookId: 'b1', orderCount: 12, payout: 67690 }] };

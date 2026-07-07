@@ -1,7 +1,7 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { renderWithProviders } from '@hanjul/test-utils';
 import * as notifApi from '../services/api/notifications';
 import { NotificationBell } from './NotificationBell';
 
@@ -14,11 +14,7 @@ vi.mock('react-router-dom', async (orig) => ({
 }));
 
 function renderBell() {
-  return render(
-    <MemoryRouter>
-      <NotificationBell />
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<NotificationBell />);
 }
 
 describe('NotificationBell', () => {

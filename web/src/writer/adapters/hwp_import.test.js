@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { mockApiClient } from '@hanjul/test-utils';
 import { apiClient } from '../../services/api/api_client';
 import { hwpToNeutral } from './hwp_import';
 
 vi.mock('../../services/api/api_client', () => ({
-  apiClient: { upload: vi.fn() },
+  apiClient: mockApiClient(),
 }));
 
 describe('hwpToNeutral', () => {

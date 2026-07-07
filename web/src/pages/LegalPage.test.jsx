@@ -1,17 +1,11 @@
-import { render, screen } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
+import { renderWithProviders } from '@hanjul/test-utils';
 import { LegalPage } from './LegalPage';
 
 function renderAt(slug) {
-  return render(
-    <MemoryRouter initialEntries={[`/legal/${slug}`]}>
-      <Routes>
-        <Route path="/legal/:slug" element={<LegalPage />} />
-      </Routes>
-    </MemoryRouter>,
-  );
+  return renderWithProviders(<LegalPage />, { path: '/legal/:slug', at: `/legal/${slug}` });
 }
 
 describe('LegalPage', () => {

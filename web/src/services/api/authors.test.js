@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 
+import { mockApiClient } from '@hanjul/test-utils';
 import { apiClient } from './api_client';
 import { getAuthor, updateProfile } from './authors';
 
 vi.mock('./api_client', () => ({
-  apiClient: { get: vi.fn(), post: vi.fn(), put: vi.fn(), del: vi.fn() },
+  apiClient: mockApiClient(),
 }));
 
 describe('services/api/authors', () => {
