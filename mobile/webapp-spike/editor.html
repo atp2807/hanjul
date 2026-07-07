@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>한줄 IDE 모바일 스파이크</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        font-family:
+          -apple-system,
+          BlinkMacSystemFont,
+          system-ui,
+          sans-serif;
+        background: #f3faf8;
+      }
+      #status-bar {
+        padding: 10px 16px;
+        background: #0e4a5c;
+        color: #eafaf5;
+        font-size: 13px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      #status-bar #status {
+        font-weight: 600;
+      }
+      #shell {
+        padding: 0 16px 40px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="status-bar">저장 상태: <span id="status">대기 중</span></div>
+    <div id="shell">
+      <div id="editor"></div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

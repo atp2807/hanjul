@@ -1,0 +1,16 @@
+{
+  "name": "hanjul-ide-mobile-webapp-spike",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "한줄 IDE 모바일 스파이크(ⓑ) 빌드 전용 미니 vite 프로젝트 — packages/doc mountEditor 를 CSS/JS 전부 인라인된 단일 editor.html 로 번들해 RN WebView 의 source={{html}} 에 주입할 문자열(mobile/src/editorHtml.js)을 만든다. 루트 npm workspaces 에는 편입하지 않는다(mobile/ 은 packages/* glob 밖 — 독립 실행).",
+  "scripts": {
+    "build": "vite build",
+    "emit": "node scripts/emit-module.mjs",
+    "build:module": "npm run build && npm run emit"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0",
+    "vite-plugin-singlefile": "^2.3.3"
+  }
+}

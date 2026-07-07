@@ -1,0 +1,22 @@
+{
+  "name": "hanjul-ide-mobile-spike",
+  "version": "1.0.0",
+  "description": "한줄 IDE P0 스파이크 ⓑ — Expo(RN) 앱 WebView 안에서 packages/doc 에디터를 postMessage 브리지로 구동. iPad(iOS WKWebView) 한글 IME 검증용. 루트 npm workspaces 에는 편입하지 않는다(독립 실행, README.md 참고).",
+  "main": "index.js",
+  "dependencies": {
+    "expo": "~57.0.4",
+    "expo-file-system": "~57.0.0",
+    "expo-status-bar": "~57.0.0",
+    "react": "19.2.3",
+    "react-native": "0.86.0",
+    "react-native-webview": "13.16.1"
+  },
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "build:editor": "npm --prefix webapp-spike run build:module"
+  },
+  "private": true
+}
