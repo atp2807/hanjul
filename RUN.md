@@ -4,11 +4,12 @@
 
 ## 1. Postgres
 
-**옵션 A — 로컬 docker**
+**옵션 A — 로컬 네이티브 postgres (기본, 도커 안 씀)**
 ```bash
-docker compose up -d        # postgres:16, :5432
-# .env: DATABASE_URL=postgresql+asyncpg://hanjul:hanjul@localhost:5432/hanjul
+createdb hanjul_ebook        # OS 유저 = role, trust auth (Homebrew/Postgres.app 기본값)
+# .env: DATABASE_URL=postgresql+asyncpg://<os-user>@127.0.0.1:5432/hanjul_ebook
 ```
+(E2E는 `web/e2e/global-setup.js`가 `hanjul_e2e` db를 매 실행 재생성 — 별도 설정 불필요)
 
 **옵션 B — 원격 RDS (SSH 터널)**
 ```bash
