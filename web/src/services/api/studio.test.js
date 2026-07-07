@@ -125,6 +125,7 @@ describe('services/api/studio', () => {
   it('uploadCover → multipart 파일 업로드', () => {
     const file = new File(['x'], 'cover.png', { type: 'image/png' });
     uploadCover('b1', file);
+    // eslint-disable-next-line vitest/valid-expect -- @vitest/eslint-plugin 오탐: expect.any()가 중첩 인자로 쓰일 때 modifier로 오인
     expect(apiClient.upload).toHaveBeenCalledWith('/books/b1/cover/upload', expect.any(FormData));
     const fd = apiClient.upload.mock.calls[0][1];
     expect(fd.get('file')).toBe(file);

@@ -11,6 +11,7 @@ test('입력 → 새로고침 후에도 남아있다 (안 날아감)', async ({ 
   // 저장 상태가 눈에 보인다 (안 날아감 체감)
   await expect(page.getByTestId('writer-status')).toContainText('저장됨');
 
+  // eslint-disable-next-line playwright/no-wait-for-timeout -- y-indexeddb 로컬 플러시 대기(조건 대기 불가, 내부 비동기 flush)
   await page.waitForTimeout(600); // y-indexeddb 로컬 플러시 대기
   await page.reload();
 

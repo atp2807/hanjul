@@ -29,6 +29,7 @@ describe('services/api/docs', () => {
     });
     const file = new File(['x'], 'a.png', { type: 'image/png' });
     const res = await uploadMedia(file);
+    // eslint-disable-next-line vitest/valid-expect -- @vitest/eslint-plugin 오탐: expect.any()가 중첩 인자로 쓰일 때 modifier로 오인
     expect(apiClient.upload).toHaveBeenCalledWith('/media', expect.any(FormData));
     expect(res).toEqual({
       url: '/media/orig123',

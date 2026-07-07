@@ -1,4 +1,4 @@
-// mountReader(el, {html, scale, pageSize, apiBase}) — 정본 HTML 을 페이지로 조판해 실제 DOM 으로 렌더.
+// mountReader(el, {html, scale, paperSize, apiBase}) — 정본 HTML 을 페이지로 조판해 실제 DOM 으로 렌더.
 // 캔버스 전면 렌더 금지: 진짜 <div> 페이지 안에 진짜 블록 요소를 그린다.
 //
 // 프레임워크 무소속 코어 — React 래퍼(DocReader.jsx)가 ref 에 마운트한다.
@@ -192,11 +192,11 @@ function renderPage(frags, page, scale, blockById, doc) {
 /**
  * 정본 HTML 을 페이지 조판 뷰로 렌더한다.
  * @param {Element} el 마운트 대상 컨테이너
- * @param {{html:string, scale?:number, pageSize?:string, apiBase?:string}} opts
+ * @param {{html:string, scale?:number, paperSize?:string, apiBase?:string}} opts
  * @returns {{pageCount:number, destroy:Function}}
  */
-export function mountReader(el, { html, scale = 1, pageSize = 'a4', apiBase } = {}) {
-  const page = PAGE_SIZES[pageSize] || PAGE_SIZES.a4;
+export function mountReader(el, { html, scale = 1, paperSize = 'a4', apiBase } = {}) {
+  const page = PAGE_SIZES[paperSize] || PAGE_SIZES.a4;
   const doc = el.ownerDocument || document;
 
   const contentWidth = (page.width - page.padding * 2) * scale;

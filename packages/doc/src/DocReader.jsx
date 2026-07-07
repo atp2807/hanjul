@@ -11,19 +11,19 @@ import './doc.css';
  * @param {object} props
  * @param {string} props.html 정본 HTML (article[data-juldoc])
  * @param {number} [props.scale=1]
- * @param {string} [props.pageSize='a4']
+ * @param {string} [props.paperSize='a4']
  * @param {string} [props.apiBase] 이미지 표시경로 매핑 베이스 (미지정=passthrough)
  * @param {import('react').CSSProperties} [props.style]
  */
-export function DocReader({ html, scale = 1, pageSize = 'a4', apiBase, style }) {
+export function DocReader({ html, scale = 1, paperSize = 'a4', apiBase, style }) {
   const ref = useRef(null);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return undefined;
-    const ctrl = mountReader(el, { html, scale, pageSize, apiBase });
+    const ctrl = mountReader(el, { html, scale, paperSize, apiBase });
     return () => ctrl.destroy();
-  }, [html, scale, pageSize, apiBase]);
+  }, [html, scale, paperSize, apiBase]);
 
   return <div ref={ref} style={style} />;
 }
