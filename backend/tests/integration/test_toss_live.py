@@ -14,9 +14,10 @@ from src.config.settings import settings
 from src.features.billing.infrastructure.toss_client import PaymentError, TossPaymentsClient
 from src.features.billing.infrastructure.toss_gateway import TossPaymentGateway
 
-pytestmark = pytest.mark.skipif(
-    not os.getenv("RUN_TOSS_LIVE"), reason="RUN_TOSS_LIVE=1 일 때만 실 샌드박스 호출"
-)
+pytestmark = [
+    pytest.mark.live,
+    pytest.mark.skipif(not os.getenv("RUN_TOSS_LIVE"), reason="RUN_TOSS_LIVE=1 일 때만 실 샌드박스 호출"),
+]
 
 
 async def test_sandbox_auth_reaches_confirm():
