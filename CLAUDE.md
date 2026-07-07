@@ -27,6 +27,9 @@ cd web && npm run e2e   # Playwright: 실 백엔드(28100)+프론트(35200)+post
 ```
 - **venv 두 개 주의**: 테스트는 `.venv`(3.14), 런타임·마이그레이션·E2E 백엔드는 `.venv312`(3.12). asyncpg는 3.12에만.
 - CI: `.github/workflows/ci.yml` (push main/PR → backend·web·e2e 3잡).
+- 📐 **테스트 아키텍처 정본 → [docs/testing.md](docs/testing.md)**: 배치 결정트리(DB필요?→integration
+  / Fake로 대체?→features / 순수로직?→engine / 실네트워크?→live마커) · conftest 픽스처·헬퍼·Fake repo
+  카탈로그 · 기준선(백엔드 854 passed 3 skipped, web 308·potato 29·packages 137, e2e 86) — 낮아지면 안 됨.
 
 ## 컨벤션 / 함정
 - **데모 게이트는 fail-closed** (운영 기본 False): `PAYMENT_DEMO`·`DISTRIBUTION_DEMO`·`COVER_DEMO`·`E2E_LOGIN_ENABLED`. 외부연동 없이 dev/E2E 동작용.

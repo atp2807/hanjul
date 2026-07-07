@@ -57,6 +57,13 @@ VITE_SYNC_URL=ws://localhost:1234 npm run dev   # 프론트가 동기화 연결
 
 ## 테스트
 ```bash
-cd backend && .venv/bin/pip install -r requirements-dev.txt && .venv/bin/pytest   # 62
-cd web && npm test                                                                # 6
+cd backend && .venv/bin/pip install -r requirements-dev.txt && .venv/bin/pytest   # 854 passed, 3 skipped
+cd web && npm test                                                                # 308 (62파일)
+cd potato && npm test                                                             # 29 (6파일)
+cd packages/doc && npm test                                                       # 92
+
+# 브라우저 E2E (Playwright)
+cd web && npm run e2e                          # 실 백엔드(28100)+프론트(35200)+postgres(hanjul_e2e 재생성), 72
+npm run test:e2e -w packages/doc                # 조판(typeset) 실측 e2e — 백엔드/DB 불요, chromium 캔버스 실측, 14
 ```
+상세 아키텍처(배치 기준·픽스처/헬퍼 카탈로그·자동 가드) → [docs/testing.md](docs/testing.md).
