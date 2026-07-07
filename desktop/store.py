@@ -210,3 +210,29 @@ class Store:
                     (order_no, now, chapter_id),
                 )
         return {"ok": True}
+
+    def import_chapters(self, book_id, chapters):
+        """원고 가져오기(P1 슬라이스3) — importer.import_manuscript() 가 만든
+        ``[{"title", "html"}, ...]`` 를 기존 챕터 뒤에 order_no 를 이어 붙여 삽입한다.
+        전부 커밋 1개(트랜잭션 1개) — 파일 하나 임포트가 부분 실패로 절반만 반영되지
+        않는다. 반환: ``{"chapterIds": [id, ...]}`` (삽입 순서 그대로, 비어 있으면 []).
+        """
+        now = _now_iso()
+        chapter_ids = []
+        with self._session() as conn:
+            max_row = conn.execute(
+                "SELECT MAX(order_no) AS m FROM chapter WHERE book_id = ?", (book_id,)
+            ).fetchone()
+            next_order = (max_row["m"] if max_row["m"] is not None else -1) + 1
+            for chapter in chapters:
+                title = chapter.get("title") or DEFAULT_CHAPTER_TITLE
+                html = chapter.get("html") or DEFAULT_CHAPTER_HTML
+                cur = conn.execute(
+                    """INSERT INTO chapter
+                       (book_id, title, synopsis, status_cd, order_no, html, created_ts, updated_ts)
+                       VALUES (?, ?, '', 'DRAFT', ?, ?, ?, ?)""",
+                    (book_id, title, next_order, html, now, now),
+                )
+                chapter_ids.append(cur.lastrowid)
+                next_order += 1
+        return {"chapterIds": chapter_ids}

@@ -52,6 +52,7 @@ function waitForPywebview(timeoutMs = READY_TIMEOUT_MS) {
  * @property {(opts:{title:string}) => Promise<{id:number}>} createChapter
  * @property {(id:number) => Promise<{ok:boolean}>} deleteChapter
  * @property {(ids:number[]) => Promise<{ok:boolean}>} reorderChapters
+ * @property {() => Promise<{importedCount:number, chapterIds:number[]} | {cancelled:true}>} importFile
  */
 
 /**
@@ -85,6 +86,9 @@ export function createPywebviewHost() {
     },
     async reorderChapters(ids) {
       return (await api()).reorder_chapters(ids);
+    },
+    async importFile() {
+      return (await api()).import_file();
     },
   };
 }

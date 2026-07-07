@@ -21,6 +21,7 @@ export async function mountApp({ host, root }) {
       <aside id="sidebar">
         <ul id="chapter-list"></ul>
         <button type="button" id="new-chapter-btn">+ 새 챕터</button>
+        <button type="button" id="import-btn">가져오기</button>
       </aside>
       <main id="editor-pane">
         <div id="editor"></div>
@@ -32,6 +33,7 @@ export async function mountApp({ host, root }) {
   const saveStatusEl = root.querySelector('#save-status');
   const listEl = root.querySelector('#chapter-list');
   const newBtn = root.querySelector('#new-chapter-btn');
+  const importBtn = root.querySelector('#import-btn');
   const editorEl = root.querySelector('#editor');
 
   /** @type {import('./host.js').ChapterSummary[]} */
@@ -166,6 +168,27 @@ export async function mountApp({ host, root }) {
     const { id } = await host.createChapter({ title });
     await loadAll();
     await selectChapter(id);
+  });
+
+  // 원고 가져오기(P1 슬라이스3) — 파일 선택은 호스트(파이썬 다이얼로그) 몫, 여기선
+  // 진행중 표시 → 완료 후 목록 갱신 → 새로 들어온 첫 챕터로 전환만 담당한다.
+  importBtn.addEventListener('click', async () => {
+    importBtn.disabled = true;
+    const originalLabel = importBtn.textContent;
+    importBtn.textContent = '가져오는 중…';
+    try {
+      const result = await host.importFile();
+      if (result.cancelled) return;
+      await loadAll(); // chapters 갱신 + 사이드바 재렌더(선택은 아래에서 새 챕터로 전환)
+      if (result.chapterIds?.length) {
+        await selectChapter(result.chapterIds[0]);
+      }
+    } catch (err) {
+      setSaveStatus(`가져오기 실패: ${err?.message || err}`);
+    } finally {
+      importBtn.disabled = false;
+      importBtn.textContent = originalLabel;
+    }
   });
 
   await loadAll();

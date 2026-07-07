@@ -16,15 +16,24 @@ packages/ide-core(웹뷰 앱)에 desktop/store.py(SQLite) 위에서 동작하는
 import argparse
 import json
 import sys
+import tempfile
 import time
 from pathlib import Path
 
 import webview
 
+from importer import import_manuscript
 from store import Store
 
 BASE_DIR = Path(__file__).resolve().parent
 DIST_INDEX = BASE_DIR.parent / "packages" / "ide-core" / "dist" / "index.html"
+
+# pywebview create_file_dialog 의 file_types 포맷: "설명 (*.ext[;*.ext...])"
+# (실측: desktop/.venv/lib/python3.14/site-packages/webview/window.py:534-535 docstring).
+_IMPORT_FILE_TYPES = (
+    "지원 문서 (*.txt;*.md;*.docx;*.hwp;*.hwpx)",
+    "모든 파일 (*.*)",
+)
 
 
 class Api:
@@ -34,6 +43,7 @@ class Api:
 
     def __init__(self, store):
         self._store = store
+        self._window = None  # main() 이 create_window 직후 채운다(파일 다이얼로그용).
 
     def get_book(self):
         return self._store.get_book()
@@ -55,6 +65,27 @@ class Api:
 
     def reorder_chapters(self, ids):
         return self._store.reorder_chapters(ids)
+
+    def import_file(self, path=None):
+        """원고 가져오기(P1 슬라이스3). path 가 없으면 OPEN 파일 다이얼로그를 띄운다
+        (스모크/테스트는 path 를 직접 넘겨 다이얼로그를 건너뛴다). 다이얼로그 취소 시
+        ``{"cancelled": True}``. 성공 시 ``{"importedCount", "chapterIds"}``."""
+        if path is None:
+            if self._window is None:
+                raise RuntimeError("import_file: 창이 아직 준비되지 않음")
+            selected = self._window.create_file_dialog(
+                webview.FileDialog.OPEN,
+                allow_multiple=False,
+                file_types=_IMPORT_FILE_TYPES,
+            )
+            if not selected:
+                return {"cancelled": True}
+            path = selected[0]
+
+        chapters = import_manuscript(path)
+        book_id = self._store.get_book()["id"]
+        result = self._store.import_chapters(book_id, chapters)
+        return {"importedCount": len(chapters), "chapterIds": result["chapterIds"]}
 
 
 def run_smoke(window, timeout_s=5.0, poll_interval_s=0.1):
@@ -157,6 +188,66 @@ def run_smoke(window, timeout_s=5.0, poll_interval_s=0.1):
         results["smoke_result"] = smoke_result
         results["smoke_error"] = smoke_error
 
+        # 4) 원고 가져오기(P1 슬라이스3) — h1 2개짜리 임시 .md 를 실제로 import_file(path)
+        #    왕복시켜 챕터 2개 추가·제목(h1 텍스트)·본문 일치를 확인한다. path 를 직접
+        #    넘겨 파일 다이얼로그(사람 손 필요)를 건너뛴다 — app.py:import_file 참고.
+        import_md_path = None
+        try:
+            tmp_dir = tempfile.mkdtemp(prefix="hanjul_ide_smoke_")
+            import_md_path = str(Path(tmp_dir) / "smoke_import.md")
+            Path(import_md_path).write_text(
+                "# 스모크 1장\n\n스모크 1장 본문.\n\n# 스모크 2장\n\n스모크 2장 본문.\n",
+                encoding="utf-8",
+            )
+        except Exception as exc:
+            results["import_setup_error"] = repr(exc)
+
+        import_result = None
+        import_error = None
+        import_done = False
+        if import_md_path is not None:
+            escaped_path = json.dumps(import_md_path)  # JS 문자열 리터럴로 안전하게 이스케이프
+            window.evaluate_js(
+                f"""
+                window.__importDone = false;
+                (async function () {{
+                  try {{
+                    const beforeImport = await window.pywebview.api.list_chapters();
+                    const importResult = await window.pywebview.api.import_file({escaped_path});
+                    const afterImport = await window.pywebview.api.list_chapters();
+                    const firstChapter = await window.pywebview.api.load_chapter(importResult.chapterIds[0]);
+                    const secondChapter = await window.pywebview.api.load_chapter(importResult.chapterIds[1]);
+                    window.__importResult = {{
+                      chaptersBeforeImport: beforeImport.length,
+                      chaptersAfterImport: afterImport.length,
+                      importedCount: importResult.importedCount,
+                      chapterIdsLength: importResult.chapterIds.length,
+                      firstTitle: firstChapter.title,
+                      firstHtmlMatches: firstChapter.html.includes('스모크 1장 본문'),
+                      secondTitle: secondChapter.title,
+                      secondHtmlMatches: secondChapter.html.includes('스모크 2장 본문'),
+                    }};
+                  }} catch (e) {{
+                    window.__importError = String(e && e.message ? e.message : e);
+                  }} finally {{
+                    window.__importDone = true;
+                  }}
+                }})();
+                """
+            )
+            deadline = time.monotonic() + timeout_s
+            while time.monotonic() < deadline:
+                import_done = bool(window.evaluate_js("window.__importDone === true"))
+                if import_done:
+                    break
+                time.sleep(poll_interval_s)
+            import_result = window.evaluate_js("window.__importResult")
+            import_error = window.evaluate_js("window.__importError")
+
+        results["import_bridge_done_within_timeout"] = import_done
+        results["import_result"] = import_result
+        results["import_error"] = import_error
+
         results["ok"] = bool(
             app_mounted
             and results.get("contenteditable_present")
@@ -168,6 +259,16 @@ def run_smoke(window, timeout_s=5.0, poll_interval_s=0.1):
             and smoke_result.get("firstIdMatchesCreated")
             and smoke_result.get("loadedStatus") == "DRAFT"
             and smoke_result.get("loadedHtmlMatches")
+            and import_done
+            and import_result
+            and not import_error
+            and import_result.get("chaptersAfterImport") == import_result.get("chaptersBeforeImport", -1) + 2
+            and import_result.get("importedCount") == 2
+            and import_result.get("chapterIdsLength") == 2
+            and import_result.get("firstTitle") == "스모크 1장"
+            and import_result.get("firstHtmlMatches")
+            and import_result.get("secondTitle") == "스모크 2장"
+            and import_result.get("secondHtmlMatches")
         )
     except Exception as exc:  # 스모크 자체가 실패한 원인을 있는 그대로 남긴다.
         results["error"] = repr(exc)
@@ -211,6 +312,7 @@ def main():
         # 스모크는 숨김 창으로 — 사용자 데스크탑에 창 깜빡임 금지 (lr-9a45e6e4 후속)
         hidden=args.smoke,
     )
+    api._window = window  # import_file() 의 파일 다이얼로그가 창 핸들을 필요로 함
 
     if args.smoke:
         window.events.loaded += lambda: run_smoke(window)

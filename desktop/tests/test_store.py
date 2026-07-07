@@ -112,3 +112,48 @@ def test_delete_chapter_removes_it(store):
 def test_delete_chapter_is_idempotent_for_missing_id(store):
     result = store.delete_chapter(999999)
     assert result["ok"] is True
+
+
+def test_import_chapters_appends_after_existing_with_continuing_order(store):
+    book_id = store.get_book()["id"]
+    assert len(store.list_chapters()) == 1  # 시드 챕터 1개
+
+    result = store.import_chapters(
+        book_id,
+        [
+            {"title": "가져온 1장", "html": '<article data-juldoc="1"><p>본문1</p></article>'},
+            {"title": "가져온 2장", "html": '<article data-juldoc="1"><p>본문2</p></article>'},
+        ],
+    )
+    assert len(result["chapterIds"]) == 2
+
+    chapters = store.list_chapters()
+    assert len(chapters) == 3  # 시드 1 + 가져온 2
+    assert [c["title"] for c in chapters[-2:]] == ["가져온 1장", "가져온 2장"]
+    assert [c["id"] for c in chapters[-2:]] == result["chapterIds"]
+
+    loaded_first = store.load_chapter(result["chapterIds"][0])
+    assert "본문1" in loaded_first["html"]
+    loaded_second = store.load_chapter(result["chapterIds"][1])
+    assert "본문2" in loaded_second["html"]
+
+
+def test_import_chapters_continues_order_after_existing_manual_chapters(store):
+    book_id = store.get_book()["id"]
+    store.create_chapter("수동 2장")  # order_no 1
+
+    result = store.import_chapters(
+        book_id,
+        [{"title": "가져온 장", "html": '<article data-juldoc="1"></article>'}],
+    )
+
+    ids = [c["id"] for c in store.list_chapters()]
+    assert ids[-1] == result["chapterIds"][0]  # 맨 뒤에 이어붙음
+
+
+def test_import_chapters_empty_list_is_noop(store):
+    book_id = store.get_book()["id"]
+    result = store.import_chapters(book_id, [])
+
+    assert result["chapterIds"] == []
+    assert len(store.list_chapters()) == 1

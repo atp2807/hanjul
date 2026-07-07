@@ -148,13 +148,23 @@ body {
   outline: 1px solid var(--hj-ok);
 }
 
-#new-chapter-btn {
-  margin: 10px;
+#new-chapter-btn,
+#import-btn {
+  margin: 10px 10px 0;
   padding: 8px;
   border: 1px dashed var(--hj-muted);
   border-radius: var(--hj-radius-sm);
   background: transparent;
   cursor: pointer;
+}
+
+#import-btn {
+  margin-bottom: 10px;
+}
+
+#import-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 #editor-pane {

@@ -60,10 +60,13 @@ cd desktop && .venv/bin/python -m pytest tests -q   # desktop/ 에서
 - `store.py` — SQLite 저장소. 테이블: `book(id, title, created_ts, updated_ts)`,
   `chapter(id, book_id, title, synopsis, status_cd, order_no, html, created_ts,
   updated_ts)`. 마이그레이션은 `CREATE TABLE IF NOT EXISTS` 멱등.
-- `app.py` — pywebview 셸. `js_api=Api(store)` 로 Host Port v0 7개 메서드
+- `app.py` — pywebview 셸. `js_api=Api(store)` 로 Host Port v0 8개 메서드
   (`get_book`/`list_chapters`/`load_chapter`/`save_chapter`/`create_chapter`/
-  `delete_chapter`/`reorder_chapters`)를 노출. 웹앱 로드 대상은
+  `delete_chapter`/`reorder_chapters`/`import_file`)를 노출. 웹앱 로드 대상은
   `packages/ide-core/dist/index.html`.
+- `importer.py` — 원고 가져오기(P1 슬라이스3, TXT/MD/DOCX/HWP/HWPX). backend/src/engine/doc
+  의 순수 파이썬 파서를 그대로 재사용해 UniversalDoc → 정본 HTML을 만들고, h1 경계로
+  챕터 목록(`[{"title", "html"}, ...]`)을 분리한다. backend 코드는 수정하지 않는다.
 - `tests/test_store.py` — `store.py` CRUD/재배열/시드 멱등성 단위 테스트(pytest,
   tmp_path 로 격리된 sqlite 파일 사용 — `data/ide.db` 를 건드리지 않음).
 - `data/` — 실행 시 생성되는 SQLite 파일(gitignore, 커밋 안 함).
@@ -96,6 +99,9 @@ cd desktop && .venv/bin/python -m pytest tests -q   # desktop/ 에서
 - **Host Port CRUD 왕복**: `createChapter` → `saveChapter(html)` →
   `reorderChapters` → (프로세스 재시작 없이) `listChapters` 로 순서 재확인,
   `loadChapter` 로 상태/내용 재확인까지 전부 실제 SQLite 왕복으로 검증한다.
+- **원고 가져오기(P1 슬라이스3)**: h1 2개짜리 임시 .md 를 만들어 `import_file(path)` 로
+  왕복(다이얼로그는 path 인자로 건너뜀) — 챕터 2개 추가·각 h1 텍스트가 제목이 됐는지·
+  본문이 일치하는지까지 실제 SQLite 왕복으로 검증한다(`SMOKE_RESULT` 의 `import_result`).
 
 IME 조합 자체(자모 결합·타이밍·커서 이동)는 **사람 손으로만** 확인 가능하다 —
 헤드리스로 키 이벤트를 흉내내는 건 실제 OS IME 엔진 경로를 타지 않아 목적(WKWebView
