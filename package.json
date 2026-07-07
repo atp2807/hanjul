@@ -9,7 +9,12 @@
     "potato"
   ],
   "scripts": {
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "prepare": "husky",
+    "gate:backend": "cd backend && .venv/bin/ruff check src tests && .venv/bin/lint-imports && .venv/bin/python scripts/lint_naming.py && .venv/bin/python -m pytest -q",
+    "gate:frontend": "npm run test -w web && npm run test -w potato && npm run test -w packages/doc && npm run test -w packages/lib && npm run test -w packages/ui && npm run test -w packages/test-utils",
+    "gate": "npm run lint && npm run gate:backend && npm run gate:frontend",
+    "gate:e2e": "cd web && npm run e2e && cd ../packages/doc && npm run test:e2e"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
@@ -19,6 +24,16 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-testing-library": "^7.16.2",
-    "globals": "^15.14.0"
+    "globals": "^15.14.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0"
+  },
+  "lint-staged": {
+    "*.{js,jsx}": [
+      "eslint --fix"
+    ],
+    "backend/**/*.py": [
+      "backend/.venv/bin/ruff check --fix"
+    ]
   }
 }

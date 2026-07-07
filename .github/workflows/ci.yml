@@ -14,23 +14,48 @@ jobs:
         working-directory: backend
     steps:
       - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            relevant:
+              - 'backend/**'
+              - '.github/workflows/ci.yml'
       - uses: actions/setup-python@v5
+        if: steps.filter.outputs.relevant == 'true'
         with:
           python-version: '3.12'
           cache: pip
           cache-dependency-path: backend/requirements-dev.txt
       - run: pip install -r requirements-dev.txt
+        if: steps.filter.outputs.relevant == 'true'
       - run: ruff check src tests
+        if: steps.filter.outputs.relevant == 'true'
       - run: lint-imports
+        if: steps.filter.outputs.relevant == 'true'
       - run: python scripts/lint_naming.py
+        if: steps.filter.outputs.relevant == 'true'
       - run: python -m pytest -q
+        if: steps.filter.outputs.relevant == 'true'
 
   frontend:
     name: 프론트 컴포넌트 (vitest — web·potato) + 조판 e2e (packages/doc)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            relevant:
+              - 'web/**'
+              - 'potato/**'
+              - 'packages/**'
+              - 'eslint.config.js'
+              - 'package.json'
+              - 'package-lock.json'
       - uses: actions/setup-node@v4
+        if: steps.filter.outputs.relevant == 'true'
         with:
           node-version: '20'
           cache: npm
@@ -39,14 +64,33 @@ jobs:
       # (@napi-rs/canvas-linux·rollup-linux)을 항목에서 누락 → npm ci/install 모두 skip(npm/cli#4828).
       # lockfile 삭제 후 install해야 리눅스에서 완전 재해석돼 네이티브 바이너리가 깔린다.
       - run: rm -f package-lock.json && npm install --no-audit --no-fund
+        if: steps.filter.outputs.relevant == 'true'
       - run: npm run lint
+        if: steps.filter.outputs.relevant == 'true'
       - run: npm run test -w web
+        if: steps.filter.outputs.relevant == 'true'
       - run: npm run test -w potato
+        if: steps.filter.outputs.relevant == 'true'
       - run: npm run test -w packages/doc
+        if: steps.filter.outputs.relevant == 'true'
+      - run: npm run test -w packages/lib
+        if: steps.filter.outputs.relevant == 'true'
+      - run: npm run test -w packages/ui
+        if: steps.filter.outputs.relevant == 'true'
+      - run: npm run test -w packages/test-utils
+        if: steps.filter.outputs.relevant == 'true'
+      - name: Playwright 브라우저 캐시 (packages/doc)
+        if: steps.filter.outputs.relevant == 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('packages/doc/package.json') }}
       # 조판(typeset) 실측 e2e — @hanjul/doc 단독, 백엔드/DB 불요라 가벼운 이 잡에 둔다.
       - name: Playwright 브라우저 (packages/doc — chromium)
+        if: steps.filter.outputs.relevant == 'true'
         run: npx playwright install --with-deps chromium
       - run: npm run test:e2e -w packages/doc
+        if: steps.filter.outputs.relevant == 'true'
       - name: 조판 e2e 리포트 업로드 (실패 시)
         if: failure()
         uses: actions/upload-artifact@v4
@@ -83,43 +127,71 @@ jobs:
       BACKEND_PY: ${{ github.workspace }}/backend/.venv/bin/python
     steps:
       - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            relevant:
+              - 'backend/**'
+              - 'web/**'
+              - 'packages/**'
+              - '.github/workflows/ci.yml'
 
       - uses: actions/setup-python@v5
+        if: steps.filter.outputs.relevant == 'true'
         with:
           python-version: '3.12'
           cache: pip
           cache-dependency-path: backend/requirements.txt
       - name: 백엔드 의존성 (asyncpg 포함)
+        if: steps.filter.outputs.relevant == 'true'
         working-directory: backend
         run: |
           python -m venv .venv
           .venv/bin/pip install -r requirements.txt
 
       - name: psql 클라이언트 (createdb/dropdb)
+        if: steps.filter.outputs.relevant == 'true'
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
 
       - uses: actions/setup-node@v4
+        if: steps.filter.outputs.relevant == 'true'
         with:
           node-version: '20'
           cache: npm
           cache-dependency-path: package-lock.json
       - name: 프론트 의존성 (루트 install)
+        if: steps.filter.outputs.relevant == 'true'
         # lockfile 삭제 후 install — 리눅스 네이티브 optional dep 정상 설치(npm/cli#4828)
         run: rm -f package-lock.json && npm install --no-audit --no-fund
+      - name: Playwright 브라우저 캐시 (web)
+        if: steps.filter.outputs.relevant == 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('web/package.json') }}
       - name: Playwright 브라우저 (web workspace)
+        if: steps.filter.outputs.relevant == 'true'
         working-directory: web
         run: npx playwright install --with-deps chromium
 
       - name: E2E 실행
+        if: steps.filter.outputs.relevant == 'true'
         working-directory: web
         run: npm run e2e
 
-      - name: 리포트 업로드 (실패 시)
-        if: failure()
+      - name: 리포트 업로드
+        if: always() && steps.filter.outputs.relevant == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
-          path: web/playwright-report/
+          path: |
+            web/playwright-report/
+            web/test-results.json
           retention-days: 7
+
+      - name: 느린 테스트 Top 10 (step summary)
+        if: always() && steps.filter.outputs.relevant == 'true'
+        run: node .github/scripts/pw-slow-tests.mjs web/test-results.json 10

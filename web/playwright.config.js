@@ -15,7 +15,9 @@ export default defineConfig({
   fullyParallel: false, // 단일 DB 공유 → 직렬
   workers: 1,
   retries: process.env.CI ? 1 : 0,
-  reporter: process.env.CI ? [['list'], ['html', { open: 'never' }]] : [['list']],
+  reporter: process.env.CI
+    ? [['list'], ['html', { open: 'never' }], ['json', { outputFile: 'test-results.json' }]]
+    : [['list']],
   use: { baseURL: FRONT, trace: 'on-first-retry' },
   webServer: [
     {
