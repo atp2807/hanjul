@@ -87,6 +87,17 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "uploads"
     PUBLIC_API_URL: str = "http://localhost:28000"
 
+    # ── 미디어 저장(features/doc — 문서 이미지) ─────────────────────
+    # R2_ENDPOINT_URL + R2_BUCKET_NAME 이 둘 다 있으면 R2Storage(운영), 아니면 LocalStorage
+    # 폴백(개발 — MEDIA_DIR 하위, 기존 uploads 관례 아래 media/). "자격증명 나중 주입" 컨벤션.
+    MEDIA_DIR: str = "uploads/media"
+    R2_ACCESS_KEY_ID: str = ""
+    R2_SECRET_ACCESS_KEY: str = ""
+    R2_ENDPOINT_URL: str = ""
+    R2_BUCKET_NAME: str = ""
+    # 공개 버킷/커스텀 도메인 URL. 있으면 서빙 시 이 URL 로 리다이렉트, 없으면 내부 엔드포인트.
+    R2_PUBLIC_URL: str = ""
+
     # ── 서점 배포 ───────────────────────────────────────
     # 데모: 실제 전송 없이 성공 기록 (개발). 운영은 False + 아래 SFTP 설정.
     DISTRIBUTION_DEMO: bool = False

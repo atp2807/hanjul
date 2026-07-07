@@ -13,3 +13,6 @@ python-multipart
 cryptography
 hwp-hwpx-parser
 pymupdf  # PDF 원고 가져오기 텍스트/서식 추출 (import명 fitz). pymupdf4llm 은 과함(ML 의존성) — 미사용.
+pdfminer.six==20260107  # engine/doc PDF 파서(juldoc 이식) — BSD/MIT 계열, pymupdf(AGPL)와 별개 용도
+pillow  # features/doc 미디어 이미지 처리(디코드·orientation 보정·webp variant 생성)
+boto3  # features/doc R2Storage(Cloudflare R2, S3 호환) 어댑터 — 자격증명 없으면 LocalStorage 폴백
