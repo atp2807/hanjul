@@ -56,6 +56,17 @@ function waitForPywebview(timeoutMs = READY_TIMEOUT_MS) {
  * @property {() => Promise<{apiBase:string|null, token:string|null, hasToken:boolean}>} getSettings
  * @property {(settings:{apiBase?:string, token?:string}) => Promise<{ok:boolean}>} saveSettings
  * @property {() => Promise<PublishResult>} publish
+ * @property {() => Promise<Whoami>} login
+ * @property {() => Promise<{ok:boolean}>} logout
+ * @property {() => Promise<Whoami|null>} whoami
+ */
+
+/**
+ * @typedef {Object} Whoami
+ * @property {string} id
+ * @property {string|null} email
+ * @property {string|null} displayName
+ * @property {string} role
  */
 
 /**
@@ -116,6 +127,15 @@ export function createPywebviewHost() {
     },
     async publish() {
       return (await api()).publish();
+    },
+    async login() {
+      return (await api()).login();
+    },
+    async logout() {
+      return (await api()).logout();
+    },
+    async whoami() {
+      return (await api()).whoami();
     },
   };
 }

@@ -1,4 +1,6 @@
 """auth HTTP E2E — 엔드포인트 배선 검증 (Fake provider 주입, 네트워크/DB 없음)."""
+from urllib.parse import parse_qs, urlparse
+
 import httpx
 import pytest
 from src.config.settings import settings
@@ -104,5 +106,92 @@ async def test_test_login_issues_token_when_enabled(override_auth):
             r = await c.get("/api/auth/test-login?email=e2e@x.com&name=작가", follow_redirects=False)
             assert r.status_code == 302
             assert "/auth/callback#token=" in r.headers["location"]
+    finally:
+        settings.E2E_LOGIN_ENABLED = False
+
+
+# ── 데스크탑 루프백 next (한줄 IDE P1 슬라이스5, RFC 8252) ────────────────────
+
+
+@pytest.mark.parametrize(
+    "next_url",
+    [
+        "https://evil.example.com/callback",  # 외부 호스트
+        "http://localhost:53219/callback",  # localhost 표기(리터럴 127.0.0.1만 허용)
+        "http://127.0.0.1:53219/other",  # 경로 변형(/callback 아님)
+    ],
+)
+async def test_login_rejects_disallowed_next(override_auth, next_url):
+    """allowlist 밖 next는 조용히 기본값으로 대체하지 않고 422로 알린다(open redirect 방지)."""
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
+        r = await c.get("/api/auth/google/login", params={"next": next_url})
+        assert r.status_code == 422, r.text
+
+
+async def test_login_allows_loopback_next(override_auth):
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
+        r = await c.get(
+            "/api/auth/google/login", params={"next": "http://127.0.0.1:53219/callback"}
+        )
+        assert r.status_code == 200
+
+
+async def test_callback_with_loopback_next_redirects_via_query_token(override_auth):
+    """state 왕복 — /login이 실은 next가 callback까지 살아남아 fragment 대신 쿼리스트링으로
+    토큰을 전달한다(루프백 리스너는 순수 HTTP 서버라 fragment를 못 받는다)."""
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
+        next_url = "http://127.0.0.1:53219/callback"
+        login_res = await c.get("/api/auth/google/login", params={"next": next_url})
+        assert login_res.status_code == 200
+        # FakeProvider.authorization_url은 "https://fake/auth?state={state}"를 그대로 반환
+        # (urlencode 없음) — state 값만 그대로 꺼내 callback에 되돌려준다(Google 왕복 시뮬레이션).
+        auth_url = login_res.json()["authorizationUrl"]
+        state_value = auth_url.split("state=", 1)[1]
+
+        cb = await c.get(
+            "/api/auth/google/callback",
+            params={"code": "xyz", "state": state_value},
+            follow_redirects=False,
+        )
+        assert cb.status_code == 302
+        location = cb.headers["location"]
+        assert location.startswith(f"{next_url}?"), location
+        assert "#" not in location  # fragment 아니라 쿼리스트링
+        params = parse_qs(urlparse(location).query)
+        assert params["token"][0]
+        assert params["isNew"][0] == "1"
+
+
+async def test_callback_ignores_tampered_next_in_state(override_auth):
+    """/login을 거치지 않고 state를 직접 조작해 callback에 도달해도(allowlist 우회 시도)
+    위조 next로 토큰이 새지 않고 기존 웹 fragment 플로우로 안전하게 폴백한다(이중 검증)."""
+    import json
+
+    forged_state = "dnext:" + json.dumps({"s": "", "next": "https://evil.example.com/steal"})
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
+        r = await c.get(
+            "/api/auth/google/callback",
+            params={"code": "xyz", "state": forged_state},
+            follow_redirects=False,
+        )
+        assert r.status_code == 302
+        location = r.headers["location"]
+        assert location.startswith(f"{settings.FRONTEND_URL}/auth/callback#")
+        assert "evil.example.com" not in location
+
+
+async def test_test_login_with_loopback_next_uses_query_token(override_auth):
+    """test-login(E2E 우회)도 next를 지원 — 데스크탑 개발 시 실 Google 자격증명 없이
+    루프백 플로우를 손으로 확인할 수 있게(desktop/README.md 절차)."""
+    settings.E2E_LOGIN_ENABLED = True
+    try:
+        async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
+            r = await c.get(
+                "/api/auth/test-login",
+                params={"email": "desk@x.com", "next": "http://127.0.0.1:53219/callback"},
+                follow_redirects=False,
+            )
+            assert r.status_code == 302
+            assert r.headers["location"].startswith("http://127.0.0.1:53219/callback?token=")
     finally:
         settings.E2E_LOGIN_ENABLED = False

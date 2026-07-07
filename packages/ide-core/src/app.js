@@ -16,7 +16,10 @@ export async function mountApp({ host, root }) {
     <div id="topbar">
       <span id="book-title"></span>
       <span id="save-status">대기 중</span>
+      <span id="auth-status">확인 중…</span>
       <span id="topbar-actions">
+        <button type="button" id="login-btn" hidden>로그인</button>
+        <button type="button" id="logout-btn" hidden>로그아웃</button>
         <button type="button" id="settings-btn">설정</button>
         <button type="button" id="publish-btn">발행</button>
       </span>
@@ -43,6 +46,9 @@ export async function mountApp({ host, root }) {
   const settingsBtn = root.querySelector('#settings-btn');
   const publishBtn = root.querySelector('#publish-btn');
   const publishResultEl = root.querySelector('#publish-result');
+  const authStatusEl = root.querySelector('#auth-status');
+  const loginBtn = root.querySelector('#login-btn');
+  const logoutBtn = root.querySelector('#logout-btn');
 
   /** @type {import('./host.js').ChapterSummary[]} */
   let chapters = [];
@@ -52,6 +58,32 @@ export async function mountApp({ host, root }) {
 
   function setSaveStatus(text) {
     saveStatusEl.textContent = text;
+  }
+
+  // 로그인 상태 표시(P1 슬라이스5) — me: whoami()/login() 응답({id,email,displayName,role})
+  // 또는 로그인 안 됐으면 null. 패널 추가 없이(dc-2009f043) 상단바 한 자리만 토글한다.
+  function renderAuthState(me) {
+    if (me) {
+      authStatusEl.textContent = me.email || me.displayName || '로그인됨';
+      loginBtn.hidden = true;
+      logoutBtn.hidden = false;
+    } else {
+      authStatusEl.textContent = '로그인 안 됨';
+      loginBtn.hidden = false;
+      logoutBtn.hidden = true;
+    }
+  }
+
+  async function refreshAuthState() {
+    try {
+      renderAuthState(await host.whoami());
+    } catch (err) {
+      // 서버 연결 실패 등 — "로그인 안 됨"으로 단정하지 않고 원인을 그대로 보여준다
+      // ("로그인 안 됨"과 "서버에 연결할 수 없음"을 사용자가 구분할 수 있게, app.py:whoami 참고).
+      authStatusEl.textContent = `로그인 확인 실패: ${err?.message || err}`;
+      loginBtn.hidden = false;
+      logoutBtn.hidden = true;
+    }
   }
 
   function renderSidebar() {
@@ -199,6 +231,29 @@ export async function mountApp({ host, root }) {
     }
   });
 
+  // 로그인/로그아웃(P1 슬라이스5) — 클릭 시 시스템 브라우저가 열린다(host.login() 내부에서
+  // 루프백 리스너 오픈 → 브라우저 오픈 → 콜백 대기까지 블로킹). 완료/실패 전까지 버튼을
+  // 잠가 중복 클릭을 막는다.
+  loginBtn.addEventListener('click', async () => {
+    loginBtn.disabled = true;
+    const originalLabel = loginBtn.textContent;
+    loginBtn.textContent = '로그인 중… (브라우저 확인)';
+    try {
+      const me = await host.login();
+      renderAuthState(me);
+    } catch (err) {
+      setSaveStatus(`로그인 실패: ${err?.message || err}`);
+    } finally {
+      loginBtn.disabled = false;
+      loginBtn.textContent = originalLabel;
+    }
+  });
+
+  logoutBtn.addEventListener('click', async () => {
+    await host.logout();
+    renderAuthState(null);
+  });
+
   // 발행 설정(P1 슬라이스4) — apiBase/token 수동 입력(prompt 관례, 이 슬라이스는
   // OAuth 없음 — 다음 슬라이스에서 대체). getSettings() 의 token 은 마스킹된 값이라
   // "새 값"으로 그대로 되돌려 넣지 않는다 — 비워두면 기존 값 유지.
@@ -262,7 +317,14 @@ export async function mountApp({ host, root }) {
     }
 
     const msg = document.createElement('p');
-    msg.textContent = `발행 실패 — ${result.error?.message || '알 수 없는 오류'}`;
+    if (result.error?.status === 401) {
+      // 401 시 로그인 유도(P1 슬라이스5) — 토큰 만료/무효일 수 있으니 상단 로그인 상태도
+      // "로그인 안 됨"으로 즉시 반영(다음 whoami() 호출을 기다리지 않고).
+      msg.textContent = '로그인이 필요해요 — 상단바에서 로그인해주세요.';
+      renderAuthState(null);
+    } else {
+      msg.textContent = `발행 실패 — ${result.error?.message || '알 수 없는 오류'}`;
+    }
     publishResultEl.append(msg, closeBtn);
   }
 
@@ -282,6 +344,7 @@ export async function mountApp({ host, root }) {
   });
 
   await loadAll();
+  await refreshAuthState();
 
   return {
     destroy() {

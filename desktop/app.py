@@ -19,15 +19,24 @@ import sys
 import tempfile
 import time
 from pathlib import Path
+from urllib.parse import quote
 
 import webview
 
+from auth_flow import run_login_flow
 from importer import import_manuscript
+# _request 재사용 — publisher.py:179 (stdlib urllib 기반 HTTP 헬퍼, 새 의존성 없이 재사용)
+from publisher import PublishHttpError, _request
 from publisher import publish as publish_book
 from store import Store
+from token_store import KeyringUnavailableError, delete_token, get_token, set_token
 
 BASE_DIR = Path(__file__).resolve().parent
 DIST_INDEX = BASE_DIR.parent / "packages" / "ide-core" / "dist" / "index.html"
+
+# 발행 설정 화면(app.js settingsBtn 핸들러)이 쓰는 기본값과 동일 — 로그인 시에도 apiBase가
+# 아직 없으면(최초 실행) 같은 기본으로 폴백한다.
+_DEFAULT_API_BASE = "http://127.0.0.1:28000"
 
 # pywebview create_file_dialog 의 file_types 포맷: "설명 (*.ext[;*.ext...])"
 # (실측: desktop/.venv/lib/python3.14/site-packages/webview/window.py:534-535 docstring).
@@ -46,6 +55,19 @@ def _mask_token(token):
     if len(token) <= 4:
         return "*" * len(token)
     return "*" * (len(token) - 4) + token[-4:]
+
+
+def _effective_token(raw_settings):
+    """실제 발행/조회에 쓸 토큰 — keyring(P1 슬라이스5 실 로그인의 정본 저장소) 우선,
+    없으면(로그인 안 했거나 keyring 백엔드 자체가 없는 환경) setting 테이블의 평문
+    폴백(dev 수동 입력, 여전히 save_settings({token: ...})로 동작). keyring 조회 자체가
+    실패해도(백엔드 없음) 여기서는 조용히 평문으로 내려간다 — "keyring이 없으면 명확한
+    에러"는 login()/logout()처럼 keyring에 새로 쓰려는 시도에만 적용된다(설계결정 4)."""
+    try:
+        token = get_token()
+    except KeyringUnavailableError:
+        token = None
+    return token or raw_settings.get("token")
 
 
 class Api:
@@ -100,10 +122,11 @@ class Api:
         return {"importedCount": len(chapters), "chapterIds": result["chapterIds"]}
 
     def get_settings(self):
-        """발행 설정 조회(P1 슬라이스4) — token 은 응답에서 마스킹(끝 4자만 노출).
-        ``hasToken`` 으로 저장 여부를 구분(마스킹된 문자열만 보고는 알기 애매해서)."""
+        """발행 설정 조회(P1 슬라이스4) — token 은 keyring 우선 · 평문 폴백(``_effective_token``,
+        P1 슬라이스5) 결과를 응답에서 마스킹(끝 4자만 노출). ``hasToken`` 으로 저장 여부를
+        구분(마스킹된 문자열만 보고는 알기 애매해서)."""
         raw = self._store.get_settings()
-        token = raw.get("token")
+        token = _effective_token(raw)
         return {
             "apiBase": raw.get("apiBase"),
             "token": _mask_token(token),
@@ -111,16 +134,64 @@ class Api:
         }
 
     def save_settings(self, settings):
-        """발행 설정 저장(P1 슬라이스4) — patch 에 담긴 필드(apiBase/token)만 갱신."""
+        """발행 설정 저장(P1 슬라이스4, dev 수동 입력 폴백) — patch 에 담긴 필드(apiBase/token)만
+        갱신. 실 로그인(login())은 이 경로를 안 쓰고 keyring에 직접 쓴다 — 여기 저장한 token은
+        keyring이 비어있을 때만 ``_effective_token`` 에 의해 쓰인다."""
         return self._store.save_settings(settings or {})
 
     def publish(self):
-        """로컬 책 전체를 서버로 발행(P1 슬라이스4) — 저장된 설정을 그대로 쓴다.
-        반환 형태는 desktop/publisher.py:publish() 그대로
+        """로컬 책 전체를 서버로 발행(P1 슬라이스4) — keyring 우선 · 평문 폴백 토큰을 쓴다
+        (P1 슬라이스5). 반환 형태는 desktop/publisher.py:publish() 그대로
         (``{"ok": True, "remoteBookId", "chapterCount"}`` /
         ``{"ok": False, "violations": [...]}`` / ``{"ok": False, "error": {...}}``)."""
-        settings = self._store.get_settings()
-        return publish_book(self._store, settings)
+        raw = self._store.get_settings()
+        effective_settings = {**raw, "token": _effective_token(raw)}
+        return publish_book(self._store, effective_settings)
+
+    def login(self):
+        """실 로그인(P1 슬라이스5) — 시스템 브라우저 Google OAuth + 루프백 콜백 + 키체인 저장.
+
+        지금까지의 "설정 화면에 토큰 수동 붙여넣기"를 대체한다(수동 입력은 save_settings()로
+        여전히 폴백 가능). apiBase 는 저장된 설정을 쓰고 없으면 ``_DEFAULT_API_BASE`` 로
+        폴백(설정 화면 기본값과 동일). 성공 시 whoami() 와 동일한 형태를 반환한다.
+
+        keyring 저장 실패(``KeyringUnavailableError``)·타임아웃(``LoginTimeoutError``)·
+        콜백 에러(``LoginCallbackError``)는 조용히 삼키지 않고 그대로 올린다 — 호출자
+        (packages/ide-core/src/app.js)가 실패로 받아 사용자에게 보여준다."""
+        raw = self._store.get_settings()
+        api_base = raw.get("apiBase") or _DEFAULT_API_BASE
+
+        def build_authorization_url(redirect_uri):
+            next_qs = quote(redirect_uri, safe="")
+            _, body = _request({"apiBase": api_base}, "GET", f"/auth/google/login?next={next_qs}")
+            return body["authorizationUrl"]
+
+        result = run_login_flow(build_authorization_url, timeout_s=120)
+        set_token(result["token"])  # KeyringUnavailableError 는 여기서 그대로 전파(설계결정 4)
+        return self.whoami()
+
+    def logout(self):
+        """keyring 토큰 삭제(멱등) — 평문 setting.token(dev 수동 입력)은 별개 폴백이라 안 건드린다."""
+        delete_token()
+        return {"ok": True}
+
+    def whoami(self):
+        """현재 로그인 계정(``GET /api/me``, backend/src/features/accounts/presentation/me.py:29) —
+        토큰이 아예 없거나 서버가 401(만료/무효)이면 로그인 안 된 것으로 보고 ``None``.
+        그 외 실패(서버 다운 등)는 감추지 않고 그대로 올린다 — "로그인 안 됨"과 "서버에
+        연결할 수 없음"을 UI가 구분할 수 있게."""
+        raw = self._store.get_settings()
+        token = _effective_token(raw)
+        if not token:
+            return None
+        api_base = raw.get("apiBase") or _DEFAULT_API_BASE
+        try:
+            _, body = _request({"apiBase": api_base, "token": token}, "GET", "/me")
+        except PublishHttpError as exc:
+            if exc.status == 401:
+                return None
+            raise
+        return body
 
 
 def run_smoke(window, timeout_s=5.0, poll_interval_s=0.1):
