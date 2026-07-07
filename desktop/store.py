@@ -3,12 +3,19 @@
 계약 전문 = packages/ide-core/HOST_PORT.md. 이 모듈은 그 계약의 Python 쪽 정본이다.
 
 테이블(단수+접미어, CLAUDE.md 컨벤션):
-    book(id, title, created_ts, updated_ts)
+    book(id, title, created_ts, updated_ts, remote_book_id)
     chapter(id, book_id, title, synopsis, status_cd, order_no, html, created_ts, updated_ts)
+    setting(key, value)
 
 컬럼 status_cd/order_no 는 DB 내부 표기일 뿐, 브리지로 나가는 dict 는 이미
 HOST_PORT.md 규칙(camelCase, _cd 벗김, _no 비노출)을 따른다 — status_cd → "status",
 order_no 는 아예 노출하지 않고 배열 순서로만 표현한다.
+
+book.remote_book_id / setting(P1 슬라이스4, 발행 연결) — 기존 DB 파일에는 없을 수 있어
+`_ensure_column()`(PRAGMA table_info 확인 후 ALTER)로 멱등 추가한다. `setting` 은
+`CREATE TABLE IF NOT EXISTS` 로 충분(신규 테이블이라 컬럼 추가 이슈 없음). 발행 설정
+(apiBase/token)은 `key`/`value` 두 컬럼짜리 얇은 테이블에 저장 — `get_settings()`/
+`save_settings()` 참고.
 
 호출마다 짧은 연결을 열고 닫는다: pywebview 는 js_api 메서드를 호출마다 별도 스레드에서
 실행하므로(lr-9a45e6e4) 커넥션을 오래 공유하지 않는 편이 스레드 안전을 가장 단순하게
@@ -110,8 +117,21 @@ class Store:
                     created_ts TEXT NOT NULL,
                     updated_ts TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS setting (
+                    key TEXT PRIMARY KEY,
+                    value TEXT
+                );
                 """
             )
+            # remote_book_id — P1 슬라이스4(발행 연결). 기존 DB 파일에 멱등 추가:
+            # PRAGMA table_info 로 이미 있는지 먼저 확인한 뒤에만 ALTER(재실행 시 중복 에러 방지).
+            self._ensure_column(conn, "book", "remote_book_id", "TEXT")
+
+    @staticmethod
+    def _ensure_column(conn, table, column, coltype):
+        cols = {row["name"] for row in conn.execute(f"PRAGMA table_info({table})")}
+        if column not in cols:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {coltype}")
 
     def _ensure_seed(self):
         """첫 실행 시 기본 book 1개 + 빈 챕터 1개. 이미 book 이 있으면 아무 것도 안 한다
@@ -236,3 +256,44 @@ class Store:
                 chapter_ids.append(cur.lastrowid)
                 next_order += 1
         return {"chapterIds": chapter_ids}
+
+    # ── 발행 연결(P1 슬라이스4) ──────────────────────────────────────────
+
+    def get_remote_book_id(self):
+        """현재 book 이 서버에 이미 생성됐으면 그 UUID(문자열), 아니면 None."""
+        with self._session() as conn:
+            book_id = self._get_book_id(conn)
+            row = conn.execute(
+                "SELECT remote_book_id FROM book WHERE id = ?", (book_id,)
+            ).fetchone()
+            return row["remote_book_id"] if row else None
+
+    def set_remote_book_id(self, remote_book_id):
+        """책 생성 성공 후 서버 book UUID 를 저장(다음 발행부터는 재사용, 재생성 없음)."""
+        with self._session() as conn:
+            book_id = self._get_book_id(conn)
+            conn.execute(
+                "UPDATE book SET remote_book_id = ? WHERE id = ?", (remote_book_id, book_id)
+            )
+        return {"ok": True}
+
+    def get_settings(self):
+        """발행 설정(apiBase, token) 조회 — 저장된 적 없는 필드는 None."""
+        with self._session() as conn:
+            rows = conn.execute("SELECT key, value FROM setting").fetchall()
+        values = {row["key"]: row["value"] for row in rows}
+        return {"apiBase": values.get("api_base"), "token": values.get("token")}
+
+    def save_settings(self, patch):
+        """patch 에 담긴 필드(apiBase/token)만 upsert — 나머지는 보존."""
+        patch = patch or {}
+        field_to_key = {"apiBase": "api_base", "token": "token"}
+        with self._session() as conn:
+            for field, key in field_to_key.items():
+                if field in patch and patch[field] is not None:
+                    conn.execute(
+                        """INSERT INTO setting (key, value) VALUES (?, ?)
+                           ON CONFLICT(key) DO UPDATE SET value = excluded.value""",
+                        (key, patch[field]),
+                    )
+        return {"ok": True}

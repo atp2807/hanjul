@@ -53,6 +53,24 @@ function waitForPywebview(timeoutMs = READY_TIMEOUT_MS) {
  * @property {(id:number) => Promise<{ok:boolean}>} deleteChapter
  * @property {(ids:number[]) => Promise<{ok:boolean}>} reorderChapters
  * @property {() => Promise<{importedCount:number, chapterIds:number[]} | {cancelled:true}>} importFile
+ * @property {() => Promise<{apiBase:string|null, token:string|null, hasToken:boolean}>} getSettings
+ * @property {(settings:{apiBase?:string, token?:string}) => Promise<{ok:boolean}>} saveSettings
+ * @property {() => Promise<PublishResult>} publish
+ */
+
+/**
+ * @typedef {Object} PublishViolation
+ * @property {string} chapterTitle
+ * @property {number} blockIndex
+ * @property {string} blockType
+ * @property {string} reason
+ *
+ * @typedef {Object} PublishResult
+ * @property {boolean} ok
+ * @property {string} [remoteBookId]
+ * @property {number} [chapterCount]
+ * @property {PublishViolation[]} [violations]
+ * @property {{status:number|null, message:string}} [error]
  */
 
 /**
@@ -89,6 +107,15 @@ export function createPywebviewHost() {
     },
     async importFile() {
       return (await api()).import_file();
+    },
+    async getSettings() {
+      return (await api()).get_settings();
+    },
+    async saveSettings(settings) {
+      return (await api()).save_settings(settings || {});
+    },
+    async publish() {
+      return (await api()).publish();
     },
   };
 }

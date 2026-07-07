@@ -52,23 +52,62 @@ cd desktop && .venv/bin/python -m pytest tests -q   # desktop/ 에서
 `desktop/conftest.py` 가 `desktop/`를 sys.path 에 등록해 `import store` 가 되게 한다
 (패키지화 없이 stdlib 스타일 모듈 하나로 유지하기 위함).
 
+## 발행 — 로컬 백엔드로 테스트하는 법 (P1 슬라이스4)
+
+`publisher.py`가 로컬 책을 hanjul 백엔드 출판 API로 밀어넣는다. 인증은 이 슬라이스에선
+**토큰 수동 설정**(설정 버튼 → apiBase/token 직접 입력, OAuth 플로우는 다음 슬라이스).
+`desktop/tests`의 pytest 는 stdlib `http.server` 기반 Fake 서버로만 검증하고(네트워크 X,
+`--smoke`도 발행은 제외), 진짜 백엔드로 발행이 되는지는 아래 절차로 손으로 확인한다.
+
+```bash
+# 1) 로컬 백엔드 — 마이그레이션 + E2E 로그인 우회 켜고 기동 (.venv312, 3.12/asyncpg 필수)
+cd backend && .venv312/bin/alembic upgrade head
+cd backend && E2E_LOGIN_ENABLED=1 .venv312/bin/uvicorn main:app --host 127.0.0.1 --port 28000
+
+# 2) GUI 에서 손으로: 상단바 [설정] → apiBase=http://127.0.0.1:28000,
+#    token= 아래 URL을 브라우저로 열어 리다이렉트 fragment(#token=...)에서 복사
+#    http://127.0.0.1:28000/api/auth/test-login?email=me@example.com
+#    → 상단바 [발행] 클릭. 신규 책이라 가격이 없으므로 422("가격을 먼저 설정해야
+#    해요")가 정상 — 이 슬라이스는 가격 설정 UI가 없다(publisher.py 모듈 docstring
+#    "미해결" 참고). 웹 스튜디오에서 해당 책 가격을 설정한 뒤 재발행하면 통과한다.
+
+# 3) 또는 GUI 없이 스크립트로 전 과정(토큰 발급 포함) 자동 확인 — opt-in, 평소엔 안내만:
+cd desktop && RUN_PUBLISH_LIVE=1 .venv/bin/python scripts/publish_live.py
+```
+
+`scripts/publish_live.py`는 사용자의 실제 `desktop/data/ide.db`(작업 중인 원고)를 전혀
+건드리지 않는다 — 매번 임시 SQLite에 책 1권 + 검증용 문단을 새로 만들어 발행한다.
+
 ## 구조
 
 - `packages/ide-core/` — 웹뷰 앱 본체(에디터+챕터 사이드바+호스트 브리지 클라이언트).
   `@hanjul/doc` 의 `mountEditor` 를 상대경로로 직접 import 한다(react 배럴을 거치지
   않기 위해 — P0 스파이크와 동일 이유). 자세한 계약은 `packages/ide-core/HOST_PORT.md`.
-- `store.py` — SQLite 저장소. 테이블: `book(id, title, created_ts, updated_ts)`,
-  `chapter(id, book_id, title, synopsis, status_cd, order_no, html, created_ts,
-  updated_ts)`. 마이그레이션은 `CREATE TABLE IF NOT EXISTS` 멱등.
+- `store.py` — SQLite 저장소. 테이블: `book(id, title, created_ts, updated_ts,
+  remote_book_id)`, `chapter(id, book_id, title, synopsis, status_cd, order_no, html,
+  created_ts, updated_ts)`, `setting(key, value)`. 신규 테이블은
+  `CREATE TABLE IF NOT EXISTS` 멱등, 기존 테이블에 컬럼 추가(`remote_book_id`)는
+  `PRAGMA table_info` 확인 후 `ALTER TABLE`(멱등 헬퍼 `_ensure_column`).
 - `app.py` — pywebview 셸. `js_api=Api(store)` 로 Host Port v0 8개 메서드
   (`get_book`/`list_chapters`/`load_chapter`/`save_chapter`/`create_chapter`/
-  `delete_chapter`/`reorder_chapters`/`import_file`)를 노출. 웹앱 로드 대상은
+  `delete_chapter`/`reorder_chapters`/`import_file`) + 발행 3종(P1 슬라이스4,
+  `get_settings`/`save_settings`/`publish`)을 노출. 웹앱 로드 대상은
   `packages/ide-core/dist/index.html`.
 - `importer.py` — 원고 가져오기(P1 슬라이스3, TXT/MD/DOCX/HWP/HWPX). backend/src/engine/doc
   의 순수 파이썬 파서를 그대로 재사용해 UniversalDoc → 정본 HTML을 만들고, h1 경계로
   챕터 목록(`[{"title", "html"}, ...]`)을 분리한다. backend 코드는 수정하지 않는다.
+- `publisher.py` — 발행 연결(P1 슬라이스4). 로컬 챕터 html을 `backend/src/engine/doc`의
+  `parse_dialect`/`serialize_doc`로 되읽어 서버 `{type,html}` 블록으로 바꾸고(h1 경계는
+  `importer.py`의 `_split_by_h1` 재사용), `backend/src/engine/imports/block_html.py`의
+  `validate_block_html`을 그대로 import 해 프리플라이트한다(새 검증기 없음, drift 0).
+  HTTP는 stdlib `urllib`만 사용(의존성 추가 없음).
+- `scripts/publish_live.py` — 실 로컬 백엔드로 발행해보는 opt-in 수동 검증 스크립트
+  (`RUN_PUBLISH_LIVE=1`). 아래 "발행" 절 참고.
 - `tests/test_store.py` — `store.py` CRUD/재배열/시드 멱등성 단위 테스트(pytest,
   tmp_path 로 격리된 sqlite 파일 사용 — `data/ide.db` 를 건드리지 않음).
+- `tests/test_publisher.py` — `publisher.py` 단위 테스트. HTTP는 stdlib `http.server`
+  기반 Fake 서버로(요청 경로·헤더·바디 실측 단언), 프리플라이트 위반 케이스, store
+  마이그레이션(`remote_book_id` 컬럼) 멱등성까지 검증. 실 백엔드는 띄우지 않는다.
 - `data/` — 실행 시 생성되는 SQLite 파일(gitignore, 커밋 안 함).
 
 ## 한글 IME 수동 체크리스트 (GUI 창에서)
@@ -102,6 +141,11 @@ cd desktop && .venv/bin/python -m pytest tests -q   # desktop/ 에서
 - **원고 가져오기(P1 슬라이스3)**: h1 2개짜리 임시 .md 를 만들어 `import_file(path)` 로
   왕복(다이얼로그는 path 인자로 건너뜀) — 챕터 2개 추가·각 h1 텍스트가 제목이 됐는지·
   본문이 일치하는지까지 실제 SQLite 왕복으로 검증한다(`SMOKE_RESULT` 의 `import_result`).
+
+**발행(P1 슬라이스4)은 스모크에서 의도적으로 제외**했다 — 실 네트워크 호출(백엔드
+기동)이 필요해 "수 초 내 결정적으로 끝나는" 스모크의 전제와 안 맞는다. 대신
+`tests/test_publisher.py`(Fake 서버, 네트워크 없이 결정적)로 단위 검증하고, 진짜
+서버 왕복은 opt-in `scripts/publish_live.py`로 손으로 확인한다(위 "발행" 절).
 
 IME 조합 자체(자모 결합·타이밍·커서 이동)는 **사람 손으로만** 확인 가능하다 —
 헤드리스로 키 이벤트를 흉내내는 건 실제 OS IME 엔진 경로를 타지 않아 목적(WKWebView

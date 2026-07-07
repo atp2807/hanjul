@@ -23,6 +23,7 @@ from pathlib import Path
 import webview
 
 from importer import import_manuscript
+from publisher import publish as publish_book
 from store import Store
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -34,6 +35,17 @@ _IMPORT_FILE_TYPES = (
     "지원 문서 (*.txt;*.md;*.docx;*.hwp;*.hwpx)",
     "모든 파일 (*.*)",
 )
+
+
+def _mask_token(token):
+    """설정 조회 응답에 원본 토큰을 그대로 싣지 않기 위한 마스킹 — 끝 4자만 남긴다.
+    (get_settings() 는 "지금 뭐가 설정돼 있나" 확인용이지 값을 그대로 복사해가는 용도가
+    아니다 — 새 값은 항상 save_settings() 로 새로 입력받는다.)"""
+    if not token:
+        return None
+    if len(token) <= 4:
+        return "*" * len(token)
+    return "*" * (len(token) - 4) + token[-4:]
 
 
 class Api:
@@ -86,6 +98,29 @@ class Api:
         book_id = self._store.get_book()["id"]
         result = self._store.import_chapters(book_id, chapters)
         return {"importedCount": len(chapters), "chapterIds": result["chapterIds"]}
+
+    def get_settings(self):
+        """발행 설정 조회(P1 슬라이스4) — token 은 응답에서 마스킹(끝 4자만 노출).
+        ``hasToken`` 으로 저장 여부를 구분(마스킹된 문자열만 보고는 알기 애매해서)."""
+        raw = self._store.get_settings()
+        token = raw.get("token")
+        return {
+            "apiBase": raw.get("apiBase"),
+            "token": _mask_token(token),
+            "hasToken": bool(token),
+        }
+
+    def save_settings(self, settings):
+        """발행 설정 저장(P1 슬라이스4) — patch 에 담긴 필드(apiBase/token)만 갱신."""
+        return self._store.save_settings(settings or {})
+
+    def publish(self):
+        """로컬 책 전체를 서버로 발행(P1 슬라이스4) — 저장된 설정을 그대로 쓴다.
+        반환 형태는 desktop/publisher.py:publish() 그대로
+        (``{"ok": True, "remoteBookId", "chapterCount"}`` /
+        ``{"ok": False, "violations": [...]}`` / ``{"ok": False, "error": {...}}``)."""
+        settings = self._store.get_settings()
+        return publish_book(self._store, settings)
 
 
 def run_smoke(window, timeout_s=5.0, poll_interval_s=0.1):

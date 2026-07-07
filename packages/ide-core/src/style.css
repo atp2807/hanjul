@@ -54,6 +54,51 @@ body {
 
 #save-status {
   opacity: 0.85;
+  flex: 1 1 auto;
+}
+
+#topbar-actions {
+  display: flex;
+  gap: 8px;
+}
+
+#settings-btn,
+#publish-btn {
+  padding: 6px 12px;
+  border: 1px solid var(--hj-border);
+  border-radius: var(--hj-radius-sm);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+#publish-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+#publish-result {
+  padding: 10px 16px;
+  background: var(--hj-tint);
+  border-bottom: 1px solid var(--hj-border);
+  font-size: 13px;
+}
+
+#publish-result p {
+  margin: 0 0 6px;
+}
+
+#publish-result ul {
+  margin: 0 0 8px;
+  padding-left: 20px;
+}
+
+#publish-result .publish-result-close {
+  border: 1px solid var(--hj-border);
+  border-radius: var(--hj-radius-sm);
+  background: transparent;
+  padding: 4px 10px;
+  cursor: pointer;
 }
 
 #shell {

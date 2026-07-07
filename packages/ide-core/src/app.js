@@ -16,7 +16,12 @@ export async function mountApp({ host, root }) {
     <div id="topbar">
       <span id="book-title"></span>
       <span id="save-status">대기 중</span>
+      <span id="topbar-actions">
+        <button type="button" id="settings-btn">설정</button>
+        <button type="button" id="publish-btn">발행</button>
+      </span>
     </div>
+    <div id="publish-result" hidden></div>
     <div id="shell">
       <aside id="sidebar">
         <ul id="chapter-list"></ul>
@@ -35,6 +40,9 @@ export async function mountApp({ host, root }) {
   const newBtn = root.querySelector('#new-chapter-btn');
   const importBtn = root.querySelector('#import-btn');
   const editorEl = root.querySelector('#editor');
+  const settingsBtn = root.querySelector('#settings-btn');
+  const publishBtn = root.querySelector('#publish-btn');
+  const publishResultEl = root.querySelector('#publish-result');
 
   /** @type {import('./host.js').ChapterSummary[]} */
   let chapters = [];
@@ -188,6 +196,88 @@ export async function mountApp({ host, root }) {
     } finally {
       importBtn.disabled = false;
       importBtn.textContent = originalLabel;
+    }
+  });
+
+  // 발행 설정(P1 슬라이스4) — apiBase/token 수동 입력(prompt 관례, 이 슬라이스는
+  // OAuth 없음 — 다음 슬라이스에서 대체). getSettings() 의 token 은 마스킹된 값이라
+  // "새 값"으로 그대로 되돌려 넣지 않는다 — 비워두면 기존 값 유지.
+  settingsBtn.addEventListener('click', async () => {
+    const current = await host.getSettings();
+    window.alert(
+      current.apiBase || current.hasToken
+        ? `현재 apiBase: ${current.apiBase || '(없음)'} / 토큰: ${current.hasToken ? current.token : '(없음)'}`
+        : '아직 설정된 발행 서버가 없어요.'
+    );
+
+    const apiBase = window.prompt(
+      '발행 서버 주소 (apiBase, 예: http://127.0.0.1:28000) — 비워두면 유지',
+      current.apiBase || 'http://127.0.0.1:28000'
+    );
+    const token = window.prompt('로그인 토큰 (Bearer) — 비워두면 유지', '');
+
+    const patch = {};
+    if (apiBase) patch.apiBase = apiBase;
+    if (token) patch.token = token;
+    if (Object.keys(patch).length === 0) return;
+
+    await host.saveSettings(patch);
+    setSaveStatus('발행 설정 저장됨');
+  });
+
+  // 발행 결과/프리플라이트 위반 표시 — 패널 추가 없이(dc-2009f043) 상단바 바로 아래
+  // 한 줄짜리 배너 영역을 성공/실패 내용으로 채웠다 비웠다만 한다.
+  function renderPublishResult(result) {
+    publishResultEl.hidden = false;
+    publishResultEl.innerHTML = '';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
+    closeBtn.className = 'publish-result-close';
+    closeBtn.textContent = '닫기';
+    closeBtn.addEventListener('click', () => {
+      publishResultEl.hidden = true;
+    });
+
+    if (result.ok) {
+      const msg = document.createElement('p');
+      msg.textContent = `발행 완료 — 챕터 ${result.chapterCount}개 (책 ID: ${result.remoteBookId})`;
+      publishResultEl.append(msg, closeBtn);
+      return;
+    }
+
+    if (result.violations?.length) {
+      const msg = document.createElement('p');
+      msg.textContent =
+        `발행 중단 — 서버가 지원하지 않는 서식이 ${result.violations.length}곳 있어요 ` +
+        '(표/이미지/목록/코드 블록, 밑줄·링크 등은 아직 지원하지 않아요):';
+      const list = document.createElement('ul');
+      for (const v of result.violations) {
+        const li = document.createElement('li');
+        li.textContent = `${v.chapterTitle ?? '(제목 없음)'} — ${v.blockType}: ${v.reason}`;
+        list.appendChild(li);
+      }
+      publishResultEl.append(msg, list, closeBtn);
+      return;
+    }
+
+    const msg = document.createElement('p');
+    msg.textContent = `발행 실패 — ${result.error?.message || '알 수 없는 오류'}`;
+    publishResultEl.append(msg, closeBtn);
+  }
+
+  publishBtn.addEventListener('click', async () => {
+    publishBtn.disabled = true;
+    const originalLabel = publishBtn.textContent;
+    publishBtn.textContent = '발행 중…';
+    try {
+      const result = await host.publish();
+      renderPublishResult(result);
+    } catch (err) {
+      renderPublishResult({ ok: false, error: { message: err?.message || String(err) } });
+    } finally {
+      publishBtn.disabled = false;
+      publishBtn.textContent = originalLabel;
     }
   });
 
