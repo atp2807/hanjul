@@ -2,35 +2,17 @@
 from uuid import uuid4
 
 import httpx
-import pytest
+from main import app
 from sqlalchemy import select
-from src.config.settings import settings
-
-settings.DEBUG = False
-
-from main import app  # noqa: E402
-from src.config.database import get_potato_session, get_session  # noqa: E402
-from src.features.auth.presentation.dependencies import token_issuer as customer_token  # noqa: E402
-from src.features.potato.application.password import hash_password  # noqa: E402
-from src.features.potato.domain.models import OPERATOR  # noqa: E402
-from src.features.potato.infrastructure.operator_repo import SqlOperatorRepository  # noqa: E402
-from src.infrastructure.db.models.operator import AuditLog  # noqa: E402
-from src.infrastructure.db.models.report import Report  # noqa: E402
+from src.features.auth.presentation.dependencies import token_issuer as customer_token
+from src.features.potato.application.password import hash_password
+from src.features.potato.domain.models import OPERATOR
+from src.features.potato.infrastructure.operator_repo import SqlOperatorRepository
+from src.infrastructure.db.models.operator import AuditLog
+from src.infrastructure.db.models.report import Report
 
 EMAIL = "report-op@hanjul.io"
 PASSWORD = "potato-rep-123"
-
-
-@pytest.fixture
-def app_db(sessionmaker):
-    async def _session():
-        async with sessionmaker() as s:
-            yield s
-
-    app.dependency_overrides[get_session] = _session
-    app.dependency_overrides[get_potato_session] = _session
-    yield sessionmaker
-    app.dependency_overrides.clear()
 
 
 async def _op_token(c, sessionmaker) -> str:
@@ -48,9 +30,9 @@ def _client():
     )
 
 
-async def test_report_submit_list_resolve(app_db):
+async def test_report_submit_list_resolve(app_db_potato):
     async with _client() as c:
-        op_hdr = {"Authorization": f"Bearer {await _op_token(c, app_db)}"}
+        op_hdr = {"Authorization": f"Bearer {await _op_token(c, app_db_potato)}"}
         # 고객이 책 신고
         cust_hdr = {"Authorization": f"Bearer {customer_token().issue(uuid4(), 'READER')}"}
         target = str(uuid4())
@@ -93,7 +75,7 @@ async def test_report_submit_list_resolve(app_db):
         assert all(rr["id"] != report_id for rr in open_queue)
 
         # DB 상태 + 감사
-        async with app_db() as s:
+        async with app_db_potato() as s:
             rep = (await s.execute(select(Report))).scalar_one()
             assert rep.status == "RESOLVED"
             assert rep.resolved_by is not None
@@ -101,7 +83,7 @@ async def test_report_submit_list_resolve(app_db):
         assert any(a.action == "RESOLVE_REPORT" for a in audits)
 
 
-async def test_reports_queue_requires_operator(app_db):
+async def test_reports_queue_requires_operator(app_db_potato):
     async with _client() as c:
         # 고객 토큰으로 운영자 큐 접근 → 401 (방화벽)
         cust_hdr = {"Authorization": f"Bearer {customer_token().issue(uuid4(), 'READER')}"}

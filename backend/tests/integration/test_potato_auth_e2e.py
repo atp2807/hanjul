@@ -5,32 +5,14 @@
 from uuid import uuid4
 
 import httpx
-import pytest
-from src.config.settings import settings
-
-settings.DEBUG = False
-
-from main import app  # noqa: E402
-from src.config.database import get_potato_session, get_session  # noqa: E402
-from src.features.auth.presentation.dependencies import token_issuer as customer_token_issuer  # noqa: E402
-from src.features.potato.application.password import hash_password  # noqa: E402
-from src.features.potato.domain.models import DEVELOPER  # noqa: E402
-from src.features.potato.infrastructure.operator_repo import SqlOperatorRepository  # noqa: E402
+from main import app
+from src.features.auth.presentation.dependencies import token_issuer as customer_token_issuer
+from src.features.potato.application.password import hash_password
+from src.features.potato.domain.models import DEVELOPER
+from src.features.potato.infrastructure.operator_repo import SqlOperatorRepository
 
 EMAIL = "op@hanjul.io"
 PASSWORD = "potato-secret-123"
-
-
-@pytest.fixture
-def app_db(sessionmaker):
-    async def _session():
-        async with sessionmaker() as s:
-            yield s
-
-    app.dependency_overrides[get_session] = _session
-    app.dependency_overrides[get_potato_session] = _session
-    yield sessionmaker
-    app.dependency_overrides.clear()
 
 
 async def _seed_operator(sessionmaker, role: str = DEVELOPER) -> None:
@@ -46,8 +28,8 @@ def _client():
     )
 
 
-async def test_login_success_and_me(app_db):
-    await _seed_operator(app_db)
+async def test_login_success_and_me(app_db_potato):
+    await _seed_operator(app_db_potato)
     async with _client() as c:
         # 틀린 비번 → 401
         bad = await c.post("/api/potato/auth/login", json={"email": EMAIL, "password": "wrong"})
@@ -68,8 +50,8 @@ async def test_login_success_and_me(app_db):
         assert me.json()["role"] == "DEVELOPER"
 
 
-async def test_me_requires_token(app_db):
-    await _seed_operator(app_db)
+async def test_me_requires_token(app_db_potato):
+    await _seed_operator(app_db_potato)
     async with _client() as c:
         assert (await c.get("/api/potato/auth/me")).status_code == 401
         assert (
@@ -77,9 +59,9 @@ async def test_me_requires_token(app_db):
         ).status_code == 401
 
 
-async def test_firewall_both_directions(app_db):
+async def test_firewall_both_directions(app_db_potato):
     """고객 토큰은 potato 에서 무효 / potato 토큰은 고객 엔드포인트에서 무효."""
-    await _seed_operator(app_db)
+    await _seed_operator(app_db_potato)
     async with _client() as c:
         # 고객 토큰(다른 시크릿, aud 없음) → potato me 거부
         customer_token = customer_token_issuer().issue(uuid4(), "READER")

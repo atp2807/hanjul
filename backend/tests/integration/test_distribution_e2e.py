@@ -1,21 +1,18 @@
 """서점 배포 E2E — 출판본을 데모 채널로 배포 + 이력."""
-import httpx
 import pytest
 from fastapi import Depends
+from main import app
 from sqlalchemy.ext.asyncio import AsyncSession
+from src.config.database import get_session
 from src.config.settings import settings
+from src.features.auth.application.auth_service import AuthService
+from src.features.auth.domain.models import SocialProfile
+from src.features.auth.infrastructure.account_repo import SqlAccountRepository
+from src.features.auth.presentation.dependencies import get_auth_service, token_issuer
 
-settings.DEBUG = False
-
-from main import app  # noqa: E402
-from src.config.database import get_session  # noqa: E402
-from src.features.auth.application.auth_service import AuthService  # noqa: E402
-from src.features.auth.domain.models import SocialProfile  # noqa: E402
-from src.features.auth.infrastructure.account_repo import SqlAccountRepository  # noqa: E402
-from src.features.auth.presentation.dependencies import get_auth_service, token_issuer  # noqa: E402
-
-from tests.fixtures.fake_account_repo import FakeProvider  # noqa: E402
-from tests.integration.auth_helpers import login_account  # noqa: E402
+from tests.fixtures.fake_account_repo import FakeProvider
+from tests.integration.auth_helpers import login_account
+from tests.integration.book_helpers import create_book, import_raw
 
 PROFILE = SocialProfile("GOOGLE", "dist-x", "d@x.com", "작가")
 OTHER = SocialProfile("NAVER", "dist-other", "o@x.com", "타인")
@@ -23,6 +20,7 @@ OTHER = SocialProfile("NAVER", "dist-other", "o@x.com", "타인")
 
 @pytest.fixture
 def app_db(sessionmaker):
+    """2-provider(작가·타인) 로그인 필요 — conftest의 단일 social_profile app_db로 못 대체."""
     settings.DISTRIBUTION_DEMO = True  # 데모 채널 활성
 
     async def _session():
@@ -43,41 +41,39 @@ def app_db(sessionmaker):
     settings.DISTRIBUTION_DEMO = False
 
 
-async def test_publish_then_distribute_to_store(app_db):
-    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
-        token, _ = await login_account(c, "google", "x")
-        auth = {"Authorization": f"Bearer {token}"}
+async def test_publish_then_distribute_to_store(client):
+    token, _ = await login_account(client, "google", "x")
+    auth = {"Authorization": f"Bearer {token}"}
 
-        # 출판본 준비 (즉시출간)
-        book = (await c.post("/api/books", json={"title": "유통책"}, headers=auth)).json()["bookId"]
-        await c.post(f"/api/books/{book}/import", json={"rawText": "# 1장\n\n본문"}, headers=auth)
-        await c.put(f"/api/books/{book}/price", json={"amount": 9000}, headers=auth)
-        await c.put(f"/api/books/{book}/isbn", json={"isbn": "9788912345678"}, headers=auth)
-        await c.post(f"/api/books/{book}/publish-now", headers=auth)
+    # 출판본 준비 (즉시출간)
+    book = await create_book(client, auth, title="유통책")
+    await import_raw(client, book, "# 1장\n\n본문", auth)
+    await client.put(f"/api/books/{book}/price", json={"amount": 9000}, headers=auth)
+    await client.put(f"/api/books/{book}/isbn", json={"isbn": "9788912345678"}, headers=auth)
+    await client.post(f"/api/books/{book}/publish-now", headers=auth)
 
-        # 인가 게이트 — 무인증 401, 타인 403 (소유 작가만 배포 가능)
-        assert (await c.post(f"/api/books/{book}/distribute", json={"channel": "KYOBO"})).status_code == 401
-        other_token, _ = await login_account(c, "naver", "y")
-        other = {"Authorization": f"Bearer {other_token}"}
-        assert (await c.post(f"/api/books/{book}/distribute", json={"channel": "KYOBO"}, headers=other)).status_code == 403
+    # 인가 게이트 — 무인증 401, 타인 403 (소유 작가만 배포 가능)
+    assert (await client.post(f"/api/books/{book}/distribute", json={"channel": "KYOBO"})).status_code == 401
+    other_token, _ = await login_account(client, "naver", "y")
+    other = {"Authorization": f"Bearer {other_token}"}
+    assert (await client.post(f"/api/books/{book}/distribute", json={"channel": "KYOBO"}, headers=other)).status_code == 403
 
-        # 교보로 배포 (데모) → SENT
-        r = await c.post(f"/api/books/{book}/distribute", json={"channel": "KYOBO"}, headers=auth)
-        assert r.status_code == 201
-        body = r.json()
-        assert body["status"] == "SENT"
-        assert body["channel"] == "KYOBO"
+    # 교보로 배포 (데모) → SENT
+    r = await client.post(f"/api/books/{book}/distribute", json={"channel": "KYOBO"}, headers=auth)
+    assert r.status_code == 201
+    body = r.json()
+    assert body["status"] == "SENT"
+    assert body["channel"] == "KYOBO"
 
-        # 이력 — 역시 소유 작가만 (타인 403)
-        assert (await c.get(f"/api/books/{book}/distributions", headers=other)).status_code == 403
-        hist = (await c.get(f"/api/books/{book}/distributions", headers=auth)).json()
-        assert len(hist) == 1 and hist[0]["channel"] == "KYOBO"
+    # 이력 — 역시 소유 작가만 (타인 403)
+    assert (await client.get(f"/api/books/{book}/distributions", headers=other)).status_code == 403
+    hist = (await client.get(f"/api/books/{book}/distributions", headers=auth)).json()
+    assert len(hist) == 1 and hist[0]["channel"] == "KYOBO"
 
 
-async def test_distribute_unpublished_409(app_db):
-    async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="http://t") as c:
-        token, _ = await login_account(c, "google", "x")
-        auth = {"Authorization": f"Bearer {token}"}
-        draft = (await c.post("/api/books", json={"title": "초안"}, headers=auth)).json()["bookId"]
-        r = await c.post(f"/api/books/{draft}/distribute", json={"channel": "KYOBO"}, headers=auth)
-        assert r.status_code == 409  # 출판본만 배포 가능
+async def test_distribute_unpublished_409(client):
+    token, _ = await login_account(client, "google", "x")
+    auth = {"Authorization": f"Bearer {token}"}
+    draft = await create_book(client, auth, title="초안")
+    r = await client.post(f"/api/books/{draft}/distribute", json={"channel": "KYOBO"}, headers=auth)
+    assert r.status_code == 409  # 출판본만 배포 가능

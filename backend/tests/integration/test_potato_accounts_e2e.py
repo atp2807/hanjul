@@ -3,33 +3,15 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 import httpx
-import pytest
-from src.config.settings import settings
-
-settings.DEBUG = False
-
-from main import app  # noqa: E402
-from src.config.database import get_potato_session, get_session  # noqa: E402
-from src.features.potato.application.password import hash_password  # noqa: E402
-from src.features.potato.domain.models import OPERATOR  # noqa: E402
-from src.features.potato.infrastructure.operator_repo import SqlOperatorRepository  # noqa: E402
-from src.infrastructure.db.models.account import Account  # noqa: E402
-from src.infrastructure.db.models.book import Book  # noqa: E402
+from main import app
+from src.features.potato.application.password import hash_password
+from src.features.potato.domain.models import OPERATOR
+from src.features.potato.infrastructure.operator_repo import SqlOperatorRepository
+from src.infrastructure.db.models.account import Account
+from src.infrastructure.db.models.book import Book
 
 EMAIL = "acct-op@hanjul.io"
 PASSWORD = "potato-acct-123"
-
-
-@pytest.fixture
-def app_db(sessionmaker):
-    async def _session():
-        async with sessionmaker() as s:
-            yield s
-
-    app.dependency_overrides[get_session] = _session
-    app.dependency_overrides[get_potato_session] = _session
-    yield sessionmaker
-    app.dependency_overrides.clear()
 
 
 async def _op_token(c, sessionmaker) -> str:
@@ -55,10 +37,10 @@ def _client():
     )
 
 
-async def test_suspend_and_block_review_with_audit(app_db):
+async def test_suspend_and_block_review_with_audit(app_db_potato):
     async with _client() as c:
-        hdr = {"Authorization": f"Bearer {await _op_token(c, app_db)}"}
-        aid = await _make_account(app_db)
+        hdr = {"Authorization": f"Bearer {await _op_token(c, app_db_potato)}"}
+        aid = await _make_account(app_db_potato)
 
         # 초기 상태
         view = (await c.get(f"/api/potato/accounts/{aid}", headers=hdr)).json()
@@ -93,12 +75,12 @@ async def test_suspend_and_block_review_with_audit(app_db):
         ).status_code == 404
 
 
-async def test_dashboard_stats(app_db):
+async def test_dashboard_stats(app_db_potato):
     async with _client() as c:
-        hdr = {"Authorization": f"Bearer {await _op_token(c, app_db)}"}
-        await _make_account(app_db)
+        hdr = {"Authorization": f"Bearer {await _op_token(c, app_db_potato)}"}
+        await _make_account(app_db_potato)
         # 출판 책 1 + 차단 책 1
-        async with app_db() as s:
+        async with app_db_potato() as s:
             s.add(Book(id=uuid4(), title="공개", kind="BOOK", language="ko", status="PUBLISHED",
                        price_amt=1000, published_at=datetime.now(UTC)))
             s.add(Book(id=uuid4(), title="차단", kind="BOOK", language="ko", status="PUBLISHED",

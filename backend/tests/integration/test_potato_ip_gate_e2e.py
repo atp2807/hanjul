@@ -3,25 +3,8 @@
 운영(api.hanjul.io는 Cloudflare 프록시)에선 CF-Connecting-IP 가 진짜 클라 IP.
 """
 import httpx
-import pytest
+from main import app
 from src.config.settings import settings
-
-settings.DEBUG = False
-
-from main import app  # noqa: E402
-from src.config.database import get_potato_session, get_session  # noqa: E402
-
-
-@pytest.fixture
-def app_db(sessionmaker):
-    async def _session():
-        async with sessionmaker() as s:
-            yield s
-
-    app.dependency_overrides[get_session] = _session
-    app.dependency_overrides[get_potato_session] = _session
-    yield sessionmaker
-    app.dependency_overrides.clear()
 
 
 def _client(client_host="203.0.113.9"):
@@ -31,7 +14,7 @@ def _client(client_host="203.0.113.9"):
     )
 
 
-async def test_whitelist_blocks_non_listed_ip(app_db, monkeypatch):
+async def test_whitelist_blocks_non_listed_ip(app_db_potato, monkeypatch):
     monkeypatch.setattr(settings, "POTATO_ALLOWED_IPS", "198.51.100.7")
     async with _client() as c:
         # CF 헤더 없음 + 비-loopback → 403 (로그인조차 차단)
@@ -51,7 +34,7 @@ async def test_whitelist_blocks_non_listed_ip(app_db, monkeypatch):
         assert r3.status_code == 403
 
 
-async def test_empty_whitelist_allows_all(app_db, monkeypatch):
+async def test_empty_whitelist_allows_all(app_db_potato, monkeypatch):
     monkeypatch.setattr(settings, "POTATO_ALLOWED_IPS", "")
     async with _client() as c:
         # 리스트 비면 비-loopback도 통과 (게이트 무시) → 자격증명 401
@@ -59,7 +42,7 @@ async def test_empty_whitelist_allows_all(app_db, monkeypatch):
         assert r.status_code == 401
 
 
-async def test_customer_reports_endpoint_not_gated(app_db, monkeypatch):
+async def test_customer_reports_endpoint_not_gated(app_db_potato, monkeypatch):
     """고객 신고 접수(/api/reports)는 게이트 없음 — 인증만 요구(401)."""
     monkeypatch.setattr(settings, "POTATO_ALLOWED_IPS", "198.51.100.7")
     async with _client() as c:

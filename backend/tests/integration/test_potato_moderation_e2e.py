@@ -3,34 +3,16 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 import httpx
-import pytest
+from main import app
 from sqlalchemy import select
-from src.config.settings import settings
-
-settings.DEBUG = False
-
-from main import app  # noqa: E402
-from src.config.database import get_potato_session, get_session  # noqa: E402
-from src.features.potato.application.password import hash_password  # noqa: E402
-from src.features.potato.domain.models import OPERATOR  # noqa: E402
-from src.features.potato.infrastructure.operator_repo import SqlOperatorRepository  # noqa: E402
-from src.infrastructure.db.models.book import Book  # noqa: E402
-from src.infrastructure.db.models.operator import AuditLog  # noqa: E402
+from src.features.potato.application.password import hash_password
+from src.features.potato.domain.models import OPERATOR
+from src.features.potato.infrastructure.operator_repo import SqlOperatorRepository
+from src.infrastructure.db.models.book import Book
+from src.infrastructure.db.models.operator import AuditLog
 
 EMAIL = "mod@hanjul.io"
 PASSWORD = "potato-mod-123"
-
-
-@pytest.fixture
-def app_db(sessionmaker):
-    async def _session():
-        async with sessionmaker() as s:
-            yield s
-
-    app.dependency_overrides[get_session] = _session
-    app.dependency_overrides[get_potato_session] = _session
-    yield sessionmaker
-    app.dependency_overrides.clear()
 
 
 async def _login(c, sessionmaker) -> str:
@@ -66,11 +48,11 @@ def _client():
     )
 
 
-async def test_takedown_hides_from_store_and_audits(app_db):
+async def test_takedown_hides_from_store_and_audits(app_db_potato):
     async with _client() as c:
-        token = await _login(c, app_db)
+        token = await _login(c, app_db_potato)
         hdr = {"Authorization": f"Bearer {token}"}
-        book_id = await _make_published_book(app_db)
+        book_id = await _make_published_book(app_db_potato)
 
         # 처음엔 스토어에 보임
         assert (await c.get(f"/api/store/books/{book_id}")).status_code == 200
@@ -93,7 +75,7 @@ async def test_takedown_hides_from_store_and_audits(app_db):
         assert target["blocked"] is True
 
         # 감사로그 1건
-        async with app_db() as s:
+        async with app_db_potato() as s:
             rows = (await s.execute(select(AuditLog))).scalars().all()
         assert len(rows) == 1
         assert rows[0].action == "TAKEDOWN"
@@ -107,9 +89,9 @@ async def test_takedown_hides_from_store_and_audits(app_db):
         assert (await c.get(f"/api/store/books/{book_id}")).status_code == 200
 
 
-async def test_takedown_requires_operator_token(app_db):
+async def test_takedown_requires_operator_token(app_db_potato):
     async with _client() as c:
-        book_id = await _make_published_book(app_db)
+        book_id = await _make_published_book(app_db_potato)
         # 무인증 → 401
         assert (
             await c.post(f"/api/potato/books/{book_id}/takedown")
