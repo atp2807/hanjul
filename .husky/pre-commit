@@ -1,0 +1,6 @@
+set -e
+
+npx lint-staged
+cd backend && .venv/bin/python scripts/lint_naming.py && cd ..
+node scripts/check-large-files.mjs
+node scripts/check-secrets.mjs
