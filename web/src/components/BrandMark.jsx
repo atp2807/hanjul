@@ -11,7 +11,7 @@ export function BrandMark({ size = 26, rounded = 0.225, glyph = '#fff' }) {
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
       }}
     >
-      <svg viewBox="0 0 100 100" width="62%" height="62%" style={{ display: 'block' }}>
+      <svg data-testid="brandmark-svg" viewBox="0 0 100 100" width="62%" height="62%" style={{ display: 'block' }}>
         <rect x="22" y="19" width="26" height="8" rx="4" fill={glyph} opacity="0.42" />
         <rect x="22" y="39" width="56" height="10" rx="5" fill={glyph} transform="rotate(-5 50 44)" />
         <circle cx="50" cy="71" r="7" fill={glyph} opacity="0.42" />

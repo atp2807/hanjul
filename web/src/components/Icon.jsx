@@ -27,7 +27,7 @@ export function Icon({ name, size = 22, stroke = 'currentColor', strokeWidth = 1
   const path = PATHS[name];
   if (!path) return null;
   return (
-    <svg viewBox="0 0 24 24" width={size} height={size} fill={fill} stroke={stroke} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={style} aria-hidden="true">
+    <svg data-testid="icon" viewBox="0 0 24 24" width={size} height={size} fill={fill} stroke={stroke} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={style} aria-hidden="true">
       {path}
     </svg>
   );

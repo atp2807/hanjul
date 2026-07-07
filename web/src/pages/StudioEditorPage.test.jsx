@@ -55,10 +55,10 @@ describe('StudioEditorPage', () => {
     });
     studio.uploadCover.mockResolvedValue({ coverUrl: 'data:image/svg+xml;utf8,<svg/>' });
 
-    const { container } = renderEditor();
+    renderEditor();
     await screen.findByText('내 책');
     const file = new File(['x'], 'cover.png', { type: 'image/png' });
-    fireEvent.change(container.querySelector('input[type="file"]'), { target: { files: [file] } });
+    fireEvent.change(screen.getByLabelText('표지 이미지 올리기'), { target: { files: [file] } });
 
     await waitFor(() => expect(studio.uploadCover).toHaveBeenCalledWith('b1', file));
     expect(await screen.findByRole('img', { name: '표지' })).toBeInTheDocument();
@@ -143,11 +143,11 @@ describe('StudioEditorPage', () => {
   it('표지 업로드 실패(422) → 형식 안내, 그 외는 원문 메시지', async () => {
     books.getBookContent.mockResolvedValue({ id: 'b1', title: '내 책', status: 'DRAFT', priceAmt: 0, chapters: [] });
     studio.uploadCover.mockRejectedValue(httpError(422));
-    const { container } = renderEditor();
+    renderEditor();
 
     await screen.findByText('내 책');
     const file = new File(['x'], 'cover.png', { type: 'image/png' });
-    fireEvent.change(container.querySelector('input[type="file"]'), { target: { files: [file] } });
+    fireEvent.change(screen.getByLabelText('표지 이미지 올리기'), { target: { files: [file] } });
     expect(await screen.findByText('이미지 파일(PNG·JPG·WebP, 5MB 이하)만 올릴 수 있어요.')).toBeInTheDocument();
   });
 
@@ -161,10 +161,8 @@ describe('StudioEditorPage', () => {
     expect(await screen.findByText('발행 시각을 선택하세요.')).toBeInTheDocument();
     expect(studio.schedulePublish).not.toHaveBeenCalled();
 
-    // 기간 할인 섹션에도 datetime-local 입력이 있어 마지막(출판 섹션의 예약 발행) 것을 선택
-    const inputs = document.querySelectorAll('input[type="datetime-local"]');
-    const input = inputs[inputs.length - 1];
-    fireEvent.change(input, { target: { value: '2026-08-01T10:00' } });
+    // 기간 할인 섹션에도 datetime-local 입력이 있어 aria-label로 예약 발행 것만 지정
+    fireEvent.change(screen.getByLabelText('예약 발행 시각'), { target: { value: '2026-08-01T10:00' } });
     fireEvent.click(screen.getByRole('button', { name: '예약 발행' }));
     await waitFor(() => expect(studio.schedulePublish).toHaveBeenCalledWith('b1', new Date('2026-08-01T10:00').toISOString()));
   });

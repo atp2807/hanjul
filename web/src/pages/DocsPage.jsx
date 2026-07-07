@@ -106,7 +106,7 @@ export function DocsPage() {
           >
             파일 업로드
           </button>
-          <input ref={fileRef} type="file" accept={ACCEPT} hidden onChange={handleUpload} />
+          <input ref={fileRef} type="file" accept={ACCEPT} hidden onChange={handleUpload} data-testid="doc-upload-input" />
         </div>
       </div>
 

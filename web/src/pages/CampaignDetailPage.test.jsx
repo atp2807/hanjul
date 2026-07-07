@@ -45,7 +45,7 @@ describe('CampaignDetailPage', () => {
     renderPage();
 
     fireEvent.click(await screen.findByRole('button', { name: '리뷰어 신청하기' }));
-    await waitFor(() => expect(screen.getByText('마감됐거나 신청할 수 없는 모집이에요.')).toBeInTheDocument());
+    expect(await screen.findByText('마감됐거나 신청할 수 없는 모집이에요.')).toBeInTheDocument();
   });
 
   it('신청 실패 — detail 없으면 일반 문구 (침묵 금지)', async () => {
@@ -56,7 +56,7 @@ describe('CampaignDetailPage', () => {
     renderPage();
 
     fireEvent.click(await screen.findByRole('button', { name: '리뷰어 신청하기' }));
-    await waitFor(() => expect(screen.getByText(/신청에 실패했어요/)).toBeInTheDocument());
+    expect(await screen.findByText(/신청에 실패했어요/)).toBeInTheDocument();
   });
 
   it('이미 신청했으면 완료 상태로 표시', async () => {

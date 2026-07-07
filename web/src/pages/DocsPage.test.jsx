@@ -71,9 +71,9 @@ describe('DocsPage', () => {
 
   it('파일 업로드 → 업로드 후 문서 페이지로 이동', async () => {
     docsApi.uploadDocument.mockResolvedValue({ id: 'up1', title: 'x.pdf', format: 'pdf' });
-    const { container } = renderPage();
+    renderPage();
     await screen.findByText('보고서');
-    const input = container.querySelector('input[type="file"]');
+    const input = screen.getByTestId('doc-upload-input'); // hidden(라벨 없는) file input — testid로 지정
     const file = new File(['%PDF'], 'x.pdf', { type: 'application/pdf' });
     fireEvent.change(input, { target: { files: [file] } });
     await waitFor(() => expect(docsApi.uploadDocument).toHaveBeenCalledWith(file));

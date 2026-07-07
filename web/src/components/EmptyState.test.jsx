@@ -5,10 +5,10 @@ import { EmptyState } from './EmptyState';
 
 describe('EmptyState', () => {
   it('아이콘 + 제목 + 설명을 렌더한다', () => {
-    const { container } = render(<EmptyState icon="search" title="없어요" desc="곧 표시돼요" />);
+    render(<EmptyState icon="search" title="없어요" desc="곧 표시돼요" />);
     expect(screen.getByText('없어요')).toBeInTheDocument();
     expect(screen.getByText('곧 표시돼요')).toBeInTheDocument();
-    expect(container.querySelector('svg')).toBeTruthy();
+    expect(screen.getByTestId('icon')).toBeInTheDocument(); // aria-hidden 장식 아이콘 — testid로 지정
   });
 
   it('action 있으면 버튼 클릭이 동작한다', () => {

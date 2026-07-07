@@ -44,6 +44,6 @@ describe('LibraryPage', () => {
 
     fireEvent.click(await screen.findByText('환불'));
     await waitFor(() => expect(orders.refundOrder).toHaveBeenCalledWith('o1'));
-    await waitFor(() => expect(screen.getByText(/아직 구매한 책이 없어요/)).toBeInTheDocument());
+    expect(await screen.findByText(/아직 구매한 책이 없어요/)).toBeInTheDocument();
   });
 });

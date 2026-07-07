@@ -5,8 +5,8 @@ import { Stars } from './Stars';
 
 describe('Stars', () => {
   it('표시 모드 — max개 별 렌더', () => {
-    const { container } = render(<Stars value={3} max={5} />);
-    expect(container.querySelectorAll('svg').length).toBe(5);
+    render(<Stars value={3} max={5} />);
+    expect(screen.getAllByTestId('icon')).toHaveLength(5); // aria-hidden 장식 별 아이콘 — testid로 개수 확인
   });
 
   it('입력 모드 — 별 클릭 시 onRate(n)', () => {

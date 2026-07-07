@@ -60,7 +60,7 @@ describe('DocPage', () => {
     docsApi.exportDocx.mockResolvedValue();
     renderPage();
     await screen.findByText('내 보고서');
-    expect(screen.getByText('EPUB').closest('a')).toBeNull(); // <a href> 아님 — 인증 필요해 apiClient.download 경유
+    expect(screen.queryByRole('link', { name: 'EPUB' })).not.toBeInTheDocument(); // <a href> 아님 — 인증 필요해 apiClient.download 경유
     fireEvent.click(screen.getByText('EPUB'));
     await waitFor(() => expect(docsApi.exportEpub).toHaveBeenCalledWith('d1', '내 보고서'));
     fireEvent.click(screen.getByText('DOCX'));

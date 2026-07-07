@@ -50,8 +50,8 @@ describe('DocSharePage', () => {
     docsApi.getShareMeta.mockResolvedValue({ title: '공유문서', capability: 'export' });
     renderPage();
     expect(await screen.findByTestId('doc-reader')).toBeInTheDocument();
-    expect(screen.getByText('EPUB').closest('a')).toHaveAttribute('href', 'http://api/shares/tok1/export/epub');
-    expect(screen.getByText('DOCX').closest('a')).toHaveAttribute('href', 'http://api/shares/tok1/export/docx');
+    expect(screen.getByRole('link', { name: 'EPUB' })).toHaveAttribute('href', 'http://api/shares/tok1/export/epub');
+    expect(screen.getByRole('link', { name: 'DOCX' })).toHaveAttribute('href', 'http://api/shares/tok1/export/docx');
   });
 
   it('회수/부재(404) → 안내 문구', async () => {
