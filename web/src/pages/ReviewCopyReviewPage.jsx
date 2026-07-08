@@ -115,10 +115,10 @@ export function ReviewCopyReviewPage() {
                 <>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: T.muted, marginBottom: 5 }}>
                     <span>최소 분량 {enough ? '충족' : ''}</span>
-                    <span style={{ color: enough ? '#2f8a6f' : T.muted, fontWeight: 700 }}>{body.length} / {minChars}자</span>
+                    <span style={{ color: enough ? '#297961' : T.muted, fontWeight: 700 }}>{body.length} / {minChars}자</span>
                   </div>
                   <div style={{ height: 5, background: T.borderSoft, borderRadius: T.radius.pill, overflow: 'hidden' }}>
-                    <div style={{ width: `${pct}%`, height: '100%', background: enough ? '#2f8a6f' : 'oklch(0.7 0.11 188)' }} />
+                    <div style={{ width: `${pct}%`, height: '100%', background: enough ? '#297961' : 'oklch(0.7 0.11 188)' }} />
                   </div>
                 </>
               )}
@@ -127,7 +127,7 @@ export function ReviewCopyReviewPage() {
               {busy ? '제출 중…' : '리뷰 제출'}
             </button>
           </div>
-          {err && <div style={{ color: '#e0654f', fontSize: 12.5, marginTop: 10 }}>{err}</div>}
+          {err && <div style={{ color: '#c63c23', fontSize: 12.5, marginTop: 10 }}>{err}</div>}
         </div>
 
         <div style={{ display: 'flex', gap: 10, marginTop: 16, padding: '14px 18px', background: T.tint, borderRadius: 13, fontSize: 13, color: T.text, lineHeight: 1.6, alignItems: 'flex-start' }}>

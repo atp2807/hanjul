@@ -54,4 +54,14 @@ describe('Moderation (운영자 모더레이션)', () => {
     render(<Moderation />);
     expect(await screen.findByText('책이 없습니다.')).toBeInTheDocument();
   });
+
+  // lr-ca34f579 ③ — Cover의 title은 그라데이션 시드로 UUID(b.id)를 쓰지만, 스크린리더용 이름은
+  // alt로 넘긴 실제 책 제목이어야 한다(예전엔 UUID가 그대로 접근성 이름으로 샜음).
+  it('표지의 접근성 이름은 책 UUID가 아니라 실제 제목이다', async () => {
+    render(<Moderation />);
+    await screen.findByText('문제의 책');
+    expect(screen.getByRole('img', { name: '문제의 책' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: '차단된 책' })).toBeInTheDocument();
+    expect(screen.queryByRole('img', { name: 'b1' })).not.toBeInTheDocument();
+  });
 });

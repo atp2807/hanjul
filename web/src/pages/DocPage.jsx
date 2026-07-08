@@ -160,7 +160,7 @@ export function DocPage() {
           {doc?.title || '문서'}
         </h1>
         {doc?.mine && (
-          <span style={{ padding: '3px 10px', background: '#e3f3ec', color: '#2f8a6f', borderRadius: 999, fontSize: 11.5, fontWeight: 700 }}>내 문서</span>
+          <span style={{ padding: '3px 10px', background: '#e3f3ec', color: '#297961', borderRadius: 999, fontSize: 11.5, fontWeight: 700 }}>내 문서</span>
         )}
         <div style={{ display: 'inline-flex', border: `1px solid ${T.border}`, borderRadius: 10, overflow: 'hidden' }}>
           <button onClick={enterRead} aria-pressed={mode === 'read'} style={segBtn(mode === 'read')}>읽기</button>

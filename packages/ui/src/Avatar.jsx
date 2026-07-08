@@ -1,7 +1,9 @@
-import { avatarGradient } from './theme';
+import { avatarGradient, T } from './theme';
 
 const SIZES = { xs: 24, sm: 32, md: 40, lg: 56, xl: 80 };
-const STATUS = { online: '#2f8a6f', away: '#c79318', busy: '#e0654f', offline: '#9bb0a8' };
+// 상태점은 흰 링(box-shadow) 위 장식 인디케이터라 텍스트 4.5:1 대상은 아니지만(비텍스트 3:1),
+// 나머지 상태색이 전부 theme.js 토큰으로 통일된 데 맞춰 하드코딩 대신 토큰을 참조(2026-07-08).
+const STATUS = { online: T.ok, away: T.warn, busy: T.danger, offline: T.faint };
 
 // 이니셜 — 한글은 성 뺀 이름(끝 두 글자)이 더 개인적. 라틴은 두 단어 머리글자.
 function initialsFor(name) {

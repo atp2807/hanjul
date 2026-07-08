@@ -11,10 +11,10 @@ import {
 import { T } from '../theme';
 
 const STATUS_LABEL = {
-  REQUESTED: { text: '신청됨', tone: '#c79318', bg: '#fff3da' },
-  APPROVED: { text: '승인됨', tone: '#5b73c4', bg: '#e8eeff' },
-  PAID: { text: '지급완료', tone: '#2f8a6f', bg: '#e3f3ec' },
-  REJECTED: { text: '반려됨', tone: '#e0654f', bg: '#fdeeea' },
+  REQUESTED: { text: '신청됨', tone: '#8e6911', bg: '#fff3da' },
+  APPROVED: { text: '승인됨', tone: '#4c66bf', bg: '#e8eeff' },
+  PAID: { text: '지급완료', tone: '#297961', bg: '#e3f3ec' },
+  REJECTED: { text: '반려됨', tone: '#c63c23', bg: '#fdeeea' },
 };
 
 function Card({ title, children, style }) {
@@ -154,7 +154,7 @@ export function SettlementPage() {
           )}
         </Card>
 
-        {error && <div style={{ color: '#e0654f', fontSize: 13, marginBottom: 12 }}>{error}</div>}
+        {error && <div style={{ color: '#c63c23', fontSize: 13, marginBottom: 12 }}>{error}</div>}
 
         {/* 출금 내역 */}
         <Card title="출금 내역">

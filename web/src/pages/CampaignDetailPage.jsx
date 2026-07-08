@@ -93,7 +93,7 @@ export function CampaignDetailPage() {
               <Cond label="공개 의무" value="서평단 라벨 표기" />
             </div>
             <div style={{ background: T.tint, border: `1px solid #cfe7df`, borderRadius: 14, padding: '18px 20px', display: 'flex', gap: 12 }}>
-              <span style={{ flexShrink: 0, marginTop: 1 }}><Icon name="info" size={18} stroke="#2f8a6f" /></span>
+              <span style={{ flexShrink: 0, marginTop: 1 }}><Icon name="info" size={18} stroke="#297961" /></span>
               <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.7, color: T.text }}>
                 서평단 증정본으로 작성한 리뷰에는 <b style={{ color: T.ink }}>‘서평단’ 라벨</b>이 자동으로 붙습니다. 대가성 표기는 법적 공개 의무이며, 솔직한 평가를 권장해요.
               </p>
@@ -104,7 +104,7 @@ export function CampaignDetailPage() {
           <div style={{ background: T.surface, borderRadius: 20, padding: 26, position: 'sticky', top: 20 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: T.text, marginBottom: 8 }}>
               <span>남은 증정본</span>
-              <span style={{ color: c.remaining > 0 ? T.text : '#e0654f', fontWeight: 700 }}>{c.status === 'OPEN' ? '모집중' : '마감'}</span>
+              <span style={{ color: c.remaining > 0 ? T.text : '#c63c23', fontWeight: 700 }}>{c.status === 'OPEN' ? '모집중' : '마감'}</span>
             </div>
             <div style={{ fontSize: 24, fontWeight: 800, color: T.ink, marginBottom: 8 }}>
               {c.remaining}부 <span style={{ fontSize: 14, fontWeight: 500, color: '#9bb4bc' }}>/ {c.slots}부</span>
@@ -114,21 +114,21 @@ export function CampaignDetailPage() {
             </div>
 
             {applied ? (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: 15, background: T.tint, color: '#2f8a6f', borderRadius: 13, fontSize: 15, fontWeight: 700, border: `1px solid #cfe7df` }}><Icon name="check" size={18} stroke="#2f8a6f" /> 신청 완료</div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, padding: 15, background: T.tint, color: '#297961', borderRadius: 13, fontSize: 15, fontWeight: 700, border: `1px solid #cfe7df` }}><Icon name="check" size={18} stroke="#297961" /> 신청 완료</div>
             ) : (
               <button onClick={onApply} disabled={busy || c.status !== 'OPEN'} style={{ width: '100%', padding: 15, background: c.status === 'OPEN' ? T.ink : '#9bb4bc', color: T.inkText, border: 'none', borderRadius: 13, fontSize: 15, fontWeight: 700, cursor: c.status === 'OPEN' ? 'pointer' : 'default' }}>
                 {c.status === 'OPEN' ? (busy ? '신청 중…' : '리뷰어 신청하기') : '마감된 모집'}
               </button>
             )}
-            {err && <div style={{ color: '#e0654f', fontSize: 12.5, textAlign: 'center', marginTop: 10 }}>{err}</div>}
+            {err && <div style={{ color: '#c63c23', fontSize: 12.5, textAlign: 'center', marginTop: 10 }}>{err}</div>}
             <div style={{ fontSize: 12, color: '#9bb4bc', textAlign: 'center', marginTop: 10 }}>배정 결과는 알림으로 안내돼요.</div>
 
             <div style={{ height: 1, background: T.borderSoft, margin: '20px 0' }} />
             <div style={{ fontSize: 13, fontWeight: 700, color: T.textStrong, marginBottom: 12 }}>신청하면 지켜야 해요</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, fontSize: 13, color: T.textSoft }}>
-              <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}><Icon name="check" size={15} stroke="#2f8a6f" /> {c.reviewDays}일 안에 리뷰 작성</div>
-              <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}><Icon name="check" size={15} stroke="#2f8a6f" /> {c.minChars > 0 ? `${c.minChars}자 이상 ` : ''}솔직한 평가</div>
-              <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}><Icon name="check" size={15} stroke="#2f8a6f" /> 서평단 라벨 유지</div>
+              <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}><Icon name="check" size={15} stroke="#297961" /> {c.reviewDays}일 안에 리뷰 작성</div>
+              <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}><Icon name="check" size={15} stroke="#297961" /> {c.minChars > 0 ? `${c.minChars}자 이상 ` : ''}솔직한 평가</div>
+              <div style={{ display: 'flex', gap: 9, alignItems: 'center' }}><Icon name="check" size={15} stroke="#297961" /> 서평단 라벨 유지</div>
             </div>
           </div>
         </div>

@@ -137,7 +137,7 @@ export function SettingsPage() {
           title="회원 탈퇴"
           desc="탈퇴하면 개인정보가 삭제되며, 소셜 로그인 연결도 해제됩니다. 단 관련 법령에 따라 구매·정산 등 거래 기록은 익명 처리되어 일정 기간(전자상거래법상 최대 5년) 보관됩니다. 탈퇴 후에는 계정을 복구할 수 없어요."
         >
-          {error && <div style={{ color: '#e0654f', fontSize: 13, marginBottom: 12 }}>{error}</div>}
+          {error && <div style={{ color: '#c63c23', fontSize: 13, marginBottom: 12 }}>{error}</div>}
           {!confirming ? (
             <button
               onClick={() => setConfirming(true)}
@@ -146,7 +146,7 @@ export function SettingsPage() {
                 borderRadius: T.radius.md,
                 border: '1px solid #f3d3cb',
                 background: '#fdeeea',
-                color: '#e0654f',
+                color: '#c63c23',
                 fontSize: 14,
                 fontWeight: 700,
                 cursor: 'pointer',
@@ -164,7 +164,7 @@ export function SettingsPage() {
                   padding: '10px 18px',
                   borderRadius: T.radius.md,
                   border: 'none',
-                  background: '#e0654f',
+                  background: '#c63c23',
                   color: '#fff',
                   fontSize: 14,
                   fontWeight: 700,

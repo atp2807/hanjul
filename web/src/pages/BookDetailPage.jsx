@@ -114,7 +114,7 @@ export function BookDetailPage() {
               {onSale && <span style={{ fontSize: 14, color: '#a8b5af', textDecoration: 'line-through' }}>{book.priceAmt.toLocaleString()}원</span>}
               {onSale && <span style={{ fontSize: 13, color: '#dc2626', fontWeight: 600 }}>기간 할인</span>}
             </p>
-            <div style={{ fontSize: 13, color: '#2f8a6f', fontWeight: 600, marginTop: 4 }}>전자책 · 즉시 다운로드</div>
+            <div style={{ fontSize: 13, color: '#297961', fontWeight: 600, marginTop: 4 }}>전자책 · 즉시 다운로드</div>
             {isPaid && user && (
               <label
                 data-testid="withdrawal-consent"
@@ -151,7 +151,7 @@ export function BookDetailPage() {
         {/* 상세 */}
         <div>
           {book.category && (
-            <span style={{ display: 'inline-block', padding: '5px 12px', background: '#e3f3ec', borderRadius: 999, fontSize: 12, fontWeight: 700, color: '#2f8a6f' }}>
+            <span style={{ display: 'inline-block', padding: '5px 12px', background: '#e3f3ec', borderRadius: 999, fontSize: 12, fontWeight: 700, color: '#297961' }}>
               {book.category}
             </span>
           )}
@@ -210,7 +210,7 @@ export function BookDetailPage() {
                   <Avatar name={r.author || '익명'} size={30} />
                   <span style={{ fontSize: 14, fontWeight: 700, color: T.ink }}>{r.author || '익명'}</span>
                   {r.source === 'REVIEW_COPY' && (
-                    <span title="출판 전 증정본을 받아 작성한 사전 리뷰예요." style={{ fontSize: 11, fontWeight: 700, color: '#2f8a6f', background: '#e3f3ec', borderRadius: 999, padding: '2px 8px' }}>
+                    <span title="출판 전 증정본을 받아 작성한 사전 리뷰예요." style={{ fontSize: 11, fontWeight: 700, color: '#297961', background: '#e3f3ec', borderRadius: 999, padding: '2px 8px' }}>
                       서평단
                     </span>
                   )}

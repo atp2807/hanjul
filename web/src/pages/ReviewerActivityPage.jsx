@@ -11,8 +11,8 @@ import { Icon } from '../components/Icon';
 import { Cover, EmptyState, ErrorNotice } from '../components/ui';
 
 const STATUS = {
-  PENDING: { label: '신청 대기', fg: '#c79318', bg: '#fff3da' },
-  ASSIGNED: { label: '배정됨', fg: '#2f8a6f', bg: '#e3f3ec' },
+  PENDING: { label: '신청 대기', fg: '#8e6911', bg: '#fff3da' },
+  ASSIGNED: { label: '배정됨', fg: '#297961', bg: '#e3f3ec' },
   COMPLETED: { label: '리뷰 완료', fg: T.text, bg: '#eef4f1' },
   EXPIRED: { label: '기한 초과', fg: '#c25540', bg: '#fdeeea' },
 };
@@ -28,7 +28,7 @@ function StatCard({ label, value, sub, dark }) {
     <div style={{ background: dark ? 'linear-gradient(140deg,#0e4a5c,#1d7e8e)' : T.surface, borderRadius: 18, padding: '22px 24px' }}>
       <div style={{ fontSize: 13, color: dark ? T.inkSoft : T.muted }}>{label}</div>
       <div style={{ fontSize: 24, fontWeight: 800, color: dark ? '#fff' : T.ink, marginTop: 6 }}>{value}</div>
-      {sub && <div style={{ fontSize: 12, color: dark ? T.inkSoft : '#2f8a6f', marginTop: 6 }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 12, color: dark ? T.inkSoft : '#297961', marginTop: 6 }}>{sub}</div>}
     </div>
   );
 }
@@ -128,7 +128,7 @@ export function ReviewerActivityPage() {
                       {a.status === 'EXPIRED' && '리뷰 기한이 지났어요 · 미작성'}
                     </div>
                   </div>
-                  <span style={{ padding: '5px 12px', borderRadius: T.radius.pill, fontSize: 12, fontWeight: 700, color: urgent ? '#e0654f' : st.fg, background: urgent ? '#fdeeea' : st.bg }}>
+                  <span style={{ padding: '5px 12px', borderRadius: T.radius.pill, fontSize: 12, fontWeight: 700, color: urgent ? '#c63c23' : st.fg, background: urgent ? '#fdeeea' : st.bg }}>
                     {st.label}{urgent && a.status === 'ASSIGNED' ? ' · 마감임박' : ''}
                   </span>
                   {a.status === 'PENDING' && (

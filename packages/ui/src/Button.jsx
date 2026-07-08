@@ -14,7 +14,9 @@ export function Button({ kind = 'primary', size = 'md', block, style, children, 
     primary: { bg: T.ink, fg: T.inkText, bd: T.ink },
     secondary: { bg: T.surface, fg: T.textMid, bd: '#d6e4de' },
     ghost: { bg: 'transparent', fg: T.textMid, bd: 'transparent' },
-    danger: { bg: '#fdeeea', fg: '#e0654f', bd: '#f3d3cb' },
+    // danger fg는 theme.js 토큰 참조로 단일화(2026-07-08) — 이전엔 hex 복붙이라 T.danger의
+    // WCAG 대비 조정(e0654f→c63c23)이 이 버튼엔 반영되지 않는 사각지대였음(Badge.jsx와 동일 문제).
+    danger: { bg: T.dangerBg, fg: T.danger, bd: '#f3d3cb' },
   }[kind];
   const pad = size === 'sm' ? '8px 14px' : '13px 22px';
   const fs = size === 'sm' ? 13 : 15;

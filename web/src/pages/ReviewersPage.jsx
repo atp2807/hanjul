@@ -72,7 +72,7 @@ export function ReviewersPage() {
       {/* 히어로 */}
       <section style={{ padding: isMobile ? '32px 20px 36px' : '64px 48px 52px', background: 'linear-gradient(180deg,#eaf7f3 0%,#f3faf8 78%)' }}>
         <div style={{ maxWidth: 1180, margin: '0 auto' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 15px', background: T.surface, border: `1px solid #cfe7df`, borderRadius: T.radius.pill, fontSize: 13, fontWeight: 700, color: '#2f8a6f', marginBottom: 24 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '7px 15px', background: T.surface, border: `1px solid #cfe7df`, borderRadius: T.radius.pill, fontSize: 13, fontWeight: 700, color: '#297961', marginBottom: 24 }}>
             출간 전, 먼저 읽는 사람들
           </div>
           <h1 style={{ margin: 0, fontSize: isMobile ? 32 : 48, lineHeight: 1.15, fontWeight: 800, letterSpacing: '-0.035em', color: T.ink }}>

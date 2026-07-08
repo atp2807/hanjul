@@ -216,14 +216,14 @@ export function StudioEditorPage() {
       <Link to="/studio" style={{ fontSize: 13, color: T.muted, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 3 }}><Icon name="chevron" size={13} stroke="currentColor" style={{ transform: 'rotate(180deg)' }} /> 스튜디오</Link>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, margin: '8px 0 4px' }}>
         <h2 style={{ margin: 0, fontWeight: 800, color: T.ink, letterSpacing: '-0.025em' }}>{book.title}</h2>
-        <span style={{ padding: '4px 11px', background: published ? '#e3f3ec' : '#fff3da', color: published ? '#2f8a6f' : '#c79318', borderRadius: 999, fontSize: 12, fontWeight: 700 }}>
+        <span style={{ padding: '4px 11px', background: published ? '#e3f3ec' : '#fff3da', color: published ? '#297961' : '#8e6911', borderRadius: 999, fontSize: 12, fontWeight: 700 }}>
           {STATUS_LABEL[book.status] || book.status}
         </span>
       </div>
       <p style={{ color: T.muted, marginTop: 0, fontSize: 14 }}>
         블록 {blockCount}개{book.priceAmt != null ? ` · ${book.priceAmt.toLocaleString()}원` : ''}
       </p>
-      {msg && <p style={{ color: '#2f8a6f' }}>{msg}</p>}
+      {msg && <p style={{ color: '#297961' }}>{msg}</p>}
       {error && <p style={{ color: 'crimson' }}>{error}</p>}
 
       <Section title="책 정보">

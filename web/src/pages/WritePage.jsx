@@ -5,7 +5,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 import { getMyBooks, setBookContent, publishNow, setPreviewLimit, unpublishBook } from '../services/api/studio';
-import { Reader } from '../reader/Reader';
 import { docxToNeutral } from '../writer/adapters/docx_import';
 import { epubToNeutral } from '../writer/adapters/epub_import';
 import { hwpToNeutral } from '../writer/adapters/hwp_import';
@@ -17,6 +16,7 @@ import { charCount } from '../writer/core/wordcount';
 import { neutralToPmDoc, pmToNeutral } from '../writer/editor/pm_doc';
 import { WriterEditor } from '../writer/editor/WriterEditor';
 import { OnboardingTips } from '../writer/OnboardingTips';
+import { PreviewModal } from '../writer/PreviewModal';
 import { listSnapshots, observeSnapshots, takeSnapshot } from '../writer/snapshots';
 import { Icon } from '../components/Icon';
 import { T } from '../theme';
@@ -478,21 +478,8 @@ export function WritePage() {
         </div>
       </main>
 
-      {/* 출판 전 미리보기 — 독자가 볼 리더 모습(기존 Reader/Pretext 재사용) */}
-      {previewBlocks && (
-        <div
-          onClick={() => setPreviewBlocks(null)}
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)', zIndex: 30, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-        >
-          <div data-testid="preview-body" onClick={(e) => e.stopPropagation()} style={{ background: '#fff', padding: 20, borderRadius: 12, maxHeight: '92vh', overflow: 'auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10, gap: 16 }}>
-              <strong data-testid="preview-title">출판 전 미리보기 (독자가 볼 모습)</strong>
-              <button onClick={() => setPreviewBlocks(null)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #ddd', cursor: 'pointer' }}>닫기</button>
-            </div>
-            {previewBlocks.length ? <Reader blocks={previewBlocks} /> : <p style={{ color: '#999' }}>아직 내용이 없어요.</p>}
-          </div>
-        </div>
-      )}
+      {/* 출판 전 미리보기 — 독자가 볼 리더 모습 (키보드 트랩·Esc·포커스 리턴은 PreviewModal이 처리) */}
+      {previewBlocks && <PreviewModal blocks={previewBlocks} onClose={() => setPreviewBlocks(null)} />}
     </div>
   );
 }

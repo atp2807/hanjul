@@ -9,8 +9,8 @@ import { T } from '../theme';
 
 export const STATUS_LABEL = { DRAFT: '초안', REVIEW: '심사중', PUBLISHED: '출판됨' };
 const STATUS_PILL = {
-  PUBLISHED: { bg: '#e3f3ec', fg: '#2f8a6f', text: '판매중' },
-  DRAFT: { bg: '#fff3da', fg: '#c79318', text: '초고' },
+  PUBLISHED: { bg: '#e3f3ec', fg: '#297961', text: '판매중' },
+  DRAFT: { bg: '#fff3da', fg: '#8e6911', text: '초고' },
   REVIEW: { bg: '#e8eeff', fg: '#5b6da8', text: '심사중' },
 };
 
@@ -97,7 +97,7 @@ export function StudioPage() {
             style={{ width: '100%', boxSizing: 'border-box', padding: 10, border: `1px solid ${T.border}`, borderRadius: 10, fontFamily: 'inherit', display: 'block', background: T.bg }}
           />
           <button onClick={saveBio} style={{ marginTop: 8, padding: '9px 16px', borderRadius: 10, border: `1px solid ${T.border}`, background: T.surface, color: T.textMid, fontWeight: 600, cursor: 'pointer' }}>소개 저장</button>
-          {bioMsg && <span style={{ marginLeft: 10, fontSize: 13, color: bioMsg.ok ? '#2f8a6f' : 'crimson' }}>{bioMsg.text}</span>}
+          {bioMsg && <span style={{ marginLeft: 10, fontSize: 13, color: bioMsg.ok ? '#297961' : 'crimson' }}>{bioMsg.text}</span>}
         </div>
         <div style={{ background: T.surface, borderRadius: 18, padding: 22 }}>
           <div style={{ fontSize: 13, color: T.textMid, fontWeight: 600, marginBottom: 8 }}>새 책 시작</div>

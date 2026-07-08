@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { useFocusTrap } from '../hooks/useFocusTrap';
 import { KIND_ICON, KIND_ICON_BG, KIND_LABEL, KIND_SUFFIX } from '../notificationKinds';
 import { getNotifications, markAllRead, markRead } from '../services/api/notifications';
 import { T } from '../theme';
@@ -14,6 +15,10 @@ export function NotificationBell() {
   const [actionError, setActionError] = useState('');
   const navigate = useNavigate();
   const ref = useRef(null);
+  const panelRef = useRef(null);
+  const close = useCallback(() => setOpen(false), []);
+  // 커스텀 드롭다운 패널 키보드 접근성 — 열릴 때 포커스 이동·Tab 트랩·Esc 닫기·포커스 리턴(lr-ca34f579 ②)
+  useFocusTrap({ open, onClose: close, containerRef: panelRef });
 
   const refresh = useCallback(() => {
     getNotifications()
@@ -78,6 +83,9 @@ export function NotificationBell() {
 
       {open && (
         <div
+          ref={panelRef}
+          role="dialog"
+          aria-label="알림"
           data-testid="notif-panel"
           style={{ position: 'absolute', right: 0, top: 44, width: 380, maxHeight: 460, overflowY: 'auto', background: T.surface, border: `1px solid ${T.border}`, borderRadius: 18, boxShadow: T.shadow, zIndex: 60 }}
         >

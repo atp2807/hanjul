@@ -76,4 +76,32 @@ describe('NotificationBell', () => {
     await screen.findByTestId('notif-bell');
     expect(screen.queryByTestId('notif-badge')).not.toBeInTheDocument();
   });
+
+  // lr-ca34f579 ② 커스텀 드롭다운 패널 키보드 접근성 — 열릴 때 포커스 이동, Esc로 닫기, 트리거로 포커스 리턴
+  it('열면 패널 안으로 포커스가 이동한다', async () => {
+    notifApi.getNotifications.mockResolvedValue({
+      items: [{ id: 'n1', kind: 'NEW_BOOK', bookId: 'b1', title: '신간', isRead: false }],
+      unreadCount: 1,
+    });
+    renderBell();
+    fireEvent.click(await screen.findByTestId('notif-bell'));
+    await screen.findByTestId('notif-panel');
+    // 패널 안 첫 포커스 가능 요소(안읽음 있을 때는 "모두 읽음")로 이동했는지 확인
+    expect(screen.getByRole('button', { name: '모두 읽음' })).toHaveFocus();
+  });
+
+  it('Esc로 닫히고 포커스가 알림 버튼으로 되돌아온다', async () => {
+    notifApi.getNotifications.mockResolvedValue({ items: [], unreadCount: 0 });
+    renderBell();
+    const bell = await screen.findByTestId('notif-bell');
+    // jsdom fireEvent.click은 실브라우저의 클릭-시-포커스를 재현하지 않으므로 명시적으로 포커스
+    bell.focus();
+    fireEvent.click(bell);
+    await screen.findByTestId('notif-panel');
+
+    fireEvent.keyDown(document, { key: 'Escape' });
+
+    expect(screen.queryByTestId('notif-panel')).not.toBeInTheDocument();
+    expect(bell).toHaveFocus();
+  });
 });

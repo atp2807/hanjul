@@ -67,7 +67,9 @@ export default function Moderation() {
               background: b.blocked ? '#fdf6f4' : 'transparent',
             }}
           >
-            <Cover title={b.id} width={38} radius={6} label={false} style={{ opacity: b.blocked ? 0.5 : 1 }} />
+            {/* title은 그라데이션 시드로만 UUID(b.id) 사용 — 스크린리더용 텍스트는 alt로 실제 책 제목을 넘김
+                (lr-ca34f579 ③, packages/ui/src/Cover.jsx alt override) */}
+            <Cover title={b.id} alt={b.title} width={38} radius={6} label={false} style={{ opacity: b.blocked ? 0.5 : 1 }} />
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ fontSize: 14, fontWeight: 700, color: T.textStrong }}>{b.title}</div>
               <div style={{ fontSize: 12, color: T.muted, marginTop: 2 }}>

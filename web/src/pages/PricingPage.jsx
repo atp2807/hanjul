@@ -15,7 +15,7 @@ function ChannelCard({ title, desc, authorPct, authorLabel, platLabel, recommend
     <div style={{ background: T.surface, borderRadius: 20, padding: '28px 30px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
         <div style={{ fontSize: 17, fontWeight: 800, color: T.ink }}>{title}</div>
-        {recommend && <span style={{ padding: '4px 11px', background: '#e3f3ec', borderRadius: 999, fontSize: 12, fontWeight: 700, color: '#2f8a6f' }}>추천</span>}
+        {recommend && <span style={{ padding: '4px 11px', background: '#e3f3ec', borderRadius: 999, fontSize: 12, fontWeight: 700, color: '#297961' }}>추천</span>}
       </div>
       <p style={{ margin: '0 0 20px', fontSize: 13.5, color: T.muted, lineHeight: 1.6 }}>{desc}</p>
       <div style={{ display: 'flex', height: 42, borderRadius: 11, overflow: 'hidden' }}>
@@ -40,7 +40,7 @@ export function PricingPage() {
   return (
     <div style={{ padding: '54px 56px 64px' }}>
       <div style={{ textAlign: 'center', maxWidth: 680, margin: '0 auto 44px' }}>
-        <div style={{ display: 'inline-block', padding: '6px 14px', background: '#e3f3ec', borderRadius: 999, fontSize: 12.5, fontWeight: 700, color: '#2f8a6f', marginBottom: 18 }}>작가에게 가장 많이 남기는 구조</div>
+        <div style={{ display: 'inline-block', padding: '6px 14px', background: '#e3f3ec', borderRadius: 999, fontSize: 12.5, fontWeight: 700, color: '#297961', marginBottom: 18 }}>작가에게 가장 많이 남기는 구조</div>
         <h1 style={{ margin: '0 0 14px', fontSize: 36, fontWeight: 800, color: T.ink, letterSpacing: '-0.03em', lineHeight: 1.25 }}>월 요금 없이, 팔린 만큼<br />투명하게 나눕니다</h1>
         <p style={{ margin: 0, fontSize: 16, lineHeight: 1.75, color: T.muted }}>
           가입도, 글쓰기 에디터도, 출판도 무료예요. 작가에게 월 구독료를 받지 않습니다. 책이 팔릴 때만, 처음부터 공개된 비율로 정산합니다.

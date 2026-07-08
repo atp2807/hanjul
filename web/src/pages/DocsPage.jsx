@@ -122,7 +122,7 @@ export function DocsPage() {
         <button type="submit" disabled={busy} style={btnSecondary(busy)}>빈 문서 만들기</button>
       </form>
 
-      {error && <div style={{ color: '#e0654f', fontSize: 13, marginBottom: 14 }}>{error}</div>}
+      {error && <div style={{ color: '#c63c23', fontSize: 13, marginBottom: 14 }}>{error}</div>}
 
       {/* 목록 */}
       <div style={{ background: T.surface, borderRadius: 18, padding: '8px 24px 12px', boxShadow: '0 1px 3px rgba(12,58,50,0.06)' }}>
@@ -142,7 +142,7 @@ export function DocsPage() {
             <span style={{ flex: 1, fontSize: 15, fontWeight: 700, color: T.textStrong }}>{doc.title}</span>
             <span style={{ fontSize: 12, color: T.faint, textTransform: 'uppercase' }}>{doc.format}</span>
             {doc.mine && (
-              <span style={{ padding: '3px 10px', background: '#e3f3ec', color: '#2f8a6f', borderRadius: 999, fontSize: 11.5, fontWeight: 700 }}>내 문서</span>
+              <span style={{ padding: '3px 10px', background: '#e3f3ec', color: '#297961', borderRadius: 999, fontSize: 11.5, fontWeight: 700 }}>내 문서</span>
             )}
             <button
               onClick={(e) => handleDelete(doc.id, e)}

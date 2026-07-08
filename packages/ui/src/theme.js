@@ -8,13 +8,15 @@ export const T = {
   ink: '#0e4a5c', // 브랜드 딥틸 — 로고·제목·주 버튼
   inkText: '#eafaf5', // ink 위 텍스트
   inkSoft: '#9bc6cf', // ink 카드 위 보조 텍스트
-  accent: 'oklch(0.74 0.1 188)', // 로고 사각형·포인트 틸
+  accent: 'oklch(0.74 0.1 188)', // 로고 사각형·포인트 틸 (장식용 — 텍스트에 쓰지 않음)
   textStrong: '#143e4a',
   text: '#3f6b78',
   textMid: '#3f6b78',
   textSoft: '#52615b', // (통일: potato #52666e → web)
-  muted: '#7d949c',
-  faint: '#9bb0a8', // (통일: potato #9bb4bc → web)
+  // muted/faint: 2026-07-08 WCAG AA 색상대비 감사(lr-ca34f579) — bg/surface/상태배지 tint 위에서
+  // 4.5:1 미달(구 #7d949c 2.78:1, #9bb0a8 2.16:1 최악치) 발견돼 어둡게 조정. 색상(hue)은 유지, 명도만 낮춤.
+  muted: '#5a6f76', // was #7d949c
+  faint: '#5e776e', // was #9bb0a8 (통일: potato #9bb4bc → web)
   border: '#e3efea', // (통일: potato #e0ebe6 → web)
   borderSoft: '#eef2f0', // (통일: potato #eef4f1 → web)
   tint: '#eef8f4', // 카드 hover/active
@@ -28,14 +30,16 @@ export const T = {
   sidebarText: '#8fb3ad',
   sidebarMuted: '#6f9aa4',
   // ── 상태 4색 (배지·버튼 톤) ──────────────────────
+  // fg 값은 2026-07-08 WCAG AA 감사로 각자의 Bg(및 danger는 bg/surface 포함) 대비 4.5:1 미달을 조정.
+  // (구: ok #2f8a6f 3.67:1 · warn #c79318 2.51:1 · danger #e0654f 3.03:1 · info #5b73c4 3.86:1 — 전부 hue 유지, 명도만 낮춤)
   okBg: '#e3f3ec',
-  ok: '#2f8a6f',
+  ok: '#297961',
   warnBg: '#fff3da',
-  warn: '#c79318',
+  warn: '#8e6911',
   dangerBg: '#fdeeea',
-  danger: '#e0654f',
+  danger: '#c63c23',
   infoBg: '#e8eeff',
-  info: '#5b73c4',
+  info: '#4c66bf',
   // ── 반경·폰트 (radius = web ∪ potato) ────────────
   radius: { sm: 8, md: 10, lg: 14, xl: 20, hero: 30, card: 18, pill: 999 },
   font: "'IBM Plex Sans KR', -apple-system, BlinkMacSystemFont, system-ui, sans-serif",

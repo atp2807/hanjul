@@ -8,7 +8,7 @@ export function EmptyState({ icon, title, desc, action }) {
     <div style={{ textAlign: 'center', padding: '56px 16px', background: T.surface, borderRadius: 16, border: `1px solid ${T.borderSoft}` }}>
       {icon && (
         <div style={{ width: 52, height: 52, borderRadius: 15, background: '#e9f7f1', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}>
-          <Icon name={icon} size={24} stroke="#2f8a6f" />
+          <Icon name={icon} size={24} stroke="#297961" />
         </div>
       )}
       <div style={{ fontSize: 15, fontWeight: 700, color: T.textStrong }}>{title}</div>

@@ -14,14 +14,14 @@ function Stat({ label, value, sub }) {
     <div style={{ background: T.surface, borderRadius: 18, padding: '22px 24px' }}>
       <div style={{ fontSize: 13, color: T.muted }}>{label}</div>
       <div style={{ fontSize: 28, fontWeight: 800, color: T.ink, marginTop: 6, letterSpacing: '-0.02em' }}>{value}</div>
-      {sub && <div style={{ fontSize: 12, color: '#2f8a6f', fontWeight: 600, marginTop: 6 }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 12, color: '#297961', fontWeight: 600, marginTop: 6 }}>{sub}</div>}
     </div>
   );
 }
 
 const STATUS = {
-  OPEN: { label: '모집중', fg: '#2f8a6f', bg: '#e3f3ec' },
-  CLOSED: { label: '리뷰중', fg: '#c79318', bg: '#fff3da' },
+  OPEN: { label: '모집중', fg: '#297961', bg: '#e3f3ec' },
+  CLOSED: { label: '리뷰중', fg: '#8e6911', bg: '#fff3da' },
 };
 
 function Applicants({ campaignId, onAssigned }) {

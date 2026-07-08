@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { Icon } from '../components/Icon';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 import { paginateLines } from './paginateLines';
 import { createPretextLineMeasurer } from './pretextLineMeasurer';
 import { blockStyle, READER_STYLE, READER_THEMES } from './readerStyle';
@@ -62,6 +63,9 @@ function tocFromBlocks(blocks) {
 
 export function Reader({ blocks, bookId }) {
   const [tocOpen, setTocOpen] = useState(false);
+  const tocPanelRef = useRef(null);
+  // 목차 드롭다운 키보드 접근성 — 열릴 때 포커스 이동·Tab 트랩·Esc 닫기·포커스 리턴(lr-ca34f579 ②)
+  useFocusTrap({ open: tocOpen, onClose: () => setTocOpen(false), containerRef: tocPanelRef });
   const [scale, setScale] = useState(() => parseFloat(readLS(SCALE_KEY, '1')) || 1);
   const [themeKey, setThemeKey] = useState(() =>
     READER_THEMES[readLS(THEME_KEY, 'light')] ? readLS(THEME_KEY, 'light') : 'light',
@@ -127,6 +131,9 @@ export function Reader({ blocks, bookId }) {
             </button>
             {tocOpen && (
               <ul
+                ref={tocPanelRef}
+                role="menu"
+                aria-label="목차"
                 data-testid="toc-list"
                 style={{
                   position: 'absolute', top: '100%', left: 0, marginTop: 4, zIndex: 10,

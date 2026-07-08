@@ -8,12 +8,14 @@ import { T } from './theme';
  * @param {import('react').ReactNode} [props.children]
  */
 export function Badge({ tone = 'mint', style, children, ...rest }) {
+  // theme.js 토큰 참조로 단일화(2026-07-08) — 이전엔 hex를 여기 복붙해뒀던 탓에
+  // theme.js의 WCAG 대비 조정이 배지에 반영되지 않는 사각지대였음.
   const c = {
-    mint: { bg: '#e3f3ec', fg: '#2f8a6f' },
-    ok: { bg: '#e3f3ec', fg: '#2f8a6f' }, // potato 별칭 (= mint)
-    danger: { bg: '#fdeeea', fg: '#e0654f' },
-    warn: { bg: '#fff3da', fg: '#c79318' },
-    info: { bg: '#e8eeff', fg: '#5b73c4' },
+    mint: { bg: T.okBg, fg: T.ok },
+    ok: { bg: T.okBg, fg: T.ok }, // potato 별칭 (= mint)
+    danger: { bg: T.dangerBg, fg: T.danger },
+    warn: { bg: T.warnBg, fg: T.warn },
+    info: { bg: T.infoBg, fg: T.info },
     neutral: { bg: T.tint, fg: T.text },
   }[tone];
   return (
