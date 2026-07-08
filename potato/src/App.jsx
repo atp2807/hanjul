@@ -8,7 +8,9 @@ import Dashboard from './pages/Dashboard.jsx';
 import Login from './pages/Login.jsx';
 import Moderation from './pages/Moderation.jsx';
 import Payouts from './pages/Payouts.jsx';
+import Refunds from './pages/Refunds.jsx';
 import Reports from './pages/Reports.jsx';
+import ReviewQueue from './pages/ReviewQueue.jsx';
 
 function Splash() {
   return (
@@ -38,9 +40,11 @@ export default function App() {
       >
         <Route path="/" element={<Dashboard />} />
         <Route path="/moderation" element={<Moderation />} />
+        <Route path="/review-queue" element={<ReviewQueue />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/accounts" element={<Accounts />} />
         <Route path="/payouts" element={<Payouts />} />
+        <Route path="/refunds" element={<Refunds />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

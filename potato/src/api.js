@@ -38,4 +38,9 @@ export const api = {
   approvePayout: (id) => post(`/potato/payouts/${id}/approve`),
   payPayout: (id, reason) => post(`/potato/payouts/${id}/pay`, { reason }),
   rejectPayout: (id, reason) => post(`/potato/payouts/${id}/reject`, { reason }),
+
+  orders: (status = 'PAID') => get(`/potato/orders?status=${status}`),
+  refundOrder: (id, reason) => post(`/potato/orders/${id}/refund`, { reason }),
+
+  reviewQueue: () => get('/potato/review-queue'),
 };

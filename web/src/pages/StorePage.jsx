@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { Icon } from '../components/Icon';
+import { RatingBadge } from '../components/RatingBadge';
 import { listStore } from '../services/api/books';
 import { T } from '../theme';
 import { Cover } from '../components/ui';
@@ -146,7 +147,12 @@ export function StorePage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: 22 }}>
           {items.map((b) => (
             <Link key={b.id} to={`/books/${b.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-              <Cover url={b.coverUrl} title={b.title} />
+              <div style={{ position: 'relative' }}>
+                <Cover url={b.coverUrl} title={b.title} />
+                {b.contentRating && b.contentRating !== 'ALL' && (
+                  <RatingBadge rating={b.contentRating} style={{ position: 'absolute', top: 8, right: 8 }} />
+                )}
+              </div>
               <div style={{ marginTop: 10, fontWeight: 700, fontSize: 15, color: T.textStrong }}>{b.title}</div>
               <div style={{ color: T.muted, fontSize: 13, marginTop: 2 }}>
                 {b.priceAmt != null ? `${b.priceAmt.toLocaleString()}원` : '무료'}

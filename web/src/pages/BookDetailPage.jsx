@@ -6,6 +6,7 @@ import { useApiQuery } from '@hanjul/lib';
 import { useAuth } from '../auth/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { PageMeta } from '../components/PageMeta';
+import { RatingBadge } from '../components/RatingBadge';
 import { Stars } from '../components/Stars';
 import { Icon } from '../components/Icon';
 import { Avatar, Cover, ErrorNotice } from '../components/ui';
@@ -145,11 +146,14 @@ export function BookDetailPage() {
 
         {/* 상세 */}
         <div>
-          {book.category && (
-            <span style={{ display: 'inline-block', padding: '5px 12px', background: '#e3f3ec', borderRadius: 999, fontSize: 12, fontWeight: 700, color: '#297961' }}>
-              {book.category}
-            </span>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            {book.category && (
+              <span style={{ display: 'inline-block', padding: '5px 12px', background: '#e3f3ec', borderRadius: 999, fontSize: 12, fontWeight: 700, color: '#297961' }}>
+                {book.category}
+              </span>
+            )}
+            <RatingBadge rating={book.contentRating} />
+          </div>
           <h1 style={{ margin: '16px 0 8px', fontSize: 38, fontWeight: 800, letterSpacing: '-0.03em', color: T.ink, lineHeight: 1.2 }}>{book.title}</h1>
           {book.subtitle && <p style={{ margin: '0 0 6px', fontSize: 16, color: T.textMid }}>{book.subtitle}</p>}
           {book.authorId && (

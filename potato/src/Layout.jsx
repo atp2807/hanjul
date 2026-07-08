@@ -9,9 +9,11 @@ import { Avatar, Icon } from './ui.jsx';
 const NAV = [
   { to: '/', label: '대시보드', icon: 'dashboard', end: true },
   { to: '/moderation', label: '모더레이션', icon: 'moderation', badge: 'booksBlocked', tone: T.danger },
+  { to: '/review-queue', label: '검토 큐', icon: 'book' },
   { to: '/reports', label: '신고', icon: 'reports', badge: 'reportsOpen', tone: T.danger },
   { to: '/accounts', label: '계정', icon: 'accounts' },
   { to: '/payouts', label: '출금', icon: 'payout' },
+  { to: '/refunds', label: '환불', icon: 'payout' },
 ];
 
 export default function Layout() {
