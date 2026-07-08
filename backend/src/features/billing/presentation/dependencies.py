@@ -11,6 +11,7 @@ from src.features.billing.infrastructure.book_pricing import SqlBookPricing
 from src.features.billing.infrastructure.demo_gateway import DemoPaymentGateway
 from src.features.billing.infrastructure.order_repo import SqlOrderRepository
 from src.features.billing.infrastructure.toss_gateway import TossPaymentGateway
+from src.features.email.presentation.dependencies import build_order_email_hook
 
 
 def _gateway():
@@ -28,4 +29,6 @@ def get_order_service(session: AsyncSession = Depends(get_session)) -> OrderServ
         pricing=pricing,
         rating_lookup=pricing,
         account_tier=AccountService(SqlAccountRepository(session)),
+        # 주문확인 메일 best-effort 훅(email 피처) — woncheon build_payout_report_hook과 동형 패턴.
+        email_hook=build_order_email_hook(session),
     )

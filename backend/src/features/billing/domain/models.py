@@ -1,5 +1,6 @@
 """billing 도메인 — 주문/정산 뷰 + 에러."""
 from dataclasses import dataclass
+from typing import Protocol
 from uuid import UUID
 
 from src.shared.errors import DomainError
@@ -61,6 +62,16 @@ class SalesSummary:
     total_revenue: int
     total_payout: int
     books: list[BookSales]
+
+
+class OrderEmailHook(Protocol):
+    """결제확인(PAID) 후 best-effort 구매확인 메일 훅 (payouts.domain.models.PayoutReportHook과 동형).
+
+    billing 도메인은 구체 구현(email 피처의 OrderConfirmationEmailHook)을 모른다 — DI
+    (presentation/dependencies.py)가 주입. 실패해도 결제 확정 자체는 막지 않도록
+    OrderService가 방어적으로 감싼다.
+    """
+    async def order_paid(self, buyer_id: UUID, book_id: UUID, amount: int) -> None: ...
 
 
 class BillingError(DomainError):

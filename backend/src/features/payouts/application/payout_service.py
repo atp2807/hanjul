@@ -73,6 +73,10 @@ class PayoutService:
             raise PayoutNotFound()
         return p
 
+    async def get(self, payout_id: UUID) -> PayoutView:
+        """상태전이 직후 스냅샷 재조회 — potato 출금상태 안내메일 등 부가 훅용."""
+        return await self._require(payout_id)
+
     async def approve(self, payout_id: UUID, operator_id: UUID) -> None:
         await self._require(payout_id)  # 없으면 404
         if not await self.repo.transition(payout_id, (REQUESTED,), APPROVED, operator_id, self._now()):

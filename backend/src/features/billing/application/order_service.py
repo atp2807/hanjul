@@ -2,6 +2,7 @@
 
 결제 확인 시 정산 엔진(engine.settlement)으로 분배/원천징수를 계산해 기록.
 """
+import logging
 from datetime import UTC, datetime
 from uuid import UUID
 
@@ -14,6 +15,7 @@ from src.features.billing.domain.models import (
     ConsentRequired,
     NotPurchasable,
     NotRefundable,
+    OrderEmailHook,
     OrderNotFound,
     OrderView,
     PaymentFailed,
@@ -28,6 +30,8 @@ from src.features.books.domain.content_rating import (
     is_book_accessible,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class OrderService:
     def __init__(
@@ -38,6 +42,7 @@ class OrderService:
         is_individual: bool = True,
         rating_lookup: BookRatingLookup | None = None,
         account_tier: AccountTierLookup | None = None,
+        email_hook: OrderEmailHook | None = None,
     ):
         self.repo = repo
         self.gateway = gateway
@@ -48,6 +53,9 @@ class OrderService:
         # 실제 요청 경로(get_order_service DI)는 항상 두 포트를 채워 실제 값을 조회한다.
         self.rating_lookup = rating_lookup
         self.account_tier = account_tier
+        # 주문확인 메일 best-effort 훅(email 피처, payouts의 report_hook과 동형) — 미주입이면
+        # 기존 동작 그대로(하위호환).
+        self.email_hook = email_hook
 
     async def create_order(
         self,
@@ -153,6 +161,15 @@ class OrderService:
         await self.repo.mark_paid_with_settlement(
             order_id, self.gateway.provider_cd, pg_tx_id, breakdown
         )
+        if self.email_hook is not None:
+            try:
+                await self.email_hook.order_paid(order.buyer_account_id, order.book_id, order.amount_amt)
+            except Exception:
+                logger.warning(
+                    "주문 %s 확인 메일 발송 실패 — 결제는 확정된 채로 유지(재발송 없음)",
+                    order_id,
+                    exc_info=True,
+                )
         return SettlementView(
             channel=breakdown.channel,
             gross_amt=breakdown.author_gross,

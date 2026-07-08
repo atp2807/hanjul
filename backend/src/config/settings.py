@@ -79,6 +79,16 @@ class Settings(BaseSettings):
     COVER_API_URL: str = ""  # novelpotato /generate-cover
     COVER_API_KEY: str = ""
 
+    # ── 거래 이메일(주문확인·출금상태) ───────────────────
+    # 데모: 실제 발송 없이 로그만 (dev/E2E). 운영은 False지만, SMTP_HOST 미설정이면
+    # build_email_sender가 Demo로 자동 폴백(best-effort 훅이라 조용히 무동작해도 안전).
+    EMAIL_DEMO: bool = False
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    EMAIL_FROM: str = "한줄 <no-reply@hanjul.io>"
+
     # ── 콘텐츠 연령등급 자동분류(AI) ────────────────────
     # 데모: 외부 호출 없이 키워드 휴리스틱으로 분류 (dev/E2E). 운영은 False + API 키.
     CONTENT_RATING_AI_DEMO: bool = False
@@ -155,6 +165,7 @@ class Settings(BaseSettings):
             "DISTRIBUTION_DEMO": self.DISTRIBUTION_DEMO,
             "COVER_DEMO": self.COVER_DEMO,
             "CONTENT_RATING_AI_DEMO": self.CONTENT_RATING_AI_DEMO,
+            "EMAIL_DEMO": self.EMAIL_DEMO,
             "E2E_LOGIN_ENABLED": self.E2E_LOGIN_ENABLED,
         }
         for name, value in demo_flags.items():
