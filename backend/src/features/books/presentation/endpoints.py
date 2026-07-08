@@ -130,14 +130,17 @@ async def download_epub(
 
     ⚠️ 회귀가드: 이전엔 인증·구매 확인이 전혀 없어 book_id(스토어 URL에 노출)만 알면 누구나
     무료로 전체 EPUB을 받을 수 있었다(2026-07-08 연령게이트 감사 중 발견). get_content의
-    is_free/owned 판정을 /content 엔드포인트와 동일하게 적용 — 미리보기 개념이 없는 경로라
-    미구매·유료면 전면 차단(NotPurchased). BookNotFound·AgeVerificationRequired·NotPurchased
-    → 중앙 핸들러.
+    is_free/owned 판정을 /content 엔드포인트와 동일하게 적용하되, **저자 본인은 우회**한다 —
+    이 엔드포인트의 유일한 실사용처가 스튜디오 "EPUB 내려받기"(자기 책 자체출력)라, 저자가
+    자기 유료책을 구매 없이 못 받으면 그 자체가 회귀(실제로 e2e 작가여정이 이걸로 깨졌었음).
+    미리보기 개념이 없는 경로라 그 외엔 미구매·유료면 전면 차단(NotPurchased).
+    BookNotFound·AgeVerificationRequired·NotPurchased → 중앙 핸들러.
     """
     content = await service.get_content(book_id, principal.id if principal else None)
     is_free = content.price_amt in (None, 0)
     owned = principal is not None and await orders.owns(principal.id, book_id)
-    if not (is_free or owned):
+    is_author = await service.is_author(book_id, principal.id if principal else None)
+    if not (is_free or owned or is_author):
         raise NotPurchased(book_id)
 
     epub_book = EpubBook(

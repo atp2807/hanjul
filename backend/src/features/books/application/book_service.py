@@ -76,6 +76,12 @@ class BookService:
             raise NotOwner(book_id)
         await self.repo.set_preview_limit(book_id, max(0, limit))
 
+    async def is_author(self, book_id: UUID, account_id: UUID | None) -> bool:
+        """저자 본인 여부 — EPUB 다운로드 등 '구매 게이트를 저자는 우회' 판정에 재사용."""
+        if account_id is None:
+            return False
+        return await self.repo.get_author_id(book_id) == account_id
+
     async def get_content(self, book_id: UUID, account_id: UUID | None = None) -> BookView:
         content = await self.repo.get_content(book_id)
         if content is None:
