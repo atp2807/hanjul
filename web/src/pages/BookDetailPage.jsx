@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
-import { loadTossPayments } from '@tosspayments/payment-sdk';
-
 import { useApiQuery } from '@hanjul/lib';
 
 import { useAuth } from '../auth/AuthContext';
@@ -65,23 +63,13 @@ export function BookDetailPage() {
         navigate(`/read/${book.id}`);
         return;
       }
-      const toss = await loadTossPayments(cfg.tossClientKey);
-      const result = `${window.location.origin}/payment/result?bookId=${book.id}`;
-      await toss.requestPayment('카드', {
-        amount: order.amountAmt,
-        orderId: order.id,
-        orderName: book.title,
-        successUrl: result,
-        failUrl: result,
-        windowTarget: 'self',
+      // 실 결제 — 토스 결제위젯 체크아웃으로. 주문정보는 라우터 state로 전달(URL에 금액 노출 X).
+      navigate('/checkout', {
+        state: { orderId: order.id, amount: order.amountAmt, orderName: book.title, bookId: book.id },
       });
     } catch (e) {
       if (e.status === 409) {
         navigate(`/read/${book.id}`); // 이미 소유 → 바로 읽기
-        return;
-      }
-      if (e.code === 'USER_CANCEL' || e.code === 'PAY_PROCESS_CANCELED') {
-        setBuying(false);
         return;
       }
       setError(`구매 실패: ${e.message || e.code}`);

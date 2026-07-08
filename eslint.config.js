@@ -30,6 +30,7 @@ export default [
     ignores: [
       '**/dist/**',
       '**/node_modules/**',
+      '**/.venv/**', // Python venv 안의 서드파티 JS(pywebview 등) — 린트 대상 아님(gitignore라 CI엔 없지만 로컬 일치)
       'backend/**', // Python — ruff 담당 (.venv 서드파티 JS 포함 제외)
       'packages/ui/ds-bundle/**',
       'packages/ui/.ds-sync/**',

@@ -4,9 +4,10 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { confirmPayment } from '../services/api/orders';
 import { T } from '../theme';
 
-// 토스 결제창(v1) successUrl/failUrl 착지점.
+// 토스 결제위젯(v2) successUrl/failUrl 착지점.
 // 성공: ?paymentKey=&orderId=&amount=&bookId= → 백엔드 confirm → 읽기로.
 // 실패: ?code=&message=&bookId= → 사유 표시.
+// (위젯이든 결제창이든 이 복귀 규약·서버 confirm은 동일)
 export function PaymentResultPage() {
   const [sp] = useSearchParams();
   const navigate = useNavigate();

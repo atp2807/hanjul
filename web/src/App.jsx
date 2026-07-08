@@ -14,6 +14,7 @@ import { B2BPlanPage } from './pages/B2BPlanPage';
 import { BookDetailPage } from './pages/BookDetailPage';
 import { CampaignDetailPage } from './pages/CampaignDetailPage';
 import { CampaignStudioPage } from './pages/CampaignStudioPage';
+import { CheckoutPage } from './pages/CheckoutPage';
 import { DocsPage } from './pages/DocsPage';
 import { DocPage } from './pages/DocPage';
 import { DocSharePage } from './pages/DocSharePage';
@@ -67,6 +68,7 @@ export default function App() {
         <Route path="/doc/:id" element={<DocPage />} />
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/payment/result" element={<PaymentResultPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route path="/legal/:slug" element={<LegalPage />} />
