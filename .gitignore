@@ -34,6 +34,9 @@ backend/htmlcov/
 # 업로드 표지(로컬 디스크 저장)
 backend/uploads/
 
+# 신분증 사진(연령 게이트, PII) — 비공개 로컬 저장. 절대 커밋 금지.
+backend/private_uploads/
+
 # doc 엔진 파서 테스트용 실문서 — 로컬 전용, CI엔 없어 skipif로 스킵
 backend/tests/engine/doc/reference_data/
 

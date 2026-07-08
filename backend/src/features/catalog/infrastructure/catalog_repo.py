@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.features.books.domain.content_rating import TIERS, tier_rank
 from src.features.catalog.domain.models import PUBLISHED, BookHasOrders, BookSummary
 from src.infrastructure.db.models.book import Book
 
@@ -33,6 +34,7 @@ def _to_summary(b: Book) -> BookSummary:
         discount_amt=int(b.discount_amt) if b.discount_amt is not None else None,
         discount_until=b.discount_until,
         blocked_at=b.blocked_at,
+        content_rating=b.content_rating,
     )
 
 
@@ -134,7 +136,13 @@ class SqlCatalogRepository:
         return published
 
     async def list_published(
-        self, q: str | None, limit: int, offset: int, kind: str | None = None, category: str | None = None
+        self,
+        q: str | None,
+        limit: int,
+        offset: int,
+        kind: str | None = None,
+        category: str | None = None,
+        account_tier: str = "ALL",
     ) -> list[BookSummary]:
         stmt = select(Book).where(Book.status == PUBLISHED, Book.blocked_at.is_(None))
         if q:
@@ -143,6 +151,9 @@ class SqlCatalogRepository:
             stmt = stmt.where(Book.kind == kind)
         if category:
             stmt = stmt.where(Book.category == category)
+        # 연령 게이트(dc-daeb0d3d) — 인증등급 초과 등급의 책은 목록 자체에서 제외.
+        allowed_tiers = TIERS[: tier_rank(account_tier) + 1]
+        stmt = stmt.where(Book.content_rating.in_(allowed_tiers))
         stmt = stmt.order_by(Book.published_at.desc()).limit(limit).offset(offset)  # 최신순
         rows = (await self.session.execute(stmt)).scalars().all()
         return [_to_summary(b) for b in rows]

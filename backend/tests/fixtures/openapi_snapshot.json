@@ -110,6 +110,11 @@
           "role": {
             "title": "Role",
             "type": "string"
+          },
+          "verifiedTier": {
+            "default": "ALL",
+            "title": "Verifiedtier",
+            "type": "string"
           }
         },
         "required": [
@@ -143,6 +148,61 @@
           "rating"
         ],
         "title": "AddReviewRequest",
+        "type": "object"
+      },
+      "AgeVerificationRequestResponse": {
+        "properties": {
+          "accountId": {
+            "format": "uuid",
+            "title": "Accountid",
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "reviewedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewedat"
+          },
+          "reviewedBy": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewedby"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "accountId",
+          "status",
+          "createdAt"
+        ],
+        "title": "AgeVerificationRequestResponse",
         "type": "object"
       },
       "ApplicantItem": {
@@ -582,6 +642,20 @@
         "title": "Body_parse_pdf_api_import_pdf_parse_post",
         "type": "object"
       },
+      "Body_submit_api_me_age_verification_post": {
+        "properties": {
+          "file": {
+            "format": "binary",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_submit_api_me_age_verification_post",
+        "type": "object"
+      },
       "Body_upload_cover_api_books__book_id__cover_upload_post": {
         "properties": {
           "file": {
@@ -827,6 +901,11 @@
               }
             ],
             "title": "Category"
+          },
+          "contentRating": {
+            "default": "ALL",
+            "title": "Contentrating",
+            "type": "string"
           },
           "coverUrl": {
             "anyOf": [
@@ -2744,6 +2823,47 @@
         "title": "TokenResponse",
         "type": "object"
       },
+      "UnreportedWoncheonPayout": {
+        "properties": {
+          "authorId": {
+            "format": "uuid",
+            "title": "Authorid",
+            "type": "string"
+          },
+          "grossAmt": {
+            "title": "Grossamt",
+            "type": "integer"
+          },
+          "hasSubject": {
+            "title": "Hassubject",
+            "type": "boolean"
+          },
+          "netAmt": {
+            "title": "Netamt",
+            "type": "integer"
+          },
+          "paidAt": {
+            "format": "date-time",
+            "title": "Paidat",
+            "type": "string"
+          },
+          "payoutId": {
+            "format": "uuid",
+            "title": "Payoutid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "payoutId",
+          "authorId",
+          "grossAmt",
+          "netAmt",
+          "paidAt",
+          "hasSubject"
+        ],
+        "title": "UnreportedWoncheonPayout",
+        "type": "object"
+      },
       "UpdateHtmlRequest": {
         "properties": {
           "html": {
@@ -2882,6 +3002,32 @@
           "type"
         ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "WithholdingSubjectRequest": {
+        "description": "\uc9c0\uae09 \uc2dc\uc810 \uc6d0\ucc9c\uc9d5\uc218 \ub300\uc0c1\uc790 \ucd5c\uc18c\uc218\uc9d1 \u2014 bank_account(\uacc4\uc88c\ub4f1\ub85d)\uc640 \ubcc4\uac1c.",
+        "properties": {
+          "incomeTypeCode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "\ubbf8\uc9c0\uc815 \uc2dc WONCHEON_DEFAULT_INCOME_TYPE_CODE \uc0ac\uc6a9",
+            "title": "Incometypecode"
+          },
+          "residentNumber": {
+            "title": "Residentnumber",
+            "type": "string"
+          }
+        },
+        "required": [
+          "residentNumber"
+        ],
+        "title": "WithholdingSubjectRequest",
         "type": "object"
       }
     },
@@ -3862,7 +4008,7 @@
     },
     "/api/books/{book_id}/epub": {
       "get": {
-        "description": "\uc815\ubcf8 \u2192 EPUB 3 \ud30c\uc77c \ub2e4\uc6b4\ub85c\ub4dc (\uc11c\uc810 \uc720\ud1b5\u00b7\uc18c\uc7a5\uc758 \uae30\ubcf8 \uc0b0\ucd9c\ubb3c). 404 \u2192 \uc911\uc559 \ud578\ub4e4\ub7ec.",
+        "description": "\uc815\ubcf8 \u2192 EPUB 3 \ud30c\uc77c \ub2e4\uc6b4\ub85c\ub4dc (\uc11c\uc810 \uc720\ud1b5\u00b7\uc18c\uc7a5\uc758 \uae30\ubcf8 \uc0b0\ucd9c\ubb3c).\n\n\u26a0\ufe0f \ud68c\uadc0\uac00\ub4dc: \uc774\uc804\uc5d4 \uc778\uc99d\u00b7\uad6c\ub9e4 \ud655\uc778\uc774 \uc804\ud600 \uc5c6\uc5b4 book_id(\uc2a4\ud1a0\uc5b4 URL\uc5d0 \ub178\ucd9c)\ub9cc \uc54c\uba74 \ub204\uad6c\ub098\n\ubb34\ub8cc\ub85c \uc804\uccb4 EPUB\uc744 \ubc1b\uc744 \uc218 \uc788\uc5c8\ub2e4(2026-07-08 \uc5f0\ub839\uac8c\uc774\ud2b8 \uac10\uc0ac \uc911 \ubc1c\uacac). get_content\uc758\nis_free/owned \ud310\uc815\uc744 /content \uc5d4\ub4dc\ud3ec\uc778\ud2b8\uc640 \ub3d9\uc77c\ud558\uac8c \uc801\uc6a9 \u2014 \ubbf8\ub9ac\ubcf4\uae30 \uac1c\ub150\uc774 \uc5c6\ub294 \uacbd\ub85c\ub77c\n\ubbf8\uad6c\ub9e4\u00b7\uc720\ub8cc\uba74 \uc804\uba74 \ucc28\ub2e8(NotPurchased). BookNotFound\u00b7AgeVerificationRequired\u00b7NotPurchased\n\u2192 \uc911\uc559 \ud578\ub4e4\ub7ec.",
         "operationId": "download_epub_api_books__book_id__epub_get",
         "parameters": [
           {
@@ -3896,6 +4042,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Download Epub",
         "tags": [
           "books"
@@ -5838,6 +5989,86 @@
         ]
       }
     },
+    "/api/me/age-verification": {
+      "get": {
+        "description": "\ud604\uc7ac \uc9c4\ud589\uc911(PENDING) \uc778\uc99d \uc694\uccad \u2014 \uc5c6\uc73c\uba74 null(\uacfc\uac70 \uc2b9\uc778/\uac70\ubd80 \uc774\ub825\uc740 \ub178\ucd9c \uc548 \ud568).",
+        "operationId": "my_status_api_me_age_verification_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/AgeVerificationRequestResponse"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response My Status Api Me Age Verification Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "My Status",
+        "tags": [
+          "age-verification"
+        ]
+      },
+      "post": {
+        "description": "\uc2e0\ubd84\uc99d \uc0ac\uc9c4 \uc5c5\ub85c\ub4dc \u2192 \uc131\uc778\uc778\uc99d \uc2ec\uc0ac \uc694\uccad. AlreadyPending(409) \u2192 \uc911\uc559 \ud578\ub4e4\ub7ec.",
+        "operationId": "submit_api_me_age_verification_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_submit_api_me_age_verification_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgeVerificationRequestResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Submit",
+        "tags": [
+          "age-verification"
+        ]
+      }
+    },
     "/api/me/applications": {
       "get": {
         "operationId": "my_applications_api_me_applications_get",
@@ -6896,6 +7127,206 @@
         ]
       }
     },
+    "/api/potato/age-verification": {
+      "get": {
+        "operationId": "list_pending_api_potato_age_verification_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "PENDING",
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AgeVerificationRequestResponse"
+                  },
+                  "title": "Response List Pending Api Potato Age Verification Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Pending",
+        "tags": [
+          "potato"
+        ]
+      }
+    },
+    "/api/potato/age-verification/{request_id}/approve": {
+      "post": {
+        "description": "\uc2b9\uc778 \u2014 verified_tier_cd=AGE18 \uac31\uc2e0 + \uc6d0\ubcf8 \uc774\ubbf8\uc9c0 \uc0ad\uc81c. InvalidRequestState(409) \u2192 \uc911\uc559 \ud578\ub4e4\ub7ec.",
+        "operationId": "approve_api_potato_age_verification__request_id__approve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Approve",
+        "tags": [
+          "potato"
+        ]
+      }
+    },
+    "/api/potato/age-verification/{request_id}/photo": {
+      "get": {
+        "description": "\uc2ec\uc0ac\uc6a9 \uc2e0\ubd84\uc99d \uc6d0\ubcf8 \uc870\ud68c \u2014 RequestNotFound(404, \uc911\uc559 \ud578\ub4e4\ub7ec)\uba74 \ubbf8\uc874\uc7ac/\uc774\ubbf8 \uc0ad\uc81c\ub428.",
+        "operationId": "get_photo_api_potato_age_verification__request_id__photo_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Get Photo",
+        "tags": [
+          "potato"
+        ]
+      }
+    },
+    "/api/potato/age-verification/{request_id}/reject": {
+      "post": {
+        "description": "\uac70\ubd80 \u2014 \uc6d0\ubcf8 \uc774\ubbf8\uc9c0 \uc0ad\uc81c. \uc0ac\uc720\ub294 \uac10\uc0ac\ub85c\uadf8\uc5d0\ub9cc \ub0a8\uae40(\uc694\uccad \ud14c\uc774\ube14\uc5d4 \uc800\uc7a5\ud558\uc9c0 \uc54a\uc74c).",
+        "operationId": "reject_api_potato_age_verification__request_id__reject_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReasonRequest",
+                "default": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Reject",
+        "tags": [
+          "potato"
+        ]
+      }
+    },
     "/api/potato/auth/login": {
       "post": {
         "operationId": "login_api_potato_auth_login_post",
@@ -7237,6 +7668,37 @@
         ]
       }
     },
+    "/api/potato/payouts/woncheon/unreported": {
+      "get": {
+        "description": "PAID\uc778\ub370 \uc544\uc9c1 woncheon \uc2e0\uace0\uac00 \uc548 \ub41c payout \ubaa9\ub85d.\n\n\uc218\ub3d9 \uc7ac\uc2dc\ub3c4\ub294 scripts/woncheon_retry_report.py \ub85c \u2014 \uc790\ub3d9 \uc7ac\uc2dc\ub3c4 \uc2a4\ucf00\uc904\ub7ec\ub294 \ubc94\uc704 \ubc16.",
+        "operationId": "unreported_woncheon_payouts_api_potato_payouts_woncheon_unreported_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/UnreportedWoncheonPayout"
+                  },
+                  "title": "Response Unreported Woncheon Payouts Api Potato Payouts Woncheon Unreported Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Unreported Woncheon Payouts",
+        "tags": [
+          "potato"
+        ]
+      }
+    },
     "/api/potato/payouts/{payout_id}/approve": {
       "post": {
         "operationId": "approve_api_potato_payouts__payout_id__approve_post",
@@ -7376,6 +7838,58 @@
           }
         ],
         "summary": "Reject",
+        "tags": [
+          "potato"
+        ]
+      }
+    },
+    "/api/potato/payouts/{payout_id}/withholding-subject": {
+      "put": {
+        "description": "\uc9c0\uae09 \uc2dc\uc810 \uc6d0\ucc9c\uc9d5\uc218 \ub300\uc0c1\uc790 \ucd5c\uc18c\uc218\uc9d1(\uc8fc\ubbfc\ubc88\ud638) \u2014 PAID \ucc98\ub9ac \uc804\uc5d0 \ub4f1\ub85d\ud574 \ub46c\uc57c \uc2e0\uace0\uac00 \ub098\uac04\ub2e4.\n\n\uacc4\uc88c\ub4f1\ub85d(bill.bank_account)\uacfc \ubcc4\uac1c \u2014 \uacfc\uc789\uc218\uc9d1 \uae08\uc9c0(lr-ac61f505). ValidationError(422)\ub294\n\uc911\uc559 \ud578\ub4e4\ub7ec\uac00 \ub9e4\ud551.",
+        "operationId": "set_withholding_subject_api_potato_payouts__payout_id__withholding_subject_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "payout_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Payout Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WithholdingSubjectRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Set Withholding Subject",
         "tags": [
           "potato"
         ]
@@ -7902,6 +8416,11 @@
             "description": "Validation Error"
           }
         },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
         "summary": "Store List",
         "tags": [
           "catalog"

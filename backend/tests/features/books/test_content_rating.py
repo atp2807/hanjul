@@ -2,7 +2,9 @@
 import pytest
 from src.features.books.domain.content_rating import (
     TIERS,
+    AgeVerificationRequired,
     category_keys,
+    is_book_accessible,
     is_valid_category,
     is_valid_tier,
     max_tier,
@@ -12,6 +14,7 @@ from src.features.books.domain.content_rating import (
 from src.features.books.infrastructure.demo_rating_classifier import (
     DemoContentRatingClassifier,
 )
+from src.shared.errors import ForbiddenError
 
 
 def test_tier_rank_is_ordinal():
@@ -67,3 +70,39 @@ async def test_demo_classifier_escalates_to_highest_matched_tier():
     # AGE15(유혈) + AGE18(고문) 키워드 동시 → 더 높은 AGE18
     result = await DemoContentRatingClassifier().classify("유혈이 있고 고문 장면도 있다")
     assert result["violence"] == "AGE18"
+
+
+# ── 연령 게이트(dc-daeb0d3d) — 책 등급 vs 계정 인증등급 ──────────
+@pytest.mark.parametrize(
+    ("book_rating", "account_tier", "expected"),
+    [
+        # ALL 책 — 누구나 접근 가능
+        ("ALL", "ALL", True),
+        ("ALL", "AGE12", True),
+        ("ALL", "AGE15", True),
+        ("ALL", "AGE18", True),
+        # AGE12 책 — ALL 계정만 차단
+        ("AGE12", "ALL", False),
+        ("AGE12", "AGE12", True),
+        ("AGE12", "AGE15", True),
+        ("AGE12", "AGE18", True),
+        # AGE15 책
+        ("AGE15", "ALL", False),
+        ("AGE15", "AGE12", False),
+        ("AGE15", "AGE15", True),
+        ("AGE15", "AGE18", True),
+        # AGE18 책 — AGE18 계정만 통과
+        ("AGE18", "ALL", False),
+        ("AGE18", "AGE12", False),
+        ("AGE18", "AGE15", False),
+        ("AGE18", "AGE18", True),
+    ],
+)
+def test_is_book_accessible_matrix(book_rating, account_tier, expected):
+    assert is_book_accessible(book_rating, account_tier) is expected
+
+
+def test_age_verification_required_is_forbidden_403():
+    exc = AgeVerificationRequired()
+    assert isinstance(exc, ForbiddenError)
+    assert exc.status_code == 403

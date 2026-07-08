@@ -13,7 +13,13 @@ from src.features.potato.presentation.dependencies import (
     get_audit_service,
     get_current_operator,
 )
-from src.features.potato.presentation.schemas import ReasonRequest
+from src.features.potato.presentation.schemas import (
+    ReasonRequest,
+    UnreportedWoncheonPayout,
+    WithholdingSubjectRequest,
+)
+from src.features.woncheon.application.reporting_service import WoncheonReportingService
+from src.features.woncheon.presentation.dependencies import get_woncheon_service
 
 router = APIRouter(prefix="/potato", tags=["potato"])
 
@@ -73,3 +79,31 @@ async def reject(
     await _transition(
         request, op, audit, svc.reject(payout_id, op.id, body.reason), "PAYOUT_REJECT", payout_id, body.reason
     )
+
+
+# ── woncheon 원천징수 신고 커넥터(lr-ac61f505 스켈레톤) ──────────────
+@router.put("/payouts/{payout_id}/withholding-subject", status_code=204)
+async def set_withholding_subject(
+    payout_id: UUID,
+    body: WithholdingSubjectRequest,
+    _op: OperatorPrincipal = Depends(get_current_operator),
+    svc: WoncheonReportingService = Depends(get_woncheon_service),
+) -> None:
+    """지급 시점 원천징수 대상자 최소수집(주민번호) — PAID 처리 전에 등록해 둬야 신고가 나간다.
+
+    계좌등록(bill.bank_account)과 별개 — 과잉수집 금지(lr-ac61f505). ValidationError(422)는
+    중앙 핸들러가 매핑.
+    """
+    await svc.register_subject(payout_id, body.resident_number, body.income_type_code)
+
+
+@router.get("/payouts/woncheon/unreported", response_model=list[UnreportedWoncheonPayout])
+async def unreported_woncheon_payouts(
+    _op: OperatorPrincipal = Depends(get_current_operator),
+    svc: WoncheonReportingService = Depends(get_woncheon_service),
+) -> list[UnreportedWoncheonPayout]:
+    """PAID인데 아직 woncheon 신고가 안 된 payout 목록.
+
+    수동 재시도는 scripts/woncheon_retry_report.py 로 — 자동 재시도 스케줄러는 범위 밖.
+    """
+    return [UnreportedWoncheonPayout.model_validate(v) for v in await svc.list_unreported()]

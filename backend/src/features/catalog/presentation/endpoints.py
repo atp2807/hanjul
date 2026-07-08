@@ -13,7 +13,10 @@ from src.features.accounts.application.account_service import AccountService
 from src.features.accounts.domain.models import AccountNotFound
 from src.features.accounts.presentation.dependencies import get_account_service
 from src.features.auth.domain.models import AccountPrincipal
-from src.features.auth.presentation.dependencies import get_current_account
+from src.features.auth.presentation.dependencies import (
+    get_current_account,
+    get_current_account_optional,
+)
 from src.features.billing.application.order_service import OrderService
 from src.features.billing.presentation.dependencies import get_order_service
 from src.features.catalog.application.catalog_service import CatalogService
@@ -236,9 +239,11 @@ async def store_list(
     category: str | None = None,  # 소설 | 에세이 | ...
     limit: int = 20,
     offset: int = 0,
+    principal: AccountPrincipal | None = Depends(get_current_account_optional),
     svc: CatalogService = Depends(get_catalog_service),
 ) -> StoreListResponse:
-    items = await svc.list_store(q, kind, limit, offset, category)
+    # 연령 게이트(dc-daeb0d3d) — 미인증(비로그인 포함) 계정엔 AGE18 초과 책이 안 보임.
+    items = await svc.list_store(q, kind, limit, offset, category, principal.id if principal else None)
     return StoreListResponse(items=[_summary_response(s) for s in items], count=len(items))
 
 

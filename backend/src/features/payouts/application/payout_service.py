@@ -1,4 +1,5 @@
 """payouts 서비스 — 작가(계좌·출금신청) + 운영자(승인·지급·반려)."""
+import logging
 from datetime import UTC, datetime
 from uuid import UUID
 
@@ -14,15 +15,19 @@ from src.features.payouts.domain.models import (
     NothingToPayout,
     PayableSummary,
     PayoutNotFound,
+    PayoutReportHook,
     PayoutRepository,
     PayoutView,
 )
 from src.shared.errors import ValidationError
 
+logger = logging.getLogger(__name__)
+
 
 class PayoutService:
-    def __init__(self, repo: PayoutRepository):
+    def __init__(self, repo: PayoutRepository, report_hook: PayoutReportHook | None = None):
         self.repo = repo
+        self.report_hook = report_hook
 
     # ── 작가: 계좌 ────────────────────────────────────
     async def get_bank_account(self, account_id: UUID) -> BankAccountView | None:
@@ -74,10 +79,22 @@ class PayoutService:
             raise InvalidPayoutState()
 
     async def mark_paid(self, payout_id: UUID, operator_id: UUID, memo: str | None = None) -> None:
-        """실이체 완료 후 지급확정 (이체 자체는 운영자가 수동)."""
+        """실이체 완료 후 지급확정 (이체 자체는 운영자가 수동).
+
+        report_hook(예: woncheon 원천징수 신고 커넥터, lr-ac61f505)은 best-effort —
+        실패해도 PAID 전이는 이미 확정된 채로 유지한다. 실패는 로그만 남기고 재시도는
+        이 메서드 범위 밖(수동 재시도 스크립트 — scripts/woncheon_retry_report.py).
+        """
         await self._require(payout_id)
         if not await self.repo.transition(payout_id, (APPROVED,), PAID, operator_id, self._now(), memo):
             raise InvalidPayoutState()
+        if self.report_hook is not None:
+            try:
+                await self.report_hook.on_paid(payout_id)
+            except Exception:
+                logger.exception(
+                    "payout %s report_hook 실패 — PAID 상태는 유지, 신고는 미완(재시도 가능)", payout_id
+                )
 
     async def reject(self, payout_id: UUID, operator_id: UUID, memo: str | None = None) -> None:
         """반려 — 정산분 회수(다시 출금 가능)까지 repo가 한 트랜잭션으로 처리."""

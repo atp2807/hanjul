@@ -53,3 +53,5 @@ class Payout(Base):
     paid_at = Column("paid_ts", DateTime(timezone=True))
     approved_by = Column(UUID(as_uuid=True), ForeignKey("potato.operator.id", ondelete="SET NULL"))
     memo = Column(String(500))
+    # woncheon 원천징수 신고 완료 마커(lr-ac61f505 커넥터). NULL = 미신고(보류/실패 포함).
+    woncheon_reported_at = Column("woncheon_reported_ts", DateTime(timezone=True), nullable=True)

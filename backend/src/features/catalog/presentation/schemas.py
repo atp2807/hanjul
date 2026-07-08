@@ -39,6 +39,7 @@ class BookSummaryResponse(CamelSchema):
     category: str | None = None
     discount_amt: int | None = None
     discount_until: datetime | None = None
+    content_rating: str = "ALL"
 
 
 class SetDiscountRequest(CamelSchema):

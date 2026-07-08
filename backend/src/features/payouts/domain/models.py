@@ -70,6 +70,15 @@ class InvalidPayoutState(ConflictError):
     default_detail = "처리할 수 없는 상태예요."
 
 
+class PayoutReportHook(Protocol):
+    """PAID 전이 후 best-effort 훅(예: woncheon 원천징수 신고 커넥터, lr-ac61f505).
+
+    payouts 도메인은 구체 구현(woncheon 등)을 모른다 — DI(presentation/dependencies.py)가
+    주입. 실패해도 지급 자체(PAID 전이)는 막지 않도록 PayoutService가 방어적으로 감싼다.
+    """
+    async def on_paid(self, payout_id: UUID) -> None: ...
+
+
 class PayoutRepository(Protocol):
     # 계좌
     async def get_bank_account(self, account_id: UUID) -> BankAccountView | None: ...

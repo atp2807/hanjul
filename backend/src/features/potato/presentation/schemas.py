@@ -70,6 +70,24 @@ class AccountModerationView(CamelSchema):
     review_blocked_at: datetime | None
 
 
+# ── woncheon 원천징수 신고 커넥터(lr-ac61f505) ───────────
+class WithholdingSubjectRequest(CamelSchema):
+    """지급 시점 원천징수 대상자 최소수집 — bank_account(계좌등록)와 별개."""
+    resident_number: str
+    income_type_code: str | None = Field(
+        default=None, description="미지정 시 WONCHEON_DEFAULT_INCOME_TYPE_CODE 사용"
+    )
+
+
+class UnreportedWoncheonPayout(CamelSchema):
+    payout_id: UUID
+    author_id: UUID
+    gross_amt: int
+    net_amt: int
+    paid_at: datetime
+    has_subject: bool
+
+
 # ── 대시보드 ──────────────────────────────────────────
 class DashboardStats(CamelSchema):
     accounts: int

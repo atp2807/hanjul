@@ -125,3 +125,35 @@ async def test_withdraw_missing_account_raises_not_found():
     svc = AccountService(FakeAccountsRepository())
     with pytest.raises(AccountNotFound):
         await svc.withdraw(uuid.uuid4())
+
+
+# ── 연령 게이트(dc-daeb0d3d) 인증등급 ─────────────────
+async def test_get_verified_tier_defaults_to_all():
+    repo = FakeAccountsRepository()
+    profile = _profile()
+    repo.seed(profile)
+    svc = AccountService(repo)
+
+    assert await svc.get_verified_tier(profile.id) == "ALL"
+
+
+async def test_get_verified_tier_missing_account_is_all():
+    svc = AccountService(FakeAccountsRepository())
+    assert await svc.get_verified_tier(uuid.uuid4()) == "ALL"
+
+
+async def test_set_verified_tier_updates_and_is_read_back():
+    repo = FakeAccountsRepository()
+    profile = _profile()
+    repo.seed(profile)
+    svc = AccountService(repo)
+
+    await svc.set_verified_tier(profile.id, "AGE18")
+
+    assert repo.accounts[profile.id].verified_tier == "AGE18"
+    assert await svc.get_verified_tier(profile.id) == "AGE18"
+
+
+async def test_set_verified_tier_missing_account_is_noop():
+    svc = AccountService(FakeAccountsRepository())
+    await svc.set_verified_tier(uuid.uuid4(), "AGE18")  # 조용히 무시(예외 없음)

@@ -11,8 +11,14 @@ from src.features.billing.domain.models import (
     OrderNotFound,
     PaymentFailed,
 )
+from src.features.books.domain.content_rating import AgeVerificationRequired
 
-from tests.fixtures.fake_order_repo import FakeGateway, FakeOrderRepository, FakePricing
+from tests.fixtures.fake_order_repo import (
+    FakeAccountTier,
+    FakeGateway,
+    FakeOrderRepository,
+    FakePricing,
+)
 
 
 def make_service(ok=True, price=10000):
@@ -91,3 +97,54 @@ async def test_owns_reflects_payment():
     assert await svc.owns(buyer, book) is False
     await svc.confirm_payment(oid, "tx")
     assert await svc.owns(buyer, book) is True
+
+
+# ── 연령 게이트(dc-daeb0d3d) — 구매(주문생성) ────────────
+def _svc_with_gate(price=10000, rating="ALL", tiers=None):
+    repo = FakeOrderRepository()
+    pricing = FakePricing(price, rating=rating)
+    svc = OrderService(
+        repo, FakeGateway(ok=True), pricing,
+        rating_lookup=pricing, account_tier=FakeAccountTier(tiers),
+    )
+    return svc, repo
+
+
+async def test_create_order_no_gate_ports_at_all_behaves_like_all_rated():
+    """rating_lookup/account_tier 둘 다 미주입 — 등급조회 자체를 안 해 "ALL vs ALL" 통과.
+
+    (구성한 FakePricing.rating="AGE18"은 rating_lookup으로 넘기지 않는 한 안 쓰인다 —
+    즉 이건 "게이트가 꺼짐"이 아니라 "포트 없이는 등급을 모르니 안전한 기본값(ALL)으로
+    되돌아간다"는 뜻. 기존 Fake 기반 단위테스트가 이 경로로 하위호환된다.)
+    """
+    svc = OrderService(FakeOrderRepository(), FakeGateway(ok=True), FakePricing(10000, rating="AGE18"))
+    oid = await svc.create_order(uuid.uuid4(), uuid.uuid4(), "SELF", withdrawal_consent=True)
+    assert oid is not None
+
+
+async def test_create_order_rating_lookup_only_still_blocks_restricted_book():
+    """account_tier 포트가 없어도(tier 기본값 ALL) rating_lookup만 있으면 게이트가 작동한다."""
+    repo = FakeOrderRepository()
+    pricing = FakePricing(10000, rating="AGE18")
+    svc = OrderService(repo, FakeGateway(ok=True), pricing, rating_lookup=pricing)
+    with pytest.raises(AgeVerificationRequired):
+        await svc.create_order(uuid.uuid4(), uuid.uuid4(), "SELF", withdrawal_consent=True)
+
+
+async def test_create_order_blocks_unverified_buyer_for_restricted_book():
+    svc, _ = _svc_with_gate(rating="AGE18")
+    with pytest.raises(AgeVerificationRequired):
+        await svc.create_order(uuid.uuid4(), uuid.uuid4(), "SELF", withdrawal_consent=True)
+
+
+async def test_create_order_allows_verified_buyer_for_restricted_book():
+    buyer = uuid.uuid4()
+    svc, repo = _svc_with_gate(rating="AGE18", tiers={buyer: "AGE18"})
+    oid = await svc.create_order(uuid.uuid4(), buyer, "SELF", withdrawal_consent=True)
+    assert repo.orders[oid].buyer_account_id == buyer
+
+
+async def test_create_order_allows_anyone_for_all_rated_book():
+    svc, _ = _svc_with_gate(rating="ALL")
+    oid = await svc.create_order(uuid.uuid4(), uuid.uuid4(), "SELF", withdrawal_consent=True)
+    assert oid is not None

@@ -20,8 +20,13 @@ from src.features.billing.domain.models import (
     RefundFailed,
     SettlementView,
 )
-from src.features.billing.domain.pricing import BookPricing
+from src.features.billing.domain.pricing import BookPricing, BookRatingLookup
 from src.features.billing.domain.repository import OrderRepository
+from src.features.books.domain.content_rating import (
+    AccountTierLookup,
+    AgeVerificationRequired,
+    is_book_accessible,
+)
 
 
 class OrderService:
@@ -31,11 +36,18 @@ class OrderService:
         gateway: PaymentGateway,
         pricing: BookPricing,
         is_individual: bool = True,
+        rating_lookup: BookRatingLookup | None = None,
+        account_tier: AccountTierLookup | None = None,
     ):
         self.repo = repo
         self.gateway = gateway
         self.pricing = pricing
         self.is_individual = is_individual
+        # 연령 게이트(dc-daeb0d3d) 포트 — 미주입이면 등급 조회 없이 안전한 기본값 사용
+        # (rating="ALL": 모르는 책은 안 막음 / tier="ALL": 모르는 계정은 최저등급 취급).
+        # 실제 요청 경로(get_order_service DI)는 항상 두 포트를 채워 실제 값을 조회한다.
+        self.rating_lookup = rating_lookup
+        self.account_tier = account_tier
 
     async def create_order(
         self,
@@ -51,6 +63,15 @@ class OrderService:
         price = await self.pricing.get_purchasable_price(book_id)
         if price is None:
             raise NotPurchasable(book_id)
+        # 연령 게이트(dc-daeb0d3d) — 항상 검사(포트 미주입이면 안전한 기본값으로).
+        rating = "ALL"
+        if self.rating_lookup is not None:
+            rating = await self.rating_lookup.get_content_rating(book_id) or "ALL"
+        tier = "ALL"
+        if self.account_tier is not None:
+            tier = await self.account_tier.get_verified_tier(buyer_account_id)
+        if not is_book_accessible(rating, tier):
+            raise AgeVerificationRequired()
         if await self.repo.owns(buyer_account_id, book_id):
             raise AlreadyOwned()
         return await self.repo.create_order(

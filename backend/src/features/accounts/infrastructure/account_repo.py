@@ -18,6 +18,7 @@ def _to_profile(acc: Account) -> AccountProfile:
         role=acc.role,
         bio=acc.bio,
         status=acc.status,
+        verified_tier=acc.verified_tier,
     )
 
 
@@ -42,6 +43,16 @@ class SqlAccountRepository:
         acc = await self.session.get(Account, account_id)
         if acc is not None:
             acc.status = status
+            await self.session.commit()
+
+    async def get_verified_tier(self, account_id: UUID) -> str:
+        acc = await self.session.get(Account, account_id)
+        return acc.verified_tier if acc is not None else "ALL"
+
+    async def set_verified_tier(self, account_id: UUID, tier: str) -> None:
+        acc = await self.session.get(Account, account_id)
+        if acc is not None:
+            acc.verified_tier = tier
             await self.session.commit()
 
     async def withdraw(self, account_id: UUID) -> bool:

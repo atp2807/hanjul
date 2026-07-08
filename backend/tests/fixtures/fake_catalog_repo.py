@@ -2,6 +2,7 @@
 from datetime import datetime
 from uuid import UUID
 
+from src.features.books.domain.content_rating import TIERS, tier_rank
 from src.features.catalog.domain.models import PUBLISHED, BookSummary
 
 
@@ -44,10 +45,17 @@ class FakeCatalogRepository:
     async def list_published_by_author(self, author_id) -> list[BookSummary]:
         return [b for b in self.books.values() if b.author_id == author_id and b.status == PUBLISHED]
 
-    async def list_published(self, q, limit, offset, kind=None) -> list[BookSummary]:
+    async def list_published(
+        self, q, limit, offset, kind=None, category=None, account_tier="ALL"
+    ) -> list[BookSummary]:
         rows = [b for b in self.books.values() if b.status == PUBLISHED]
         if q:
             rows = [b for b in rows if q.lower() in b.title.lower()]
         if kind:
             rows = [b for b in rows if b.kind == kind]
+        if category:
+            rows = [b for b in rows if b.category == category]
+        # 연령 게이트(dc-daeb0d3d) — 실 SqlCatalogRepository.list_published와 동일한 필터.
+        allowed = TIERS[: tier_rank(account_tier) + 1]
+        rows = [b for b in rows if b.content_rating in allowed]
         return rows[offset : offset + limit]

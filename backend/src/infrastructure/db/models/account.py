@@ -28,6 +28,8 @@ class Account(Base):
     bio = Column(Text)  # 작가 소개(프로필)
     role = Column("role_cd", String(20), nullable=False, default="READER")   # READER | AUTHOR (운영자는 potato.operator)
     status = Column("status_cd", String(20), nullable=False, default="ACTIVE")  # ACTIVE | SUSPENDED
+    # 연령 게이트(dc-daeb0d3d) — 성인인증 통과 등급. ALL|AGE12|AGE15|AGE18. potato 승인 시 AGE18로 갱신.
+    verified_tier = Column("verified_tier_cd", String(10), nullable=False, default="ALL")
     # 서평단 자격회수는 commu.reviewer_block 으로 이전됨(0021) — 더 이상 여기 없음.
     created_at = Column("created_ts", DateTime(timezone=True), default=_now, nullable=False)
     updated_at = Column("updated_ts", DateTime(timezone=True), default=_now, onupdate=_now, nullable=False)

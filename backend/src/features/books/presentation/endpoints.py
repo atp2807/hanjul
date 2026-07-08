@@ -14,7 +14,7 @@ from src.features.auth.presentation.dependencies import (
 from src.features.billing.application.order_service import OrderService
 from src.features.billing.presentation.dependencies import get_order_service
 from src.features.books.application.book_service import BookService
-from src.features.books.domain.models import suggest_blurb, to_preview
+from src.features.books.domain.models import NotPurchased, suggest_blurb, to_preview
 from src.features.books.presentation.dependencies import get_book_service
 from src.features.books.presentation.schemas import (
     BookContentResponse,
@@ -103,7 +103,8 @@ async def get_content(
     service: BookService = Depends(get_book_service),
     orders: OrderService = Depends(get_order_service),
 ) -> BookContentResponse:
-    content = await service.get_content(book_id)  # BookNotFound → 404 (중앙 핸들러)
+    # BookNotFound 404·AgeVerificationRequired 403(dc-daeb0d3d) → 중앙 핸들러
+    content = await service.get_content(book_id, principal.id if principal else None)
 
     is_free = content.price_amt in (None, 0)
     owned = principal is not None and await orders.owns(principal.id, book_id)
@@ -120,10 +121,24 @@ async def get_content(
 
 @router.get("/{book_id}/epub")
 async def download_epub(
-    book_id: UUID, service: BookService = Depends(get_book_service)
+    book_id: UUID,
+    principal: AccountPrincipal | None = Depends(get_current_account_optional),
+    service: BookService = Depends(get_book_service),
+    orders: OrderService = Depends(get_order_service),
 ) -> Response:
-    """정본 → EPUB 3 파일 다운로드 (서점 유통·소장의 기본 산출물). 404 → 중앙 핸들러."""
-    content = await service.get_content(book_id)
+    """정본 → EPUB 3 파일 다운로드 (서점 유통·소장의 기본 산출물).
+
+    ⚠️ 회귀가드: 이전엔 인증·구매 확인이 전혀 없어 book_id(스토어 URL에 노출)만 알면 누구나
+    무료로 전체 EPUB을 받을 수 있었다(2026-07-08 연령게이트 감사 중 발견). get_content의
+    is_free/owned 판정을 /content 엔드포인트와 동일하게 적용 — 미리보기 개념이 없는 경로라
+    미구매·유료면 전면 차단(NotPurchased). BookNotFound·AgeVerificationRequired·NotPurchased
+    → 중앙 핸들러.
+    """
+    content = await service.get_content(book_id, principal.id if principal else None)
+    is_free = content.price_amt in (None, 0)
+    owned = principal is not None and await orders.owns(principal.id, book_id)
+    if not (is_free or owned):
+        raise NotPurchased(book_id)
 
     epub_book = EpubBook(
         title=content.title,

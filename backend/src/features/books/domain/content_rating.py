@@ -10,8 +10,9 @@ import json
 from functools import lru_cache
 from pathlib import Path
 from typing import Protocol
+from uuid import UUID
 
-from src.shared.errors import ValidationError
+from src.shared.errors import ForbiddenError, ValidationError
 
 _CRITERIA_PATH = Path(__file__).resolve().parent / "content_rating_criteria.json"
 
@@ -64,6 +65,33 @@ class InvalidRatingInput(ValidationError):
     """카테고리 key 또는 tier 값이 유효하지 않음 → 422."""
 
     default_detail = "등급 입력이 올바르지 않아요."
+
+
+# ── 연령 게이트 (dc-daeb0d3d) ──────────────────────────
+# 책 등급 vs 계정 인증등급 — 구매·본문열람·스토어 목록에서 공용으로 쓰는 순수 게이트.
+# 새 순위 체계를 만들지 않고 위 TIERS/tier_rank를 그대로 재사용한다.
+
+
+class AgeVerificationRequired(ForbiddenError):
+    """계정 인증등급이 책 등급보다 낮아 접근 차단 (403). 신분증 인증(potato 승인) 후 해제됨."""
+
+    default_detail = "성인인증이 필요한 콘텐츠예요. 설정에서 성인인증을 진행해 주세요."
+
+
+def is_book_accessible(book_rating: str, account_tier: str) -> bool:
+    """계정 인증등급이 책 등급 이상이면 접근 허용 (구매·열람·스토어 목록 공통 게이트)."""
+    return tier_rank(account_tier) >= tier_rank(book_rating)
+
+
+class AccountTierLookup(Protocol):
+    """계정의 성인인증 등급 조회 포트 — billing/books/catalog가 accounts 피처를 통해 구현.
+
+    usr.account.verified_tier_cd 는 accounts 피처 소유("유저데이터는 accounts로만" 원칙,
+    lr-66db3437) — 여기는 형태만 정의하고, 실제 구현은 accounts.AccountService가 만족한다
+    (구조적 타이핑 — 어댑터 클래스 불필요).
+    """
+
+    async def get_verified_tier(self, account_id: UUID) -> str: ...
 
 
 class ContentRatingClassifierPort(Protocol):

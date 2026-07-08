@@ -4,6 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config.database import get_session
 from src.config.settings import settings
+from src.features.accounts.application.account_service import AccountService
+from src.features.accounts.infrastructure.account_repo import SqlAccountRepository
 from src.features.billing.application.order_service import OrderService
 from src.features.billing.infrastructure.book_pricing import SqlBookPricing
 from src.features.billing.infrastructure.demo_gateway import DemoPaymentGateway
@@ -19,8 +21,11 @@ def _gateway():
 
 
 def get_order_service(session: AsyncSession = Depends(get_session)) -> OrderService:
+    pricing = SqlBookPricing(session)  # get_content_rating도 겸함(연령 게이트, dc-daeb0d3d)
     return OrderService(
         repo=SqlOrderRepository(session),
         gateway=_gateway(),
-        pricing=SqlBookPricing(session),
+        pricing=pricing,
+        rating_lookup=pricing,
+        account_tier=AccountService(SqlAccountRepository(session)),
     )

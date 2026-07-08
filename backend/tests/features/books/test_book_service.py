@@ -3,6 +3,7 @@ import uuid
 
 import pytest
 from src.features.books.application.book_service import BookService
+from src.features.books.domain.content_rating import AgeVerificationRequired
 from src.features.books.domain.models import (
     BlockView,
     BookNotFound,
@@ -13,6 +14,16 @@ from src.features.books.domain.models import (
 )
 
 from tests.fixtures.fake_book_repo import FakeBookRepository
+
+
+class _FakeAccountTier:
+    """AccountTierLookup 포트의 최소 구현 — 테스트에서 계정별 인증등급을 미리 세팅."""
+
+    def __init__(self, tiers: dict | None = None) -> None:
+        self.tiers = tiers or {}
+
+    async def get_verified_tier(self, account_id) -> str:
+        return self.tiers.get(account_id, "ALL")
 
 
 def test_suggest_blurb_strips_html_and_truncates():
@@ -141,3 +152,93 @@ async def test_set_preview_limit_owner_only_and_clamped(service):
 
     with pytest.raises(NotOwner):
         await service.set_preview_limit(book_id, 5, requester_id=uuid.uuid4())
+
+
+# ── 연령 게이트(dc-daeb0d3d) — 본문열람 ──────────────────
+async def test_get_content_no_account_tier_port_still_fails_closed():
+    """account_tier 미주입(기본값) — tier가 "ALL"로 간주돼 등급있는 책은 여전히 막힌다.
+
+    (기존 Fake 테스트 더블은 책 등급이 전부 기본값 "ALL"이라 이 fail-closed 기본값이
+    실제 동작을 바꾸지 않는다 — 하위호환은 "게이트 생략"이 아니라 "안전한 기본값"으로 보장.)
+    """
+    repo = FakeBookRepository()
+    svc = BookService(repo)
+    book_id = await repo.create_book(title="AGE18책", kind="BOOK", language="ko")
+    await repo.set_content_rating(book_id, "AGE18", {})
+
+    with pytest.raises(AgeVerificationRequired):
+        await svc.get_content(book_id)
+
+
+async def test_get_content_no_account_tier_port_allows_all_rated_book():
+    """등급 없는(기본 ALL) 책은 포트 미주입에도 기존처럼 그냥 통과 — 진짜 하위호환 지점."""
+    repo = FakeBookRepository()
+    svc = BookService(repo)
+    book_id = await repo.create_book(title="일반책", kind="BOOK", language="ko")
+
+    content = await svc.get_content(book_id)
+    assert content.content_rating == "ALL"
+
+
+async def test_get_content_blocks_unverified_account_for_restricted_book():
+    repo = FakeBookRepository()
+    svc = BookService(repo, account_tier=_FakeAccountTier())
+    book_id = await repo.create_book(title="AGE18책", kind="BOOK", language="ko")
+    await repo.set_content_rating(book_id, "AGE18", {})
+
+    with pytest.raises(AgeVerificationRequired):
+        await svc.get_content(book_id, account_id=uuid.uuid4())  # 미인증(ALL 취급) → 차단
+
+
+async def test_get_content_blocks_anonymous_for_restricted_book():
+    repo = FakeBookRepository()
+    svc = BookService(repo, account_tier=_FakeAccountTier())
+    book_id = await repo.create_book(title="AGE18책", kind="BOOK", language="ko")
+    await repo.set_content_rating(book_id, "AGE18", {})
+
+    with pytest.raises(AgeVerificationRequired):
+        await svc.get_content(book_id, account_id=None)  # 비로그인 → ALL 취급 → 차단
+
+
+async def test_get_content_allows_verified_reader_for_restricted_book():
+    reader = uuid.uuid4()  # 책 소유자가 아닌, 인증만 받은 제3자 독자
+    repo = FakeBookRepository()
+    svc = BookService(repo, account_tier=_FakeAccountTier({reader: "AGE18"}))
+    book_id = await repo.create_book(title="AGE18책", kind="BOOK", language="ko")
+    await repo.set_content_rating(book_id, "AGE18", {})
+
+    content = await svc.get_content(book_id, account_id=reader)
+    assert content.content_rating == "AGE18"
+
+
+async def test_get_content_allows_anyone_for_all_rated_book():
+    repo = FakeBookRepository()
+    svc = BookService(repo, account_tier=_FakeAccountTier())
+    book_id = await repo.create_book(title="일반책", kind="BOOK", language="ko")
+
+    content = await svc.get_content(book_id, account_id=None)  # 기본 등급 ALL → 누구나
+    assert content.content_rating == "ALL"
+
+
+async def test_get_content_owner_bypasses_gate_even_when_unverified():
+    """소유 작가는 본인 등급조정으로 AGE18이 된 원고도 미인증 상태로 항상 열람 가능."""
+    author = uuid.uuid4()
+    repo = FakeBookRepository()
+    svc = BookService(repo, account_tier=_FakeAccountTier())  # author는 어떤 tier도 세팅 안 함(ALL)
+    book_id = await repo.create_book(title="내 원고", kind="BOOK", language="ko", author_id=author)
+    await repo.set_content_rating(book_id, "AGE18", {})
+
+    content = await svc.get_content(book_id, account_id=author)  # 게이트 우회
+    assert content.content_rating == "AGE18"
+
+
+async def test_get_content_non_owner_still_blocked_when_book_has_author():
+    """작가 있는 책 — 소유자 아닌 미인증 제3자는 여전히 차단(소유자 우회가 전체 우회로 새지 않음)."""
+    author = uuid.uuid4()
+    repo = FakeBookRepository()
+    svc = BookService(repo, account_tier=_FakeAccountTier())
+    book_id = await repo.create_book(title="내 원고", kind="BOOK", language="ko", author_id=author)
+    await repo.set_content_rating(book_id, "AGE18", {})
+
+    with pytest.raises(AgeVerificationRequired):
+        await svc.get_content(book_id, account_id=uuid.uuid4())

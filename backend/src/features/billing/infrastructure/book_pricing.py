@@ -27,3 +27,8 @@ class SqlBookPricing:
         if discount is not None and until is not None and until > datetime.now(UTC):
             return int(discount)
         return int(price) if price is not None else None
+
+    async def get_content_rating(self, book_id: UUID) -> str | None:
+        """연령 게이트(dc-daeb0d3d)용 — 책 존재 여부와 무관하게 등급만 조회."""
+        b = await self.session.get(Book, book_id)
+        return b.content_rating if b is not None else None

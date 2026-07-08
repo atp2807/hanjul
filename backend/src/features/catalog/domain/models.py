@@ -29,6 +29,8 @@ class BookSummary:
     discount_amt: int | None = None
     discount_until: datetime | None = None
     blocked_at: datetime | None = None  # 운영자 takedown 시각 (NULL=정상)
+    # 콘텐츠 연령등급(dc-daeb0d3d 게이트 대상). ALL|AGE12|AGE15|AGE18.
+    content_rating: str = "ALL"
 
 
 class CatalogError(DomainError):

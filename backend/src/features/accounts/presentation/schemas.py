@@ -12,3 +12,4 @@ class AccountResponse(BaseModel):
     display_name: str | None
     role: str
     bio: str | None = None
+    verified_tier: str = "ALL"

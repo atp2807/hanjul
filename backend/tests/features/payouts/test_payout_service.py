@@ -190,3 +190,69 @@ async def test_reject_raises_invalid_state_when_already_paid():
 
     with pytest.raises(InvalidPayoutState):
         await svc.reject(p.id, operator_id=uuid.uuid4())
+
+
+# ── report_hook(woncheon 원천징수 신고 커넥터, lr-ac61f505) 연동 ─────
+class _FakeReportHook:
+    """PayoutReportHook 구현 — 호출 여부/인자만 기록(woncheon 구체 구현은 모름)."""
+    def __init__(self, raise_error: bool = False):
+        self.raise_error = raise_error
+        self.called_with: list = []
+
+    async def on_paid(self, payout_id):
+        self.called_with.append(payout_id)
+        if self.raise_error:
+            raise RuntimeError("woncheon 신고 실패 시뮬레이션")
+
+
+async def test_mark_paid_calls_report_hook_on_success():
+    repo = FakePayoutRepository()
+    p = _payout(uuid.uuid4(), status=APPROVED)
+    repo.seed_payout(p)
+    hook = _FakeReportHook()
+    svc = PayoutService(repo, report_hook=hook)
+
+    await svc.mark_paid(p.id, operator_id=uuid.uuid4())
+
+    assert repo.payouts[p.id].status == PAID
+    assert hook.called_with == [p.id]
+
+
+async def test_mark_paid_swallows_report_hook_exception_and_keeps_paid():
+    """신고 훅이 실패해도 지급 자체(PAID 전이)는 막지 않는다 — best-effort 핵심 불변식."""
+    repo = FakePayoutRepository()
+    p = _payout(uuid.uuid4(), status=APPROVED)
+    repo.seed_payout(p)
+    hook = _FakeReportHook(raise_error=True)
+    svc = PayoutService(repo, report_hook=hook)
+
+    await svc.mark_paid(p.id, operator_id=uuid.uuid4())  # 예외가 여기로 전파되면 실패
+
+    assert repo.payouts[p.id].status == PAID  # 훅 실패와 무관하게 유지
+    assert hook.called_with == [p.id]
+
+
+async def test_mark_paid_without_report_hook_still_works():
+    """report_hook 미주입(기본 None) — 기존 동작(하위호환) 그대로."""
+    repo = FakePayoutRepository()
+    p = _payout(uuid.uuid4(), status=APPROVED)
+    repo.seed_payout(p)
+    svc = PayoutService(repo)  # report_hook 생략
+
+    await svc.mark_paid(p.id, operator_id=uuid.uuid4())
+
+    assert repo.payouts[p.id].status == PAID
+
+
+async def test_mark_paid_does_not_call_hook_when_transition_fails():
+    """상태전이 자체가 실패(REQUESTED에서 바로 PAID)하면 훅은 아예 호출되지 않는다."""
+    repo = FakePayoutRepository()
+    p = _payout(uuid.uuid4(), status=REQUESTED)  # 승인 전
+    repo.seed_payout(p)
+    hook = _FakeReportHook()
+    svc = PayoutService(repo, report_hook=hook)
+
+    with pytest.raises(InvalidPayoutState):
+        await svc.mark_paid(p.id, operator_id=uuid.uuid4())
+
+    assert hook.called_with == []

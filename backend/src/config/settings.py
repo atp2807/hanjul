@@ -101,6 +101,22 @@ class Settings(BaseSettings):
     # 공개 버킷/커스텀 도메인 URL. 있으면 서빙 시 이 URL 로 리다이렉트, 없으면 내부 엔드포인트.
     R2_PUBLIC_URL: str = ""
 
+    # ── 원천징수 신고(woncheon 커넥터, 스켈레톤 — lr-ac61f505) ──────────
+    # hanjul_woncheon(B2B 세무 자동화 API)에 payout PAID 이벤트를 전달. 신고엔진 자체는
+    # 재구축하지 않음 — 커넥터만. 아래 3개 다 비면 어댑터가 즉시 명시적 에러(조용한 무동작 금지).
+    WONCHEON_API_BASE: str = ""  # woncheon 배포 도메인 — 미확정(별도 확정 필요, api.hanjul.io 아님)
+    WONCHEON_API_KEY: str = ""  # X-API-Key — 한줄이 woncheon 테넌트로 등록된 후 발급
+    # 소득구분 코드 — 세무사 미판정(사업소득 3.3% vs 기타소득 8%). 미설정이면 신고를 보류만
+    # 하고(ok=False) 지급 자체는 막지 않음. calculate.py의 WITHHOLDING_RATE(0.033, 정산계산용)를
+    # 이 값으로 자동 치환하지 않음(별개 관심사 — 세율 숫자와 신고용 소득구분 코드는 다른 것).
+    WONCHEON_DEFAULT_INCOME_TYPE_CODE: str = ""
+
+    # ── 연령 게이트(dc-daeb0d3d) — 성인인증 신분증 사진 ──
+    # ⚠️ PII. UPLOAD_DIR(=/uploads 정적서빙) 밖의 별도 디렉토리 — 공개 서빙 절대 금지.
+    # potato 운영자 전용 엔드포인트가 파일을 직접 읽어 응답한다(공개 URL 없음). 심사 완료
+    # (승인/거부) 즉시 원본 삭제(목적 외 보관 금지) — infrastructure/id_photo_storage.py.
+    AGE_VERIFICATION_DIR: str = "private_uploads/age_verification"
+
     # ── 서점 배포 ───────────────────────────────────────
     # 데모: 실제 전송 없이 성공 기록 (개발). 운영은 False + 아래 SFTP 설정.
     DISTRIBUTION_DEMO: bool = False

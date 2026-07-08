@@ -49,3 +49,12 @@ class FakeAccountsRepository:
         acc.bio = None
         acc.status = "DELETED"
         return True
+
+    async def get_verified_tier(self, account_id: UUID) -> str:
+        acc = self.accounts.get(account_id)
+        return acc.verified_tier if acc is not None else "ALL"
+
+    async def set_verified_tier(self, account_id: UUID, tier: str) -> None:
+        acc = self.accounts.get(account_id)
+        if acc is not None:
+            acc.verified_tier = tier

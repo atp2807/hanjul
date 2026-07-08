@@ -49,8 +49,15 @@ class CatalogRepository(Protocol):
         ...
 
     async def list_published(
-        self, q: str | None, limit: int, offset: int, kind: str | None = None
+        self,
+        q: str | None,
+        limit: int,
+        offset: int,
+        kind: str | None = None,
+        category: str | None = None,
+        account_tier: str = "ALL",
     ) -> list[BookSummary]:
+        """account_tier 미만 인증등급으로는 볼 수 없는 등급의 책은 제외(dc-daeb0d3d)."""
         ...
 
     async def list_by_author(self, author_id: UUID) -> list[BookSummary]:

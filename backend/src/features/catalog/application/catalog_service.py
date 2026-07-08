@@ -2,6 +2,7 @@
 from datetime import UTC, datetime
 from uuid import UUID
 
+from src.features.books.domain.content_rating import AccountTierLookup
 from src.features.catalog.domain.models import (
     DRAFT,
     PUBLISHED,
@@ -16,8 +17,11 @@ from src.shared.errors import ValidationError
 
 
 class CatalogService:
-    def __init__(self, repo: CatalogRepository):
+    def __init__(self, repo: CatalogRepository, account_tier: AccountTierLookup | None = None):
         self.repo = repo
+        # 연령 게이트(dc-daeb0d3d) 포트 — 미주입 시 필터 없이 전부 노출(레거시 Fake 테스트
+        # 하위호환용 기본값). 실제 요청 경로(get_catalog_service DI)는 항상 채운다.
+        self.account_tier = account_tier
 
     async def _require(self, book_id: UUID) -> BookSummary:
         summary = await self.repo.get_summary(book_id)
@@ -106,9 +110,13 @@ class CatalogService:
 
     async def list_store(
         self, q: str | None = None, kind: str | None = None, limit: int = 20, offset: int = 0,
-        category: str | None = None,
+        category: str | None = None, account_id: UUID | None = None,
     ) -> list[BookSummary]:
-        return await self.repo.list_published(q, limit, offset, kind, category)
+        # 연령 게이트(dc-daeb0d3d) — 비로그인/미인증은 "ALL"(fail-closed) 취급.
+        tier = "ALL"
+        if self.account_tier is not None and account_id is not None:
+            tier = await self.account_tier.get_verified_tier(account_id)
+        return await self.repo.list_published(q, limit, offset, kind, category, account_tier=tier)
 
     async def set_isbn(self, book_id: UUID, isbn: str) -> None:
         await self._require(book_id)

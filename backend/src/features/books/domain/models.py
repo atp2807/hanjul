@@ -113,3 +113,12 @@ class NotOwner(ForbiddenError):
     def __init__(self, book_id: UUID | None = None):
         self.book_id = book_id
         super().__init__("이 책의 작가만 변경할 수 있어요.")
+
+
+class NotPurchased(ForbiddenError):
+    """EPUB 등 완본 다운로드 — 무료도 구매도 아니면 거부(403). 리더 콘텐츠 엔드포인트의
+    is_free/owned 로직과 동일 기준 — 이 경로는 미리보기 개념이 없어 부분 허용 대신 전면 차단."""
+
+    def __init__(self, book_id: UUID | None = None):
+        self.book_id = book_id
+        super().__init__("구매 후 다운로드할 수 있어요.")

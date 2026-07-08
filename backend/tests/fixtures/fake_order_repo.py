@@ -23,11 +23,25 @@ class FakeGateway:
 
 
 class FakePricing:
-    def __init__(self, price: int | None = 10000):
+    def __init__(self, price: int | None = 10000, rating: str | None = "ALL"):
         self.price = price
+        self.rating = rating  # 연령 게이트(dc-daeb0d3d) — get_content_rating 기본값
 
     async def get_purchasable_price(self, book_id) -> int | None:
         return self.price
+
+    async def get_content_rating(self, book_id) -> str | None:
+        return self.rating
+
+
+class FakeAccountTier:
+    """AccountTierLookup 포트의 최소 구현 — 연령 게이트(dc-daeb0d3d) 테스트용."""
+
+    def __init__(self, tiers: dict | None = None) -> None:
+        self.tiers = tiers or {}
+
+    async def get_verified_tier(self, account_id) -> str:
+        return self.tiers.get(account_id, "ALL")
 
 
 class FakeOrderRepository:

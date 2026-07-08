@@ -18,6 +18,8 @@ class AccountProfile:
     role: str
     bio: str | None
     status: str = "ACTIVE"  # ACTIVE | SUSPENDED (운영자 정지)
+    # 연령 게이트(dc-daeb0d3d) 인증등급. ALL|AGE12|AGE15|AGE18. potato 성인인증 승인 시 AGE18.
+    verified_tier: str = "ALL"
     # 서평단 자격회수는 더 이상 여기 없음 — commu.reviewer_block (campaigns 소유)
 
 
@@ -42,6 +44,14 @@ class AccountRepository(Protocol):
 
     async def set_status(self, account_id: UUID, status: str) -> None:
         """운영자 계정 정지/해제 (ACTIVE | SUSPENDED)."""
+        ...
+
+    async def get_verified_tier(self, account_id: UUID) -> str:
+        """연령 게이트 인증등급 조회. 계정이 없으면 "ALL"(미인증 취급, fail-closed)."""
+        ...
+
+    async def set_verified_tier(self, account_id: UUID, tier: str) -> None:
+        """연령 게이트 인증등급 갱신 — potato 성인인증 승인 시 age_verification 피처가 호출."""
         ...
 
     async def withdraw(self, account_id: UUID) -> bool:
