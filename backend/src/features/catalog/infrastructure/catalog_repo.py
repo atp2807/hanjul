@@ -176,3 +176,14 @@ class SqlCatalogRepository:
         )
         rows = (await self.session.execute(stmt)).scalars().all()
         return [_to_summary(b) for b in rows]
+
+    async def list_sitemap_entries(self, limit: int = 50000) -> list[tuple[UUID, datetime | None]]:
+        """sitemap.xml 용 경량 목록 — (id, published_at)만 (전체 요약을 안 만들어 가볍다)."""
+        stmt = (
+            select(Book.id, Book.published_at)
+            .where(Book.status == PUBLISHED, Book.blocked_at.is_(None))
+            .order_by(Book.published_at.desc())
+            .limit(limit)
+        )
+        rows = (await self.session.execute(stmt)).all()
+        return [(row.id, row.published_at) for row in rows]

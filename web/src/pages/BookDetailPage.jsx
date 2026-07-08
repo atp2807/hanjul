@@ -5,6 +5,7 @@ import { useApiQuery } from '@hanjul/lib';
 
 import { useAuth } from '../auth/AuthContext';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { PageMeta } from '../components/PageMeta';
 import { Stars } from '../components/Stars';
 import { Icon } from '../components/Icon';
 import { Avatar, Cover, ErrorNotice } from '../components/ui';
@@ -86,6 +87,12 @@ export function BookDetailPage() {
 
   return (
     <div style={{ maxWidth: 1080, margin: '0 auto', padding: isMobile ? '20px 16px 48px' : '30px 40px 60px' }}>
+      <PageMeta
+        title={`${book.title} — 한줄`}
+        description={book.description?.slice(0, 160)}
+        image={book.coverUrl}
+        url={typeof window !== 'undefined' ? window.location.href : undefined}
+      />
       <div style={{ fontSize: 13, color: T.muted, marginBottom: 24 }}>
         <Link to="/" style={{ color: T.muted, textDecoration: 'none' }}>서점</Link>
         {book.category && <> &nbsp;›&nbsp; {book.category}</>} &nbsp;›&nbsp;{' '}

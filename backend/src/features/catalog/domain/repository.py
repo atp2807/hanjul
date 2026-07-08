@@ -63,3 +63,7 @@ class CatalogRepository(Protocol):
     async def list_by_author(self, author_id: UUID) -> list[BookSummary]:
         """작가가 쓴 책 전 상태 목록 (스튜디오용)."""
         ...
+
+    async def list_sitemap_entries(self, limit: int = 50000) -> list[tuple[UUID, datetime | None]]:
+        """sitemap.xml 용 경량 목록 — 공개된(PUBLISHED·비차단) 책의 (id, published_at)만."""
+        ...

@@ -146,3 +146,7 @@ class CatalogService:
         if s.status != PUBLISHED or s.blocked_at is not None:
             raise BookNotFound(book_id)  # 미출판·차단(takedown) 책은 스토어에 비공개
         return s
+
+    async def list_sitemap_entries(self, limit: int = 50000) -> list[tuple[UUID, datetime | None]]:
+        """sitemap.xml 생성용 — 공개된 책의 (id, published_at)만 가볍게 조회."""
+        return await self.repo.list_sitemap_entries(limit)

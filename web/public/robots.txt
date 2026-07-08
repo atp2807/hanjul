@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+Disallow: /studio
+Disallow: /settings
+Disallow: /settlement
+Disallow: /checkout
+Disallow: /payment
+Disallow: /library
+Disallow: /notifications
+Disallow: /reviewer
+Disallow: /doc/
+
+Sitemap: https://api.hanjul.io/sitemap.xml

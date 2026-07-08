@@ -1,23 +1,38 @@
 """한줄 ebook 백엔드 진입점 (FastAPI)."""
 import asyncio
 import logging
-from contextlib import asynccontextmanager
-from datetime import datetime, timezone
-
 import os
-
-from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
-
-from src.config.database import Base, get_engine
-from src.config.settings import settings
-from src.presentation.api import router as api_router
-from src.shared.errors import DomainError
+from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 
 # 모든 ORM 모델을 metadata에 등록 (create_all/Alembic 인식용)
 import src.infrastructure.db.models  # noqa: F401
+from fastapi import Depends, FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse, Response
+from fastapi.staticfiles import StaticFiles
+from src.config.database import Base, get_engine
+from src.config.settings import settings
+from src.engine.publishing.sitemap import SitemapBook, build_sitemap
+from src.features.catalog.application.catalog_service import CatalogService
+from src.features.catalog.presentation.dependencies import get_catalog_service
+from src.presentation.api import router as api_router
+from src.shared.errors import DomainError
+
+# sitemap.xml 정적 경로 — 공개(비로그인) 페이지만. legal slug는 web/src/legal/documents.js
+# 의 DOC_ORDER 와 동기화 필요(신규 법률문서 추가 시 여기도 추가).
+_SITEMAP_STATIC_PATHS = [
+    "/",
+    "/reviewers",
+    "/pricing",
+    "/legal/terms",
+    "/legal/privacy",
+    "/legal/refund",
+    "/legal/youth",
+    "/legal/copyright",
+    "/legal/report",
+    "/legal/cookies",
+]
 
 logger = logging.getLogger("app")
 
@@ -74,7 +89,7 @@ async def _publish_scheduler():
         await asyncio.sleep(SCHEDULER_INTERVAL_SEC)
         try:
             async with get_session_factory()() as session:
-                now = datetime.now(timezone.utc)
+                now = datetime.now(UTC)
                 n = await publish_due_and_notify(session, now)
                 if n:
                     logger.info("예약발행 %d건 자동 게시", n)
@@ -115,6 +130,21 @@ async def _domain_error_handler(request: Request, exc: DomainError) -> JSONRespo
 
 
 app.include_router(api_router)
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+async def sitemap(svc: CatalogService = Depends(get_catalog_service)) -> Response:
+    """공개 sitemap.xml — api_router(/api prefix) 밖의 루트 경로로 직접 등록.
+
+    include_in_schema=False: SEO 인프라 엔드포인트라 API 계약(OpenAPI/스냅샷)에 넣지 않음.
+
+    얇은 라우트: 조회는 CatalogService, XML 조립은 순수 engine(build_sitemap)에 위임.
+    """
+    entries = await svc.list_sitemap_entries()
+    books = [SitemapBook(id=book_id, published_at=published_at) for book_id, published_at in entries]
+    xml = build_sitemap(settings.FRONTEND_URL, _SITEMAP_STATIC_PATHS, books)
+    return Response(content=xml, media_type="application/xml")
+
 
 # 업로드 표지 정적 서빙 (/uploads/covers/...) — 작가 직접 업로드 표지
 os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
