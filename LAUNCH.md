@@ -66,13 +66,13 @@
 - [ ] ⚠️ **법정보존분 분리보관** — ③ 탈퇴 익명화는 in-place(주문/정산 RESTRICT로 행 유지). 처리방침엔 "5년 분리보관" 명시 → 실제 별도보관 로직은 없음. 방식 일치 검토(법률 검수 항목).
 
 ### 초기 필수 🟡 (런칭 직후, 지금 코드 가능)
-- [ ] **원천징수 신고 = `hanjul_woncheon` 연동** — 신고엔진 재구축 X, **payout PAID→woncheon push 커넥터만**. ⚠️선결: woncheon 자체 완성 + 인세 소득구분(3.3% 사업소득 vs 8% 기타소득, **세무사 판정**) + **주민번호 최소수집**(지급시점·대상자만, 암호화·분리). **첫 실지급 전까지.** → lore `lr-ac61f505`
+- [x] **원천징수 신고 = `hanjul_woncheon` 연동 커넥터 코드 완료**(2026-07-08) — payout PAID→woncheon push 훅이 end-to-end 배선됨(`features/woncheon`: 포트+HTTP어댑터+Fake, PAID 전이 시 best-effort 훅, 재시도 스크립트 `scripts/woncheon_retry_report.py`, 주민번호 Fernet 최소수집). ⚠️**남은 건 코드 아님**: woncheon 자체 완성 + 인세 소득구분(3.3% vs 8%, **세무사 판정** → `WONCHEON_DEFAULT_INCOME_TYPE_CODE`) + 라이브키(`WONCHEON_API_*`). **첫 실지급 전까지.** → lore `lr-ac61f505`
 - [ ] 현금영수증 발행(Toss 현금영수증 옵션) · 세금계산서(사업자 작가)
 - [ ] 미성년자 결제·환불 특례(연령확인·법정대리인 동의·철회) — 약관 텍스트만 있음. **전체이용가만 취급하면 법적 강제 아님**(약관+사후취소 처리로 충분) — 19금 콘텐츠 취급 여부 결정 후 재검토
 - [x] **콘텐츠 연령등급** — (2026-07-03 완료·배포, commit `e231036`) 플랫폼 자율등급(정부 사전승인 아님). acw.or.kr 8기준×4단계 틀 참고 초안(세부문구 전문가검수 전) + AI 1차추천(데모/Anthropic)·작가 2차조정. pub.book.content_rating_cd(마이그0024, RDS 적용). **스토어/랜딩 등급필터링은 범위 밖**(그림책 전용 리더 우선순위 결정 이후) — lore `lr-8712a051`
 - [ ] 운영자 Phase 2 — **환불 집행** · **출간 전 심사큐** (현재 사후 takedown만) — 시안 `한줄 운영자.dc.html`
 - [ ] 거래 메일 발송 인프라 · SEO(동적 메타 react-helmet류 · sitemap.xml · robots.txt — 현재 정적 메타만)
-- [x] 🔨 **접근성 1차** — (2026-07-03 완료·배포, commit `52ab3a3`) web aria 6→14·required 0→6(정산·캠페인생성 폼)·리뷰textarea 포커스가시성 버그수정 / potato aria 0→7(장식svg aria-hidden). **남은 것**: WCAG색상대비 감사, 커스텀 다이얼로그(window.confirm 등) 키보드접근성, potato Cover alt override(UUID 노출) — lore `lr-ca34f579`
+- [x] 🔨 **접근성 1·2차 완료** — 1차(2026-07-03 `52ab3a3`) web/potato aria·form required·포커스가시성. **잔여 3건도 완료**(2026-07-08 `bf5cac0`): WCAG 색상대비 + 커스텀 다이얼로그 키보드접근성 + potato Cover alt override — lore `lr-ca34f579`
 - [x] ~~404/ErrorBoundary~~ — 완료(404 + ErrorBoundary 2026-07-03)
 
 ### 나중 🟢
