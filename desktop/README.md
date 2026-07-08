@@ -52,6 +52,78 @@ cd desktop && .venv/bin/python -m pytest tests -q   # desktop/ 에서
 `desktop/conftest.py` 가 `desktop/`를 sys.path 에 등록해 `import store` 가 되게 한다
 (패키지화 없이 stdlib 스타일 모듈 하나로 유지하기 위함).
 
+## 패키징 (PyInstaller, 서명 없는 로컬 실행 번들)
+
+**범위**: 서명 없는 번들이 실행되는 것까지. 공증(notarization)·코드사이닝(실 인증서 필요)은
+범위 밖 — Gatekeeper 가 있는 macOS 에서는 다운로드/이동으로 quarantine 속성이 붙은
+파일은 그대로 더블클릭하면 막힌다(로컬 빌드 직후·quarantine 없는 상태에서는 바로 열림).
+
+```bash
+# 최초 1회 — 빌드 도구
+cd desktop && .venv/bin/pip install -r requirements-build.txt   # pyinstaller + hooks-contrib
+
+# 빌드(웹뷰 앱 빌드 → PyInstaller 순서를 스크립트가 자동화)
+desktop/scripts/build_bundle.sh
+# 내부적으로: npm run build -w packages/ide-core (저장소 루트) && pyinstaller desktop/hanjul_ide.spec
+
+# 산출물
+desktop/dist/hanjul_ide/        # onedir 배포 폴더 — hanjul_ide 실행파일 + _internal/
+desktop/dist/HanjulIDE.app      # macOS 앱 번들(위 onedir 을 감싼 것, Finder 에서 열 수 있음)
+
+# 실행 확인
+./desktop/dist/hanjul_ide/hanjul_ide            # GUI 창 (콘솔에서 직접 실행 — stdout 그대로 보임)
+./desktop/dist/hanjul_ide/hanjul_ide --smoke    # 번들된 실행파일로 스모크(수 초 내 종료, SMOKE_RESULT)
+open desktop/dist/HanjulIDE.app                 # Finder 더블클릭과 동일한 실제 사용자 경로
+```
+
+빌드 대상(onedir, onefile 아님) — 이유: onefile 은 실행마다 임시 폴더에 압축을 풀어 시작이
+느리고, pywebview 웹뷰 리소스(상대경로 assets/)가 매번 새 임시 경로에 걸리는 문제가 흔하다.
+
+`desktop/hanjul_ide.spec` 이 담는 것(왜 담았는지는 spec 파일 상단 docstring에 file:line
+실측 근거와 함께 상세):
+- entry point `app.py` + 형제 모듈(auth_flow/backup/importer/publisher/store/token_store) —
+  PyInstaller 가 entry script 폴더를 자동 탐색.
+- `pathex=[backend/]` — `importer.py`/`publisher.py` 가 런타임에 `sys.path.insert(backend/)`
+  후 `from src.engine.doc...` 를 import 하는 모노레포 참조 패턴을 PyInstaller 정적 분석도
+  따라갈 수 있게. 실제로 딸려 들어가는 건 `src.engine.doc.{models,dialect}` +
+  `parsers.{docx,hwp,hwpx,markdown,text,_ole2}` + `src.engine.imports.block_html` 뿐(전부
+  stdlib 만 사용) — `backend/src` 전체나 `ingest.py`(10 포맷 전체, pdfminer 필요)는 끌려오지
+  않는다(정적 분석이 실제 import 그래프만 따라감, 강제 포함 아님).
+- `packages/ide-core/dist/` 를 datas 로 포함 — `app.py` 가 로드하는 index.html/perf.html/
+  assets. 프로즌 실행 시 `app.py` 의 `sys.frozen` 분기가 번들 루트(`sys._MEIPASS`) 밑
+  같은 상대경로에서 찾는다.
+- `keyring` 백엔드(`hiddenimports=collect_submodules("keyring.backends")` +
+  `datas=copy_metadata("keyring")`) — `token_store.py`(OS 키체인)가 쓰는 keyring 이
+  `importlib.metadata.entry_points()` 로 백엔드를 **동적** import 해 정적 분석이 못 따라가기
+  때문. PyInstaller 6.21+ 는 이걸 내장 훅(`hook-keyring.py`)으로 이미 자동 처리하지만,
+  버전 의존 없이 항상 동작하도록 spec 에도 명시(중복돼도 무해).
+- pywebview 자체는 추가 조치 불필요 — 패키지가 `__pyinstaller/hook-webview.py` 를 내장해
+  JS 브릿지 자산을 자동 수집하고, 플랫폼 선택(`webview/guilib.py` 의
+  `import webview.platforms.cocoa`)도 일반 import 문이라 정적 분석이 알아서 따라간다.
+
+**프로즌 전용 코드 변경 2곳** (소스 실행 동작은 그대로, `sys.frozen` 일 때만 분기):
+- `store.py` `_default_data_dir()` — DB 파일 위치. 소스 실행은 지금까지처럼
+  `desktop/data/`. 번들 실행은 앱 폴더 안(재설치 시 소실 위험)이 아니라 OS 관례상 사용자
+  데이터 디렉터리로: macOS `~/Library/Application Support/hanjul-ide/`, Windows
+  `%APPDATA%/hanjul-ide/`, 그 외 `~/.local/share/hanjul-ide/`.
+- `app.py` `ASSETS_ROOT`/`DIST_INDEX`/`PERF_INDEX`/`PERF_REPORT_PATH` — 번들 실행에서는
+  `BASE_DIR.parent`(저장소 루트, 번들 밖이라 존재하지 않음) 대신 `sys._MEIPASS`(번들 루트)
+  기준으로 `packages/ide-core/dist/` 를 찾는다. `PERF_REPORT_PATH` 도 DB 와 동일한 사용자
+  데이터 디렉터리 관례를 따른다.
+
+**실측 확인(2026-07-08, macOS arm64, PyInstaller 6.21.0)**: 빌드 성공(경고 0건, 숨은
+import 미해결 0건) → 번들된 실행파일로 `--smoke` 전체 통과(마운트/브리지 CRUD/원고
+가져오기/스냅샷 전부, `ok: true`) → 실제 창 모드(hidden 아님) 로 직접 실행 + `open
+HanjulIDE.app` 둘 다 4초 이상 생존 확인, macOS Accessibility(System Events)로 창 제목
+"한줄 IDE" 확인, `background only`=false(정상 포그라운드 앱) 확인 후 정상 종료 —
+크래시 없음. `--perf` 하네스도 번들된 실행파일에서 `ok: true`.
+
+**Windows**: 이 spec 은 플랫폼 분기를 포함하지만(BUNDLE 은 macOS 에서만 `.app` 생성),
+PyInstaller 는 크로스 컴파일을 지원하지 않아 **실제 Windows 빌드/실행 검증은 Windows
+머신에서 별도로 필요하다**(이 저장소 작업은 macOS 에서만 수행됨) — 특히 `keyring.backends.
+Windows`/pywin32 경로, `%APPDATA%` 데이터 디렉터리, onedir 실행파일 확장자(`.exe`) 쪽은
+전혀 실측되지 않았다.
+
 ## 로그인 (P1 슬라이스5, 시스템 브라우저 + OS 키체인)
 
 상단바 [로그인]을 누르면 데스크탑 표준 패턴(RFC 8252)대로 동작한다:

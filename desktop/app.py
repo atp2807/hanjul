@@ -33,16 +33,28 @@ from importer import import_manuscript
 from publisher import PublishHttpError, _request
 from publisher import publish as publish_book
 from store import Store
+from store import _default_data_dir  # PERF_REPORT_PATH 도 store.py 와 동일한 사용자 데이터 디렉터리 관례
 from store import _now_iso as _local_now_iso  # 백업시각도 store.py 와 동일 포맷/시계 사용
 from store import _parse_ts as _local_parse_ts  # 위와 동일 포맷으로 되읽기(스로틀 경과시간 계산)
 from token_store import KeyringUnavailableError, delete_token, get_token, set_token
 
 BASE_DIR = Path(__file__).resolve().parent
-DIST_INDEX = BASE_DIR.parent / "packages" / "ide-core" / "dist" / "index.html"
+# 소스 실행(BASE_DIR=desktop/)에서는 저장소 루트가 BASE_DIR.parent. PyInstaller 번들
+# (``sys.frozen``)에서는 ``packages/ide-core/dist``를 hanjul_ide.spec 의 datas 로
+# 번들 루트(``sys._MEIPASS`` — onedir 는 실행파일과 같은 폴더)에 그대로 심어두므로
+# ASSETS_ROOT = 번들 루트 자체를 써야 한다(BASE_DIR.parent 는 번들 밖이라 존재하지 않음).
+ASSETS_ROOT = Path(sys._MEIPASS) if getattr(sys, "frozen", False) else BASE_DIR.parent
+DIST_INDEX = ASSETS_ROOT / "packages" / "ide-core" / "dist" / "index.html"
 # --perf 전용 산출물(packages/ide-core/perf.html 진입점) — L0 계측 하네스(dc-81277381).
 # 챕터/호스트 브리지가 없는 별개 페이지라 Store/js_api 를 전혀 쓰지 않는다.
-PERF_INDEX = BASE_DIR.parent / "packages" / "ide-core" / "dist" / "perf.html"
-PERF_REPORT_PATH = BASE_DIR / "perf" / "report.json"
+PERF_INDEX = ASSETS_ROOT / "packages" / "ide-core" / "dist" / "perf.html"
+# report.json 은 번들 내부(쓰기 불확실/재설치 시 소실)가 아니라 store.py 와 동일한 사용자
+# 데이터 디렉터리 관례를 따른다(개발 실행은 지금까지처럼 desktop/perf/report.json 그대로).
+PERF_REPORT_PATH = (
+    (_default_data_dir() / "perf" / "report.json")
+    if getattr(sys, "frozen", False)
+    else BASE_DIR / "perf" / "report.json"
+)
 
 # 발행 설정 화면(app.js settingsBtn 핸들러)이 쓰는 기본값과 동일 — 로그인 시에도 apiBase가
 # 아직 없으면(최초 실행) 같은 기본으로 폴백한다.

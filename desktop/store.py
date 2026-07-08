@@ -42,15 +42,44 @@ delete_chapter() 가 즉시 제약 위반으로 실패한다(스냅샷이 남아
 스케일에 충분).
 """
 
+import os
 import re
 import sqlite3
+import sys
 import time
 import uuid
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 
-DEFAULT_DB_PATH = Path(__file__).resolve().parent / "data" / "ide.db"
+
+def _default_data_dir() -> Path:
+    """DB 파일이 놓일 디렉터리.
+
+    개발 실행(``python app.py``, 소스 트리에서 직접)은 지금까지처럼
+    ``desktop/data/``(이 파일 옆, gitignore)를 그대로 쓴다 — README/테스트가 이 위치를
+    전제하므로 변경하지 않는다.
+
+    PyInstaller 로 번들된 실행 파일(``sys.frozen``, PyInstaller 가 세팅 —
+    https://pyinstaller.org/en/stable/runtime-information.html)은 ``__file__`` 이
+    번들 내부(onedir 배포 폴더, 서명 없이는 쓰기 가능하더라도 앱 재설치/업데이트 시
+    사라짐)를 가리켜 부적절하다 — OS 관례상 쓰기 가능한 사용자 데이터 디렉터리로
+    옮긴다: macOS ``~/Library/Application Support/hanjul-ide/``, Windows
+    ``%APPDATA%/hanjul-ide/``(없으면 홈 폴더 폴백), 그 외(Linux 등)
+    ``~/.local/share/hanjul-ide/``(XDG 기본값 관례)."""
+    if not getattr(sys, "frozen", False):
+        return Path(__file__).resolve().parent / "data"
+
+    if sys.platform == "darwin":
+        return Path.home() / "Library" / "Application Support" / "hanjul-ide"
+    if sys.platform == "win32":
+        appdata = os.environ.get("APPDATA")
+        base = Path(appdata) if appdata else Path.home()
+        return base / "hanjul-ide"
+    return Path.home() / ".local" / "share" / "hanjul-ide"
+
+
+DEFAULT_DB_PATH = _default_data_dir() / "ide.db"
 
 STATUSES = ("DRAFT", "REVISING", "DONE")
 
