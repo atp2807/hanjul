@@ -83,7 +83,12 @@ async def login_token(client, provider: str, code: str) -> tuple[str, bool]:
 
 async def login_account(client, provider: str, code: str) -> tuple[str, dict]:
     """로그인 후 /me 로 계정 정보까지 → (token, account_dict). (get_session 오버라이드 필요)"""
+
+def fresh_account_auth(role: str = "READER") -> dict:
+    """OAuth 왕복 없이 새 UUID로 토큰 직접발급 — 헤더 dict 바로 반환."""
 ```
+
+⚠️ **함정(2026-07-08 실사고, `lr-747a0b49`)**: `login_account`/`login_token`의 `code` 인자는 **계정 구분자가 아니다** — `FakeProvider`는 실제 OAuth와 마찬가지로(같은 사람이 재로그인해도 code는 매번 다름) code 값과 무관하게 `social_profile` fixture 하나만 고정 반환한다. 그래서 `login_account(..., "a")`와 `login_account(..., "b")`를 같은 테스트 파일에서 불러도 **전부 같은 계정**이다. 한 테스트 **함수** 안에서 진짜 서로 다른 계정(작가 vs 제3자 vs 구매자 등 접근제어 테스트)이 필요하면 `login_account` 대신 **`fresh_account_auth()`**를 쓸 것 — 매 호출이 새 UUID라 헷갈릴 여지가 없다.
 
 **`book_helpers.py`** — 책 생성·원고 import·즉시출판:
 ```python
