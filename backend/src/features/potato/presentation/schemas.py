@@ -39,6 +39,17 @@ class TakedownRequest(CamelSchema):
     reason: str | None = Field(default=None, max_length=500)
 
 
+# ── 사후 검토 큐 ──────────────────────────────────────
+class ReviewQueueItem(CamelSchema):
+    """운영자 주의가 필요한 책 — AGE18 발행책 + OPEN 신고책(조회 전용, 조치는 takedown 재사용)."""
+    book_id: UUID
+    title: str
+    author_id: UUID | None
+    rating: str
+    reasons: list[str] = Field(description="AGE18 | REPORTED (복수 가능)")
+    published_at: datetime | None
+
+
 # ── 신고 큐 ───────────────────────────────────────────
 class ReportItem(CamelSchema):
     id: UUID
@@ -86,6 +97,24 @@ class UnreportedWoncheonPayout(CamelSchema):
     net_amt: int
     paid_at: datetime
     has_subject: bool
+
+
+# ── 주문/환불(potato Phase 2) ─────────────────────────
+class OrderOpsItem(CamelSchema):
+    """운영자 주문 목록 항목 — 구매자 제약 없이 최근 주문(환불 대상 탐색용)."""
+    id: UUID
+    book_id: UUID
+    book_title: str
+    buyer_account_id: UUID
+    amount_amt: int
+    channel: str
+    status: str
+    created_at: datetime
+    paid_at: datetime | None
+
+
+class RefundOrderRequest(CamelSchema):
+    reason: str | None = Field(default=None, max_length=500)
 
 
 # ── 대시보드 ──────────────────────────────────────────

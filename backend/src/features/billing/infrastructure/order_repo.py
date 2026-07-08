@@ -6,7 +6,13 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.engine.settlement.calculate import SettlementBreakdown
-from src.features.billing.domain.models import BookSales, OrderView, PurchasedBook, SalesSummary
+from src.features.billing.domain.models import (
+    BookSales,
+    OrderOpsView,
+    OrderView,
+    PurchasedBook,
+    SalesSummary,
+)
 from src.infrastructure.db.models.book import Book
 from src.infrastructure.db.models.order import Order, Settlement
 
@@ -196,4 +202,28 @@ class SqlOrderRepository:
                 order_id=order_id,
             )
             for b, order_id in rows
+        ]
+
+    async def list_for_ops(
+        self, status: str | None, limit: int, offset: int
+    ) -> list[OrderOpsView]:
+        """운영자 주문 목록 — 구매자 제약 없이 최근 주문(환불 대상 탐색용, potato 전용)."""
+        stmt = select(Order, Book.title).join(Book, Book.id == Order.book_id)
+        if status:
+            stmt = stmt.where(Order.status == status)
+        stmt = stmt.order_by(Order.created_at.desc()).limit(limit).offset(offset)
+        rows = (await self.session.execute(stmt)).all()
+        return [
+            OrderOpsView(
+                id=o.id,
+                book_id=o.book_id,
+                book_title=title,
+                buyer_account_id=o.buyer_account_id,
+                amount_amt=int(o.amount_amt),
+                channel=o.channel,
+                status=o.status,
+                created_at=o.created_at,
+                paid_at=o.paid_at,
+            )
+            for o, title in rows
         ]

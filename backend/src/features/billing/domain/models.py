@@ -1,5 +1,6 @@
 """billing 도메인 — 주문/정산 뷰 + 에러."""
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Protocol
 from uuid import UUID
 
@@ -45,6 +46,20 @@ class PurchasedBook:
     price_amt: int | None
     cover_url: str | None
     order_id: UUID
+
+
+@dataclass
+class OrderOpsView:
+    """운영자 주문 목록 항목 — 구매자 제약 없이 최근 주문(potato 환불 대상 탐색용)."""
+    id: UUID
+    book_id: UUID
+    book_title: str
+    buyer_account_id: UUID
+    amount_amt: int
+    channel: str
+    status: str
+    created_at: datetime
+    paid_at: datetime | None = None
 
 
 @dataclass

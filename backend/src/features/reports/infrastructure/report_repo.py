@@ -67,3 +67,13 @@ class SqlReportRepository:
         row.resolution = resolution
         row.resolved_at = now
         await self.session.commit()
+
+    async def list_open_target_ids(self, target_type: str) -> list[UUID]:
+        """OPEN 신고가 달린 대상 id 목록(중복 제거) — 사후검토 큐(potato review-queue)용."""
+        stmt = (
+            select(ReportRow.target_id)
+            .where(ReportRow.target_type == target_type, ReportRow.status == "OPEN")
+            .distinct()
+        )
+        rows = (await self.session.execute(stmt)).scalars().all()
+        return list(rows)

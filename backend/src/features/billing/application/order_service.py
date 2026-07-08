@@ -17,6 +17,7 @@ from src.features.billing.domain.models import (
     NotRefundable,
     OrderEmailHook,
     OrderNotFound,
+    OrderOpsView,
     OrderView,
     PaymentFailed,
     RefundFailed,
@@ -97,12 +98,27 @@ class OrderService:
         order = await self.get_order(order_id)
         if order.buyer_account_id != buyer_id:
             raise OrderNotFound(order_id)  # 타인 주문은 존재 노출 없이 404
+        await self._execute_refund(order, reason or "구매자 환불")
+
+    async def refund_by_operator(self, order_id: UUID, reason: str = "") -> OrderView:
+        """운영자 임의 주문 환불 집행(potato 전용) — buyer_id 제약 없음.
+
+        ⚠️ 정산(Settlement) 역처리는 범위 밖(후속 과제) — mark_refunded는 order.status만
+        PAID→REFUNDED로 바꾸고, 이미 계산된 Settlement/출금가능잔액은 그대로 남는다
+        (기존 구매자 self-refund와 동일한 한계 — 신규로 만들지 않고 재사용).
+        """
+        order = await self.get_order(order_id)
+        await self._execute_refund(order, reason or "운영자 환불")
+        return order
+
+    async def _execute_refund(self, order: OrderView, reason: str) -> None:
+        """PG 취소 → PAID→REFUNDED 공통 로직(구매자/운영자 환불 공용)."""
         if order.status != PAID:
             raise NotRefundable()
-        ok = await self.gateway.refund(order.pg_tx_id, reason or "구매자 환불", order_ref=str(order_id))
+        ok = await self.gateway.refund(order.pg_tx_id, reason, order_ref=str(order.id))
         if not ok:
             raise RefundFailed()
-        if not await self.repo.mark_refunded(order_id):
+        if not await self.repo.mark_refunded(order.id):
             raise NotRefundable()  # 동시 환불 경쟁 → 이미 처리됨
 
     async def reconcile_canceled(self, order_id: UUID) -> bool:
@@ -141,6 +157,12 @@ class OrderService:
 
     async def author_sales(self, author_id: UUID):
         return await self.repo.author_sales(author_id)
+
+    async def list_for_ops(
+        self, status: str | None = None, limit: int = 50, offset: int = 0
+    ) -> list[OrderOpsView]:
+        """운영자 주문 목록 — 구매자 제약 없이 최근 주문(환불 대상 탐색용)."""
+        return await self.repo.list_for_ops(status, limit, offset)
 
     async def confirm_payment(
         self, order_id: UUID, pg_tx_id: str, buyer_id: UUID | None = None

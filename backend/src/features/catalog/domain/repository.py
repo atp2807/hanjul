@@ -64,6 +64,10 @@ class CatalogRepository(Protocol):
         """작가가 쓴 책 전 상태 목록 (스튜디오용)."""
         ...
 
+    async def list_published_with_rating(self, rating: str) -> list[BookSummary]:
+        """PUBLISHED & 비차단 & 해당 등급인 책 — 사후검토 큐(potato review-queue)용."""
+        ...
+
     async def list_sitemap_entries(self, limit: int = 50000) -> list[tuple[UUID, datetime | None]]:
         """sitemap.xml 용 경량 목록 — 공개된(PUBLISHED·비차단) 책의 (id, published_at)만."""
         ...

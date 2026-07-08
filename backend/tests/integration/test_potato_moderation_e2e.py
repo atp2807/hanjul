@@ -1,6 +1,6 @@
 """운영자 모더레이션 E2E — 책 takedown → 스토어에서 사라짐 → 복원 + 감사로그."""
 from datetime import UTC, datetime
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import httpx
 from main import app
@@ -10,6 +10,7 @@ from src.features.potato.domain.models import OPERATOR
 from src.features.potato.infrastructure.operator_repo import SqlOperatorRepository
 from src.infrastructure.db.models.book import Book
 from src.infrastructure.db.models.operator import AuditLog
+from src.infrastructure.db.models.report import Report
 
 EMAIL = "mod@hanjul.io"
 PASSWORD = "potato-mod-123"
@@ -96,3 +97,42 @@ async def test_takedown_requires_operator_token(app_db_potato):
         assert (
             await c.post(f"/api/potato/books/{book_id}/takedown")
         ).status_code == 401
+
+
+async def test_review_queue_returns_age18_and_reported_books(app_db_potato):
+    """사후 검토 큐 — AGE18 발행책 + OPEN 신고책(중복은 이유 병합), takedown된 책·무관한 책은 제외."""
+    async with _client() as c:
+        token = await _login(c, app_db_potato)
+        hdr = {"Authorization": f"Bearer {token}"}
+
+        age18_id = await _make_published_book(app_db_potato, title="성인 콘텐츠")
+        reported_id = await _make_published_book(app_db_potato, title="신고당한 책")
+        both_id = await _make_published_book(app_db_potato, title="AGE18이면서 신고됨")
+        clean_id = await _make_published_book(app_db_potato, title="무관한 책")
+        taken_down_id = await _make_published_book(app_db_potato, title="이미 차단된 성인책")
+
+        async with app_db_potato() as s:
+            b18 = await s.get(Book, UUID(age18_id))
+            b18.content_rating = "AGE18"
+            bboth = await s.get(Book, UUID(both_id))
+            bboth.content_rating = "AGE18"
+            btaken = await s.get(Book, UUID(taken_down_id))
+            btaken.content_rating = "AGE18"
+            btaken.blocked_at = datetime.now(UTC)
+            s.add(Report(reporter_id=None, target_type="BOOK", target_id=UUID(reported_id), reason="욕설", status="OPEN"))
+            s.add(Report(reporter_id=None, target_type="BOOK", target_id=UUID(both_id), reason="음란물", status="OPEN"))
+            # 기각된 신고는 큐에 영향 없음
+            s.add(Report(reporter_id=None, target_type="BOOK", target_id=UUID(clean_id), reason="오탐", status="DISMISSED"))
+            await s.commit()
+
+        items = (await c.get("/api/potato/review-queue", headers=hdr)).json()
+        by_id = {i["bookId"]: i for i in items}
+
+        assert by_id[age18_id]["reasons"] == ["AGE18"]
+        assert by_id[reported_id]["reasons"] == ["REPORTED"]
+        assert set(by_id[both_id]["reasons"]) == {"AGE18", "REPORTED"}
+        assert clean_id not in by_id  # 신고 DISMISSED·AGE18 아님 → 큐에 없음
+        assert taken_down_id not in by_id  # 이미 takedown됨 → 큐에서 제외
+
+        # 방화벽 — 무인증 401
+        assert (await c.get("/api/potato/review-queue")).status_code == 401

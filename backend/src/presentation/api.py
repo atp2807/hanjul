@@ -32,6 +32,7 @@ from src.features.potato.presentation.dashboard import router as potato_dashboar
 from src.features.potato.presentation.dependencies import require_allowed_ip
 from src.features.potato.presentation.endpoints import router as potato_router
 from src.features.potato.presentation.moderation import router as potato_moderation_router
+from src.features.potato.presentation.orders import router as potato_orders_router
 from src.features.potato.presentation.payouts import router as potato_payouts_router
 from src.features.potato.presentation.reports import router as potato_reports_router
 from src.features.reports.presentation.endpoints import router as reports_router
@@ -66,6 +67,7 @@ router.include_router(potato_reports_router, dependencies=_potato_guard)
 router.include_router(potato_accounts_router, dependencies=_potato_guard)
 router.include_router(potato_dashboard_router, dependencies=_potato_guard)
 router.include_router(potato_payouts_router, dependencies=_potato_guard)
+router.include_router(potato_orders_router, dependencies=_potato_guard)  # 운영자 주문 환불집행(Phase 2)
 router.include_router(potato_age_verification_router, dependencies=_potato_guard)  # 성인인증 심사 큐
 router.include_router(reports_router)  # 고객 신고 접수 — 게이트 없음
 router.include_router(payouts_router)  # 작가 출금 — 인증만

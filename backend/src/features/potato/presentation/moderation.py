@@ -17,7 +17,13 @@ from src.features.potato.presentation.dependencies import (
     get_audit_service,
     get_current_operator,
 )
-from src.features.potato.presentation.schemas import BookModerationItem, TakedownRequest
+from src.features.potato.presentation.schemas import (
+    BookModerationItem,
+    ReviewQueueItem,
+    TakedownRequest,
+)
+from src.features.reports.application.report_service import ReportService
+from src.features.reports.presentation.dependencies import get_report_service
 from src.shared.errors import NotFoundError
 
 router = APIRouter(prefix="/potato", tags=["potato"])
@@ -64,6 +70,48 @@ async def takedown(
     except BookNotFound:
         raise NotFoundError("book not found")
     await audit.record(op.id, "TAKEDOWN", "BOOK", book_id, {"reason": body.reason}, client_ip(request))
+
+
+@router.get("/review-queue", response_model=list[ReviewQueueItem])
+async def review_queue(
+    _op: OperatorPrincipal = Depends(get_current_operator),
+    catalog: CatalogService = Depends(get_catalog_service),
+    reports: ReportService = Depends(get_report_service),
+) -> list[ReviewQueueItem]:
+    """운영자 사후 검토 큐 — AGE18 발행책 + OPEN 신고책(조회 전용, 새 상태/전이 없음).
+
+    새 조치 엔드포인트는 만들지 않는다 — 운영자는 이 목록에서 기존 takedown/restore로 조치.
+    """
+    merged: dict = {}
+
+    for s in await catalog.list_published_with_rating("AGE18"):
+        merged[s.id] = ReviewQueueItem(
+            book_id=s.id,
+            title=s.title,
+            author_id=s.author_id,
+            rating=s.content_rating,
+            reasons=["AGE18"],
+            published_at=s.published_at,
+        )
+
+    for book_id in await reports.list_open_targets("BOOK"):
+        if book_id in merged:
+            merged[book_id].reasons.append("REPORTED")
+            continue
+        try:
+            s = await catalog.get_meta(book_id)
+        except BookNotFound:
+            continue  # 신고 대상 책이 이미 삭제됨 — 조용히 스킵
+        merged[book_id] = ReviewQueueItem(
+            book_id=s.id,
+            title=s.title,
+            author_id=s.author_id,
+            rating=s.content_rating,
+            reasons=["REPORTED"],
+            published_at=s.published_at,
+        )
+
+    return list(merged.values())
 
 
 @router.post("/books/{book_id}/restore", status_code=204)

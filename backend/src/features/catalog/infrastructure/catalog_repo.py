@@ -177,6 +177,20 @@ class SqlCatalogRepository:
         rows = (await self.session.execute(stmt)).scalars().all()
         return [_to_summary(b) for b in rows]
 
+    async def list_published_with_rating(self, rating: str) -> list[BookSummary]:
+        """PUBLISHED & 비차단 & 해당 등급인 책 — 사후검토 큐(potato review-queue)용."""
+        stmt = (
+            select(Book)
+            .where(
+                Book.status == PUBLISHED,
+                Book.blocked_at.is_(None),
+                Book.content_rating == rating,
+            )
+            .order_by(Book.published_at.desc())
+        )
+        rows = (await self.session.execute(stmt)).scalars().all()
+        return [_to_summary(b) for b in rows]
+
     async def list_sitemap_entries(self, limit: int = 50000) -> list[tuple[UUID, datetime | None]]:
         """sitemap.xml 용 경량 목록 — (id, published_at)만 (전체 요약을 안 만들어 가볍다)."""
         stmt = (

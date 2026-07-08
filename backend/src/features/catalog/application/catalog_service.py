@@ -72,6 +72,10 @@ class CatalogService:
     ) -> list[BookSummary]:
         return await self.repo.list_for_ops(q, status, limit, offset)
 
+    async def list_published_with_rating(self, rating: str) -> list[BookSummary]:
+        """PUBLISHED & 비차단 & 해당 등급인 책 — 사후검토 큐(potato review-queue)용."""
+        return await self.repo.list_published_with_rating(rating)
+
     async def unpublish(self, book_id: UUID) -> None:
         """출판 취소(비공개) — 스토어에서 내림. PUBLISHED → DRAFT."""
         await self._require(book_id)

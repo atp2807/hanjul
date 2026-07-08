@@ -2036,6 +2036,72 @@
         "title": "OperatorResponse",
         "type": "object"
       },
+      "OrderOpsItem": {
+        "description": "\uc6b4\uc601\uc790 \uc8fc\ubb38 \ubaa9\ub85d \ud56d\ubaa9 \u2014 \uad6c\ub9e4\uc790 \uc81c\uc57d \uc5c6\uc774 \ucd5c\uadfc \uc8fc\ubb38(\ud658\ubd88 \ub300\uc0c1 \ud0d0\uc0c9\uc6a9).",
+        "properties": {
+          "amountAmt": {
+            "title": "Amountamt",
+            "type": "integer"
+          },
+          "bookId": {
+            "format": "uuid",
+            "title": "Bookid",
+            "type": "string"
+          },
+          "bookTitle": {
+            "title": "Booktitle",
+            "type": "string"
+          },
+          "buyerAccountId": {
+            "format": "uuid",
+            "title": "Buyeraccountid",
+            "type": "string"
+          },
+          "channel": {
+            "title": "Channel",
+            "type": "string"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "title": "Createdat",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "paidAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paidat"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "bookId",
+          "bookTitle",
+          "buyerAccountId",
+          "amountAmt",
+          "channel",
+          "status",
+          "createdAt",
+          "paidAt"
+        ],
+        "title": "OrderOpsItem",
+        "type": "object"
+      },
       "OrderResponse": {
         "properties": {
           "amountAmt": {
@@ -2234,6 +2300,24 @@
         "title": "ReasonRequest",
         "type": "object"
       },
+      "RefundOrderRequest": {
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "title": "RefundOrderRequest",
+        "type": "object"
+      },
       "ReportItem": {
         "properties": {
           "createdAt": {
@@ -2404,6 +2488,66 @@
           "items"
         ],
         "title": "ReviewListResponse",
+        "type": "object"
+      },
+      "ReviewQueueItem": {
+        "description": "\uc6b4\uc601\uc790 \uc8fc\uc758\uac00 \ud544\uc694\ud55c \ucc45 \u2014 AGE18 \ubc1c\ud589\ucc45 + OPEN \uc2e0\uace0\ucc45(\uc870\ud68c \uc804\uc6a9, \uc870\uce58\ub294 takedown \uc7ac\uc0ac\uc6a9).",
+        "properties": {
+          "authorId": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Authorid"
+          },
+          "bookId": {
+            "format": "uuid",
+            "title": "Bookid",
+            "type": "string"
+          },
+          "publishedAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publishedat"
+          },
+          "rating": {
+            "title": "Rating",
+            "type": "string"
+          },
+          "reasons": {
+            "description": "AGE18 | REPORTED (\ubcf5\uc218 \uac00\ub2a5)",
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "bookId",
+          "title",
+          "authorId",
+          "rating",
+          "reasons",
+          "publishedAt"
+        ],
+        "title": "ReviewQueueItem",
         "type": "object"
       },
       "ReviewerStatusResponse": {
@@ -7609,6 +7753,138 @@
         ]
       }
     },
+    "/api/potato/orders": {
+      "get": {
+        "description": "\uc6b4\uc601\uc790 \uc8fc\ubb38 \ubaa9\ub85d \u2014 \ud658\ubd88 \ub300\uc0c1 \ud0d0\uc0c9\uc6a9(\uad6c\ub9e4\uc790 \uc81c\uc57d \uc5c6\uc74c, \ucd5c\uc2e0\uc21c).",
+        "operationId": "list_orders_api_potato_orders_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": "PAID",
+              "title": "Status"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OrderOpsItem"
+                  },
+                  "title": "Response List Orders Api Potato Orders Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "List Orders",
+        "tags": [
+          "potato"
+        ]
+      }
+    },
+    "/api/potato/orders/{order_id}/refund": {
+      "post": {
+        "description": "\uc6b4\uc601\uc790 \uc784\uc758 \uc8fc\ubb38 \ud658\ubd88 \uc9d1\ud589 \u2014 PG \ucde8\uc18c + PAID\u2192REFUNDED. buyer \uc81c\uc57d \uc5c6\uc74c(potato \uc804\uc6a9).\n\nOrderNotFound 404\u00b7NotRefundable 409\u00b7RefundFailed 402 \u2192 \uc911\uc559 \ud578\ub4e4\ub7ec.",
+        "operationId": "refund_order_api_potato_orders__order_id__refund_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "order_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Order Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefundOrderRequest",
+                "default": {}
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Refund Order",
+        "tags": [
+          "potato"
+        ]
+      }
+    },
     "/api/potato/payouts": {
       "get": {
         "operationId": "list_payouts_api_potato_payouts_get",
@@ -8021,6 +8297,37 @@
           }
         ],
         "summary": "Resolve Report",
+        "tags": [
+          "potato"
+        ]
+      }
+    },
+    "/api/potato/review-queue": {
+      "get": {
+        "description": "\uc6b4\uc601\uc790 \uc0ac\ud6c4 \uac80\ud1a0 \ud050 \u2014 AGE18 \ubc1c\ud589\ucc45 + OPEN \uc2e0\uace0\ucc45(\uc870\ud68c \uc804\uc6a9, \uc0c8 \uc0c1\ud0dc/\uc804\uc774 \uc5c6\uc74c).\n\n\uc0c8 \uc870\uce58 \uc5d4\ub4dc\ud3ec\uc778\ud2b8\ub294 \ub9cc\ub4e4\uc9c0 \uc54a\ub294\ub2e4 \u2014 \uc6b4\uc601\uc790\ub294 \uc774 \ubaa9\ub85d\uc5d0\uc11c \uae30\uc874 takedown/restore\ub85c \uc870\uce58.",
+        "operationId": "review_queue_api_potato_review_queue_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ReviewQueueItem"
+                  },
+                  "title": "Response Review Queue Api Potato Review Queue Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Review Queue",
         "tags": [
           "potato"
         ]

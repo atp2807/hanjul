@@ -51,3 +51,7 @@ class ReportRepository(Protocol):
     async def resolve(
         self, report_id: UUID, status: str, operator_id: UUID, resolution: str | None, now: datetime
     ) -> None: ...
+
+    async def list_open_target_ids(self, target_type: str) -> list[UUID]:
+        """OPEN 신고가 달린 대상 id 목록(중복 제거) — 사후검토 큐(potato review-queue)용."""
+        ...

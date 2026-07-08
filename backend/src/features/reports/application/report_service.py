@@ -53,3 +53,7 @@ class ReportService:
             report_id, status, operator_id, resolution, now or datetime.now(UTC)
         )
         return status
+
+    async def list_open_targets(self, target_type: str) -> list[UUID]:
+        """OPEN 신고가 달린 대상 id 목록(중복 제거) — 사후검토 큐(potato review-queue)용."""
+        return await self.repo.list_open_target_ids(target_type)

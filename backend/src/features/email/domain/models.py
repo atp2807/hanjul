@@ -34,6 +34,26 @@ def order_confirmation_email(to: str, book_title: str, amount: int) -> EmailMess
     return EmailMessage(to=to, subject=subject, html=html, text=text)
 
 
+def order_refund_email(to: str, book_title: str, amount: int) -> EmailMessage:
+    """환불 완료 안내 메일 — 운영자 환불집행(potato ORDER_REFUND) best-effort 훅에서 호출."""
+    amount_fmt = f"{amount:,}"
+    subject = f"[한줄] 환불 완료 — {book_title}"
+    html = (
+        "<!doctype html><html><body>"
+        "<p>안녕하세요, 한줄입니다.</p>"
+        f"<p><strong>{book_title}</strong> 주문이 환불 처리되었어요.</p>"
+        f"<p>환불 금액: {amount_fmt}원</p>"
+        "<p>문의사항이 있으시면 고객센터로 연락해 주세요.</p>"
+        "</body></html>"
+    )
+    text = (
+        f"{book_title} 주문이 환불 처리되었어요.\n"
+        f"환불 금액: {amount_fmt}원\n"
+        "문의사항이 있으시면 고객센터로 연락해 주세요."
+    )
+    return EmailMessage(to=to, subject=subject, html=html, text=text)
+
+
 # 출금 상태별 문구 — payouts.domain.models 의 APPROVED/PAID/REJECTED 문자열과 그대로 매칭.
 # email 도메인은 payouts 도메인을 모른다(문자열 계약만 공유) — 값을 재정의하지 않고 그대로 받는다.
 _STATUS_LABEL = {"APPROVED": "승인", "PAID": "지급완료", "REJECTED": "반려"}
