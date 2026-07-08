@@ -1,5 +1,5 @@
 """작가 출금 인프라 E2E — 계좌등록 → 판매 → 출금가능액 → 신청 → 운영자 승인·지급."""
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
 import httpx
@@ -57,14 +57,19 @@ def _client():
 
 
 async def _seed_sale(sessionmaker, author_id, gross=7000, wh=231, payout=6769) -> None:
-    """작가의 PAID 판매 1건 + 정산 스냅샷(미지급)."""
+    """작가의 PAID 판매 1건 + 정산 스냅샷(미지급).
+
+    환불세이프 게이트(payout_repo._unpaid_stmt, lr-6b6f01e3) — 여기선 delivered 흐름을 타지
+    않고 곧장 정산을 시딩하므로, paid_at을 7일 변심철회 기간 밖으로 백데이트해 "이미 출금
+    가능한 지 오래된 판매"를 흉내낸다(게이트 자체 테스트는 별도 test_payout_refund_safe_gate 참조).
+    """
     author_id = UUID(author_id) if isinstance(author_id, str) else author_id
     async with sessionmaker() as s:
         book = Book(title="책", kind="BOOK", language="ko", status="PUBLISHED", price_amt=10000, author_id=author_id)
         s.add(book)
         await s.flush()
         order = Order(book_id=book.id, buyer_account_id=uuid4(), amount_amt=10000, channel="SELF",
-                      status="PAID", paid_at=datetime.now(UTC))
+                      status="PAID", paid_at=datetime.now(UTC) - timedelta(days=8))
         s.add(order)
         await s.flush()
         s.add(Settlement(order_id=order.id, channel="SELF", gross_amt=gross, platform_fee_amt=3000,

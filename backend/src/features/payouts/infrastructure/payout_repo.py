@@ -1,7 +1,8 @@
 """payouts SQLAlchemy 어댑터 — bill.bank_account / bill.payout / settlement 집계."""
+from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
-from sqlalchemy import func, select, update
+from sqlalchemy import func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.features.payouts.domain.models import (
@@ -64,8 +65,20 @@ class SqlPayoutRepository:
         await self.session.refresh(row)
         return _acct_view(row)
 
+    @staticmethod
+    def _refund_safe_cond():
+        """환불세이프 = 전자책 제공 개시(delivered_ts 존재, 청약철회 제한 발동) OR 결제 후
+        7일 경과(일반 변심철회 기간 종료). cutoff는 파이썬에서 계산해 바운드 파라미터로
+        넘긴다(포스트그레·sqlite 양쪽 호환 — DB측 interval 산술 의존 안 함). paid_at이
+        NULL이면(이론상 PAID는 항상 채워짐) `paid_at < cutoff`가 NULL→false라 delivered
+        조건으로만 통과 — 안전.
+        """
+        cutoff = datetime.now(UTC) - timedelta(days=7)
+        return or_(Order.delivered_at.isnot(None), Order.paid_at < cutoff)
+
     # ── 미지급 정산 집계 ──────────────────────────────
     def _unpaid_stmt(self, author_id: UUID):
+        """출금가능(payable)·출금생성(create_payout) 공용 — 여기 한 곳이 환불세이프 게이트다."""
         return (
             select(Settlement)
             .join(Order, Order.id == Settlement.order_id)
@@ -75,6 +88,7 @@ class SqlPayoutRepository:
                 Order.status == "PAID",
                 Order.channel != "REVIEW",
                 Settlement.payout_id.is_(None),
+                self._refund_safe_cond(),
             )
         )
 
@@ -95,6 +109,7 @@ class SqlPayoutRepository:
                     Order.status == "PAID",
                     Order.channel != "REVIEW",
                     Settlement.payout_id.is_(None),
+                    self._refund_safe_cond(),
                 )
             )
         ).one()

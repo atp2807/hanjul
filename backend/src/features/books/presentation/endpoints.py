@@ -1,4 +1,5 @@
 """books API 엔드포인트."""
+import logging
 from datetime import UTC, datetime
 from uuid import UUID
 
@@ -26,7 +27,24 @@ from src.features.books.presentation.schemas import (
     SetPreviewLimitRequest,
 )
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/books", tags=["books"])
+
+
+async def _best_effort_mark_delivered(orders: OrderService, buyer_id: UUID, book_id: UUID) -> None:
+    """전자책 제공 개시 기록 — 실패해도 열람/다운로드 자체를 막으면 안 된다(환불세이프 게이트용).
+
+    회귀가드: 여기서 예외를 삼키지 않으면 DB 문제 하나로 정상 구매자가 자기 책을 못 읽게 된다
+    (부가 회계기록이 핵심 기능을 막는 회귀) — 절대 전파 금지, 로그만 남긴다.
+    """
+    try:
+        await orders.mark_delivered(buyer_id, book_id)
+    except Exception:
+        logger.warning(
+            "mark_delivered 실패 (book=%s, buyer=%s) — 열람/다운로드는 계속 진행",
+            book_id, buyer_id, exc_info=True,
+        )
 
 
 @router.post("", response_model=CreateBookResponse, status_code=201)
@@ -108,6 +126,9 @@ async def get_content(
 
     is_free = content.price_amt in (None, 0)
     owned = principal is not None and await orders.owns(principal.id, book_id)
+    if owned and principal is not None:
+        # 구매자 본인의 전체 열람 = 제공 개시(환불세이프 게이트, payout_repo._unpaid_stmt).
+        await _best_effort_mark_delivered(orders, principal.id, book_id)
 
     if is_free or owned:
         resp = BookContentResponse.model_validate(content)
@@ -142,6 +163,10 @@ async def download_epub(
     is_author = await service.is_author(book_id, principal.id if principal else None)
     if not (is_free or owned or is_author):
         raise NotPurchased(book_id)
+    if owned and principal is not None:
+        # 구매자 본인의 EPUB 다운로드 = 제공 개시(환불세이프 게이트). 저자 본인 우회는 구매가
+        # 아니므로 대상 아님(is_author만으로 통과한 경우 mark_delivered 호출 안 함).
+        await _best_effort_mark_delivered(orders, principal.id, book_id)
 
     epub_book = EpubBook(
         title=content.title,

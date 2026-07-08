@@ -105,10 +105,20 @@ class OrderService:
 
         ⚠️ 정산(Settlement) 역처리는 범위 밖(후속 과제) — mark_refunded는 order.status만
         PAID→REFUNDED로 바꾸고, 이미 계산된 Settlement/출금가능잔액은 그대로 남는다
-        (기존 구매자 self-refund와 동일한 한계 — 신규로 만들지 않고 재사용).
+        (기존 구매자 self-refund와 동일한 한계 — 신규로 만들지 않고 재사용). 환불세이프 게이트
+        (payout_repo._unpaid_stmt) 덕에 이 경로는 대부분 "출금 전" 정산만 건드리지만, §17③
+        하자(청약철회 제한 예외) 등으로 이미 delivered라 출금까지 끝난 정산을 뒤늦게 환불하는
+        드문 엣지가 남는다 — 그 경우 상계 원장은 아직 없음(만들지 않기로 결정, 후속 과제).
+        아래 경고 로그 + 수동 상계에 의존한다.
         """
         order = await self.get_order(order_id)
         await self._execute_refund(order, reason or "운영자 환불")
+        if await self.repo.is_settlement_paid_out(order.id):
+            logger.warning(
+                "주문 %s 환불 — 이미 지급된 정산 환불(payout_id 존재). 자동 상계 원장 없음"
+                "(범위밖·후속과제) — 수동 상계 필요.",
+                order.id,
+            )
         return order
 
     async def _execute_refund(self, order: OrderView, reason: str) -> None:
@@ -136,6 +146,14 @@ class OrderService:
 
     async def owns(self, account_id: UUID, book_id: UUID) -> bool:
         return await self.repo.owns(account_id, book_id)
+
+    async def mark_delivered(self, buyer_id: UUID, book_id: UUID) -> None:
+        """전자책 제공 개시(첫 전체열람/다운로드) 기록 — 환불세이프 게이트(payout_repo) 판정용.
+
+        멱등 — 이미 delivered면 무동작. 호출부(books 엔드포인트)는 best-effort로 감싸야 한다:
+        이게 실패해도 열람/다운로드 자체는 막으면 안 된다.
+        """
+        await self.repo.mark_delivered(buyer_id, book_id)
 
     async def has_any_order(self, book_id: UUID) -> bool:
         """이 책에 주문이 하나라도 있나 — 책 삭제 가능 판정용."""

@@ -48,6 +48,7 @@ class FakeOrderRepository:
     def __init__(self) -> None:
         self.orders: dict[UUID, OrderView] = {}
         self.settlements: dict[UUID, SettlementBreakdown] = {}
+        self.delivered: set[UUID] = set()  # mark_delivered 호출된 order id (order.delivered_ts 대역)
 
     async def create_order(self, book_id, buyer_account_id, amount, channel, consent_at=None) -> UUID:
         oid = uuid.uuid4()
@@ -69,6 +70,14 @@ class FakeOrderRepository:
             o.buyer_account_id == account_id and o.book_id == book_id and o.status == PAID
             for o in self.orders.values()
         )
+
+    async def mark_delivered(self, buyer_id, book_id) -> None:
+        for o in self.orders.values():
+            if o.buyer_account_id == buyer_id and o.book_id == book_id and o.status == PAID:
+                self.delivered.add(o.id)
+
+    async def is_settlement_paid_out(self, order_id) -> bool:
+        return False  # Fake는 payout 연결을 모델링하지 않음 — 항상 미지급 취급
 
     async def grant_review_copy(self, book_id, account_id) -> None:
         if await self.owns(account_id, book_id):

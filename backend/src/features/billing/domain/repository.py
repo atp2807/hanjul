@@ -25,6 +25,14 @@ class OrderRepository(Protocol):
         """PAID → REFUNDED (행 잠금 + 상태 재확인, 멱등). 성공 시 True."""
         ...
 
+    async def mark_delivered(self, buyer_id: UUID, book_id: UUID) -> None:
+        """전자책 제공 개시(첫 전체열람/다운로드) 기록 — 환불세이프 판정용, 멱등(이미 있으면 무동작)."""
+        ...
+
+    async def is_settlement_paid_out(self, order_id: UUID) -> bool:
+        """이 주문의 정산이 이미 출금(payout)에 묶였는지 — refund-after-payout 경고용."""
+        ...
+
     async def owns(self, account_id: UUID, book_id: UUID) -> bool:
         """계정이 그 책을 구매(PAID)했는지."""
         ...

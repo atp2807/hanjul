@@ -4,7 +4,7 @@
 그대로 유지 → potato 미신고 목록에 노출. ⚠️ WONCHEON_API_BASE/KEY 를 명시적으로 비워
 (monkeypatch) 실 네트워크 호출이 절대 일어나지 않게 보장한 채로 검증한다.
 """
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from uuid import UUID, uuid4
 
 import httpx
@@ -72,13 +72,14 @@ def _client():
 
 
 async def _seed_sale(sessionmaker, author_id, gross=7000, wh=231, payout=6769) -> None:
+    """환불세이프 게이트(lr-6b6f01e3) — paid_at을 7일 밖으로 백데이트해 출금가능하게 시딩."""
     author_id = UUID(author_id) if isinstance(author_id, str) else author_id
     async with sessionmaker() as s:
         book = Book(title="책", kind="BOOK", language="ko", status="PUBLISHED", price_amt=10000, author_id=author_id)
         s.add(book)
         await s.flush()
         order = Order(book_id=book.id, buyer_account_id=uuid4(), amount_amt=10000, channel="SELF",
-                      status="PAID", paid_at=datetime.now(UTC))
+                      status="PAID", paid_at=datetime.now(UTC) - timedelta(days=8))
         s.add(order)
         await s.flush()
         s.add(Settlement(order_id=order.id, channel="SELF", gross_amt=gross, platform_fee_amt=3000,

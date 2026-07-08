@@ -2,7 +2,7 @@
 from datetime import UTC, datetime
 from uuid import UUID
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.engine.settlement.calculate import SettlementBreakdown
@@ -100,6 +100,34 @@ class SqlOrderRepository:
         o.refunded_at = datetime.now(UTC)
         await self.session.commit()
         return True
+
+    async def mark_delivered(self, buyer_id: UUID, book_id: UUID) -> None:
+        """전자책 제공 개시(첫 전체열람/다운로드) 기록 — 환불세이프(payout_repo._unpaid_stmt) 판정용.
+
+        멱등: delivered_ts가 이미 채워진 행은 조건에 안 걸려 무동작. 대상 행이 없어도(예:
+        상태가 PAID가 아닌 경우) 조용히 0행 UPDATE — 열람/다운로드 자체를 막지 않는다(호출부가
+        best-effort로 감싼다).
+        """
+        await self.session.execute(
+            update(Order)
+            .where(
+                Order.buyer_account_id == buyer_id,
+                Order.book_id == book_id,
+                Order.status == "PAID",
+                Order.delivered_at.is_(None),
+            )
+            .values(delivered_at=datetime.now(UTC))
+        )
+        await self.session.commit()
+
+    async def is_settlement_paid_out(self, order_id: UUID) -> bool:
+        """이 주문의 정산이 이미 출금(payout)에 묶였는지 — refund-after-payout 경고용(order_service)."""
+        row = (
+            await self.session.execute(
+                select(Settlement.payout_id).where(Settlement.order_id == order_id)
+            )
+        ).scalar_one_or_none()
+        return row is not None
 
     async def grant_review_copy(self, book_id: UUID, account_id: UUID) -> None:
         """서평단 증정본 — 0원 REVIEW 채널 PAID 주문 생성(권한만, 분배 없음). 이미 있으면 무시."""

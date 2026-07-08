@@ -35,6 +35,8 @@ class Order(Base):
     created_at = Column("created_ts", DateTime(timezone=True), default=_now, nullable=False)
     paid_at = Column("paid_ts", DateTime(timezone=True))
     refunded_at = Column("refunded_ts", DateTime(timezone=True))         # 환불 시각
+    # 전자책 제공 개시(첫 전체열람/다운로드) 시각 — 환불세이프(청약철회 제한) 판정용. NULL=미개시.
+    delivered_at = Column("delivered_ts", DateTime(timezone=True))
 
     settlement = relationship("Settlement", back_populates="order", uselist=False, cascade="all, delete-orphan")
 
