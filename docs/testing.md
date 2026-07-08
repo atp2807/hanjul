@@ -52,8 +52,8 @@ DB(SQLAlchemy 세션·실 SQL)가 필요한가?
                   (예: tests/integration/test_toss_live.py, RUN_TOSS_LIVE=1)
 ```
 
-`tests/meta/`는 위 4갈래와 별개 — 코드가 아니라 **레포 상태 자체**(alembic head 개수,
-schema_translate_map 동기화, OpenAPI 스냅샷)를 검증하는 정적 가드다(§5).
+`tests/meta/`는 위 4갈래와 별개 — 코드가 아니라 **레포 상태 자체**(schema_translate_map
+동기화, OpenAPI 스냅샷)를 검증하는 정적 가드다(§5).
 
 ### 2.2 conftest 픽스처 카탈로그 (`tests/integration/conftest.py`)
 
@@ -295,7 +295,7 @@ CI 배치도 이를 반영: 조판 e2e는 무거운 `e2e` 잡이 아니라 `fron
 
 - **데이터 격리**: `uniqueEmail(label)` 사용을 권장 — 고정 이메일을 재사용하면 표시
   이름·팔로우 상태 등이 스위트 간에 오염될 수 있다. DB 자체는 `global-setup.js`가 매 실행
-  전체 재생성(`dropdb`→`createdb`→`alembic upgrade head`)하지만, 같은 실행 내 spec들끼리는
+  전체 재생성(`dropdb`→`createdb`→`migrate.py`)하지만, 같은 실행 내 spec들끼리는
   이메일로 계정을 분리해야 한다.
 - **셀렉터 관례**: 실사용 빈도 기준(`e2e/*.spec.js` 실측) `getByRole`(92건) >
   `getByTestId`(73건) > `getByText`(64건) > `getByLabel`(6건). Testing Library/Playwright
@@ -332,9 +332,7 @@ CI 배치도 이를 반영: 조판 e2e는 무거운 `e2e` 잡이 아니라 `fron
   `sourceHash`/`createdAt`/`updatedAt`/`pageSize`/`displayUrl`/`thumbUrl`/`contentType` 같은
   API 원본 필드명 직접 사용 금지(`web/src/services/api/docs.js` 경계 매핑 우회 방지).
 
-**`tests/meta/` 3종** (DB/네트워크 없이 레포 상태 자체를 정적 검증):
-- `test_alembic_single_head.py` — alembic head가 정확히 1개인지(브랜치 분기 시 리베이스
-  누락 조기 포착).
+**`tests/meta/` 2종** (DB/네트워크 없이 레포 상태 자체를 정적 검증):
 - `test_schema_translate_map.py` — 마이그레이션이 `CREATE SCHEMA`하는 스키마 목록과
   `tests/integration/conftest.py`의 `schema_translate_map` 키를 정적으로 대조, 양방향 누락 검출.
 - `test_openapi_snapshot.py` — `app.openapi()` 결과를 `tests/fixtures/openapi_snapshot.json`과

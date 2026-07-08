@@ -16,7 +16,7 @@ export default function globalSetup() {
   execSync(`${bin('dropdb')} --if-exists ${E2E_DB_NAME}`, { env, stdio: 'inherit' });
   execSync(`${bin('createdb')} ${E2E_DB_NAME}`, { env, stdio: 'inherit' });
   // 스키마 — py3.12(asyncpg). DATABASE_URL env가 .env보다 우선(pydantic).
-  execSync(`${BACKEND_PY} -m alembic upgrade head`, {
+  execSync(`${BACKEND_PY} migrate.py`, {
     cwd: '../backend',
     env: { ...process.env, DATABASE_URL: databaseUrl() },
     stdio: 'inherit',

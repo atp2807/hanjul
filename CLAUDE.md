@@ -9,7 +9,8 @@
 - 백엔드 `backend/`: FastAPI + SQLAlchemy 2.0 async + PostgreSQL(asyncpg), 런타임 Python 3.12.
 - 프론트 `web/`: React 19 + Vite + **순수 JS/JSX (TypeScript 금지)**. 리더는 Pretext.js(CJK keep-all).
 - **헥사고날**: feature별 `domain/ application/ infrastructure/ presentation/`. 외부 연동은 포트 뒤 + Fake 테스트.
-- DB 스키마: `pub`(book/chapter/block) · `usr`(account/credential) · `bill`(주문/정산) · `dist`(배포) · `doc`(한줄독 document/share_link). 마이그레이션 alembic 0001~.
+- DB 스키마: `pub`(book/chapter/block) · `usr`(account/credential) · `bill`(주문/정산) · `dist`(배포) · `doc`(한줄독 document/share_link).
+- ⚠️ **마이그레이션 도구로 alembic 사용 금지** — 사용자가 여러 프로젝트에 걸쳐 반복적으로 명시한 규칙인데 과거 세션이 무시하고 채택해 이 문서에 "스택"으로 박아넣었던 것(2026-07-08 발견·정정, `no-alembic-rule.md`). 대체: **raw SQL + `migrate.py`**(해드림 방식) — `backend/migrations/*.sql` 순서대로 적용, `public.migration_history`(filename UNIQUE)로 추적. 런칭 전이라 옛 alembic 0001~0029 이력은 재현하지 않고 "그 시점 상태"를 `001_initial.sql`(완전 멱등 — 기존 alembic 적용 DB·빈 DB 양쪽에 안전) 하나로 확정. 002번부터는 평범한 비-멱등 SQL로 작성.
 - 한줄독(문서 열람·편집, 구 juldoc 편입): 엔진 `backend/src/engine/doc/` · 기능
   `backend/src/features/doc/` · 코어 `packages/doc/`(dialect/measure/paginate, `@hanjul/doc`) ·
   프론트 `/doc`·`/doc/:id`·`/doc/s/:token`. 비로그인 허용(ownerless 문서).
@@ -18,9 +19,10 @@
 ```bash
 # 백엔드 테스트 — .venv(3.14, aiosqlite)로 실행
 cd backend && .venv/bin/python -m pytest -q
-# 마이그레이션 / 로컬 서버 — .venv312(3.12, asyncpg) 필수
-cd backend && .venv312/bin/alembic upgrade head
+# 로컬 서버 — .venv312(3.12, asyncpg) 필수
 cd backend && .venv312/bin/uvicorn main:app --host 127.0.0.1 --port 28000
+# 마이그레이션 — raw SQL 러너 (alembic 아님)
+cd backend && .venv312/bin/python migrate.py
 # 프론트 컴포넌트 테스트 / 브라우저 E2E
 cd web && npm test
 cd web && npm run e2e   # Playwright: 실 백엔드(28100)+프론트(35200)+postgres(hanjul_e2e 재생성)

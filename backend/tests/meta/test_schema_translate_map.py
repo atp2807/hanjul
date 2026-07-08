@@ -9,7 +9,7 @@ import re
 from pathlib import Path
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent.parent
-MIGRATIONS_DIR = BACKEND_DIR / "migrations" / "versions"
+MIGRATIONS_DIR = BACKEND_DIR / "migrations"
 CONFTEST_PATH = BACKEND_DIR / "tests" / "integration" / "conftest.py"
 
 CREATE_SCHEMA_RE = re.compile(r"CREATE SCHEMA IF NOT EXISTS (\w+)")
@@ -19,7 +19,7 @@ MAP_KEY_RE = re.compile(r'"(\w+)":\s*None')
 
 def _schemas_created_by_migrations() -> set[str]:
     schemas: set[str] = set()
-    for path in sorted(MIGRATIONS_DIR.glob("*.py")):
+    for path in sorted(MIGRATIONS_DIR.glob("*.sql")):
         text = path.read_text(encoding="utf-8")
         schemas.update(CREATE_SCHEMA_RE.findall(text))
     return schemas

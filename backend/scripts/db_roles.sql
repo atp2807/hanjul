@@ -21,9 +21,9 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA potato
 REVOKE ALL ON ALL TABLES IN SCHEMA potato FROM hanjul;
 REVOKE ALL ON SCHEMA potato FROM hanjul;
 ALTER DEFAULT PRIVILEGES IN SCHEMA potato REVOKE ALL ON TABLES FROM hanjul;
--- 주의: 마이그레이션(alembic)은 hanjul 로 도는데, potato 테이블 생성/변경이 필요하면
---       마이그레이션은 potato 스키마 소유권을 가진 유저로 돌리거나, DDL 시에만 일시 GRANT.
---       (현 구조: alembic 이 스키마 소유자여야 함 → 아래 3) 참고)
+-- 주의: 마이그레이션(migrate.py, raw SQL)은 hanjul 로 도는데, potato 테이블 생성/변경이
+--       필요하면 마이그레이션은 potato 스키마 소유권을 가진 유저로 돌리거나, DDL 시에만 일시 GRANT.
+--       (현 구조: 마이그레이션 러너가 스키마 소유자여야 함 → 아래 3) 참고)
 
 -- 3) 마이그레이션 유저 처리 (택1)
 --   a. hanjul 이 스키마 소유자면: potato 테이블 DDL 은 hanjul 로 계속 가능하되 DML 은 위에서 REVOKE.
@@ -32,7 +32,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA potato REVOKE ALL ON TABLES FROM hanjul;
 --      ALTER SCHEMA potato OWNER TO potato_user;
 --      ALTER TABLE potato.operator OWNER TO potato_user;
 --      ALTER TABLE potato.audit_log OWNER TO potato_user;
---      → 그러면 alembic(hanjul)이 potato 테이블 DDL 불가 → potato 마이그레이션만 potato_user 로 실행.
+--      → 그러면 마이그레이션 러너(hanjul)가 potato 테이블 DDL 불가 → potato 마이그레이션만 potato_user 로 실행.
 --      초기 규모에선 (b)가 깔끔(potato 스키마를 potato_user 소유로 완전 격리).
 
 -- 적용 후: 앱 .env 에 POTATO_DATABASE_URL 주입

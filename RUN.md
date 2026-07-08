@@ -25,7 +25,7 @@ cd backend
 python3.12 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 cp .env.example .env
-.venv/bin/alembic upgrade head        # 스키마 생성: pub / usr / bill
+.venv/bin/python migrate.py            # 스키마 생성 (raw SQL, migrations/001_initial.sql)
 .venv/bin/python scripts/seed.py      # 샘플 한글책 시드 → bookId 출력
 .venv/bin/uvicorn main:app --port 28000 --reload   # http://localhost:28000  (문서 /docs)
 ```
