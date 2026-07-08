@@ -3,7 +3,7 @@
 리포지토리는 ORM 객체가 아니라 이 dataclass 들을 반환한다 → 서비스/표현 레이어가
 SQLAlchemy 에 의존하지 않고, 인메모리 Fake 로 테스트 가능.
 """
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from uuid import UUID
 
 from src.shared.errors import ForbiddenError, NotFoundError
@@ -51,15 +51,9 @@ def to_preview(content: BookView, limit: int) -> BookView:
         blocks = ch.blocks[:remaining]
         remaining -= len(blocks)
         chapters.append(ChapterView(id=ch.id, title=ch.title, order_no=ch.order_no, blocks=blocks))
-    return BookView(
-        id=content.id,
-        title=content.title,
-        kind=content.kind,
-        language=content.language,
-        status=content.status,
-        price_amt=content.price_amt,
-        chapters=chapters,
-    )
+    # replace = chapters만 잘라내고 나머지 필드(content_rating·preview_limit 등)는 그대로 보존.
+    # 과거엔 BookView를 일부 필드만 재구성해 content_rating이 조용히 ALL로 굳던 버그가 있었음.
+    return replace(content, chapters=chapters)
 
 
 def suggest_blurb(content: BookView, limit: int = 150) -> str:

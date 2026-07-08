@@ -11,6 +11,7 @@ from src.features.books.domain.models import (
     ChapterView,
     NotOwner,
     suggest_blurb,
+    to_preview,
 )
 
 from tests.fixtures.fake_book_repo import FakeBookRepository
@@ -45,6 +46,28 @@ def test_suggest_blurb_strips_html_and_truncates():
         ])],
     )
     assert suggest_blurb(long).endswith("…") and len(suggest_blurb(long)) == 151
+
+
+def test_to_preview_truncates_blocks_but_preserves_metadata():
+    """회귀가드: 미리보기는 앞 limit개 블록만 남기되 content_rating 등 메타는 보존해야 한다.
+    (과거 BookView 일부 필드만 재구성해 content_rating이 조용히 ALL로 굳던 버그.)"""
+    content = BookView(
+        id=uuid.uuid4(), title="t", kind="BOOK", language="ko", status="PUBLISHED",
+        price_amt=5000, preview_limit=1, content_rating="AGE18",
+        content_rating_detail={"violence": "AGE18"},
+        chapters=[ChapterView(id=uuid.uuid4(), title="1장", order_no=0, blocks=[
+            BlockView(id=uuid.uuid4(), order_no=0, block_type="P", html="<p>1</p>"),
+            BlockView(id=uuid.uuid4(), order_no=1, block_type="P", html="<p>2</p>"),
+        ])],
+    )
+    preview = to_preview(content, 1)
+    # 블록은 잘렸지만
+    assert sum(len(ch.blocks) for ch in preview.chapters) == 1
+    # 메타는 원본 그대로 보존
+    assert preview.content_rating == "AGE18"
+    assert preview.content_rating_detail == {"violence": "AGE18"}
+    assert preview.preview_limit == 1
+    assert preview.price_amt == 5000
 
 
 @pytest.fixture
