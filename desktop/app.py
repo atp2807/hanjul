@@ -100,6 +100,15 @@ class Api:
     def reorder_chapters(self, ids):
         return self._store.reorder_chapters(ids)
 
+    def list_snapshots(self, chapter_id):
+        return self._store.list_snapshots(chapter_id)
+
+    def take_snapshot(self, chapter_id, label=None):
+        return self._store.take_snapshot(chapter_id, label)
+
+    def restore_snapshot(self, snapshot_id):
+        return self._store.restore_snapshot(snapshot_id)
+
     def import_file(self, path=None):
         """원고 가져오기(P1 슬라이스3). path 가 없으면 OPEN 파일 다이얼로그를 띄운다
         (스모크/테스트는 path 를 직접 넘겨 다이얼로그를 건너뛴다). 다이얼로그 취소 시
@@ -199,6 +208,10 @@ def run_smoke(window, timeout_s=5.0, poll_interval_s=0.1):
       1) 마운트 — [contenteditable] 존재.
       2) 브리지 CRUD 왕복 — createChapter → saveChapter(html) → reorderChapters →
          (프로세스 재시작 없이) listChapters 로 순서, loadChapter 로 내용을 재확인.
+      3) 원고 가져오기(4번 항목 참고).
+      4) 스냅샷/되돌리기(P1 슬라이스6) — takeSnapshot → 내용 수정(saveChapter) →
+         restoreSnapshot 으로 원복 확인 + 복원 직전 자동 스냅샷("복원 전 자동")이
+         실제로 listSnapshots 에 남았는지까지 확인.
 
     주의(lr-9a45e6e4): pywebview evaluate_js 는 콜백 없이 쓰면 Promise 를 즉시
     JSON.stringify 해 "{}" 를 반환한다(별도 스레드에서 실제 처리가 끝나기 전에 값을
@@ -354,6 +367,56 @@ def run_smoke(window, timeout_s=5.0, poll_interval_s=0.1):
         results["import_result"] = import_result
         results["import_error"] = import_error
 
+        # 5) 스냅샷/되돌리기(P1 슬라이스6) — 3) 단계에서 만든 스모크 챕터(createdId)를 재사용:
+        #    지금 스냅샷 → 내용 수정 → 스냅샷으로 복원 → 원복 확인 + 복원 직전 자동
+        #    스냅샷("복원 전 자동")이 실제로 남았는지까지 확인한다. 참고: 3) 단계의
+        #    save_chapter 호출 자체가 이미 "최초 자동 스냅샷"(스냅샷 없음 → 즉시 생성)을
+        #    한 번 만들어 두므로, 여기서는 절대 개수가 아니라 호출 전후 델타로 비교한다.
+        window.evaluate_js(
+            """
+            window.__snapshotDone = false;
+            (async function () {
+              try {
+                const chapterId = window.__smokeResult.createdId;
+                const original = await window.pywebview.api.load_chapter(chapterId);
+                const beforeTake = await window.pywebview.api.list_snapshots(chapterId);
+                const taken = await window.pywebview.api.take_snapshot(chapterId, '스모크 라벨');
+                const afterTake = await window.pywebview.api.list_snapshots(chapterId);
+                const modifiedHtml = '<article data-juldoc="1"><p>스모크 수정본</p></article>';
+                await window.pywebview.api.save_chapter(chapterId, { html: modifiedHtml });
+                const afterModify = await window.pywebview.api.load_chapter(chapterId);
+                const restored = await window.pywebview.api.restore_snapshot(taken.id);
+                const afterRestore = await window.pywebview.api.list_snapshots(chapterId);
+                window.__snapshotResult = {
+                  snapshotsBeforeTake: beforeTake.length,
+                  snapshotsAfterTake: afterTake.length,
+                  takenLabelListed: afterTake.some((s) => s.id === taken.id && s.label === '스모크 라벨'),
+                  modifiedHtmlApplied: afterModify.html.includes('스모크 수정본'),
+                  restoredHtmlMatchesOriginal: restored.html === original.html,
+                  snapshotsAfterRestoreCount: afterRestore.length,
+                  restoreAutoSnapshotListed: afterRestore.some((s) => s.label === '복원 전 자동'),
+                };
+              } catch (e) {
+                window.__snapshotError = String(e && e.message ? e.message : e);
+              } finally {
+                window.__snapshotDone = true;
+              }
+            })();
+            """
+        )
+        deadline = time.monotonic() + timeout_s
+        snapshot_done = False
+        while time.monotonic() < deadline:
+            snapshot_done = bool(window.evaluate_js("window.__snapshotDone === true"))
+            if snapshot_done:
+                break
+            time.sleep(poll_interval_s)
+        snapshot_result = window.evaluate_js("window.__snapshotResult")
+        snapshot_error = window.evaluate_js("window.__snapshotError")
+        results["snapshot_bridge_done_within_timeout"] = snapshot_done
+        results["snapshot_result"] = snapshot_result
+        results["snapshot_error"] = snapshot_error
+
         results["ok"] = bool(
             app_mounted
             and results.get("contenteditable_present")
@@ -375,6 +438,16 @@ def run_smoke(window, timeout_s=5.0, poll_interval_s=0.1):
             and import_result.get("firstHtmlMatches")
             and import_result.get("secondTitle") == "스모크 2장"
             and import_result.get("secondHtmlMatches")
+            and snapshot_done
+            and snapshot_result
+            and not snapshot_error
+            and snapshot_result.get("snapshotsAfterTake") == snapshot_result.get("snapshotsBeforeTake", -1) + 1
+            and snapshot_result.get("takenLabelListed")
+            and snapshot_result.get("modifiedHtmlApplied")
+            and snapshot_result.get("restoredHtmlMatchesOriginal")
+            and snapshot_result.get("snapshotsAfterRestoreCount")
+            == snapshot_result.get("snapshotsAfterTake", -1) + 1
+            and snapshot_result.get("restoreAutoSnapshotListed")
         )
     except Exception as exc:  # 스모크 자체가 실패한 원인을 있는 그대로 남긴다.
         results["error"] = repr(exc)

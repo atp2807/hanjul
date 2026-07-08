@@ -53,6 +53,9 @@ function waitForPywebview(timeoutMs = READY_TIMEOUT_MS) {
  * @property {(id:number) => Promise<{ok:boolean}>} deleteChapter
  * @property {(ids:number[]) => Promise<{ok:boolean}>} reorderChapters
  * @property {() => Promise<{importedCount:number, chapterIds:number[]} | {cancelled:true}>} importFile
+ * @property {(chapterId:number) => Promise<SnapshotSummary[]>} listSnapshots
+ * @property {(chapterId:number, label?:string) => Promise<{id:number}>} takeSnapshot
+ * @property {(snapshotId:number) => Promise<ChapterSummary & {html:string}>} restoreSnapshot
  * @property {() => Promise<{apiBase:string|null, token:string|null, hasToken:boolean}>} getSettings
  * @property {(settings:{apiBase?:string, token?:string}) => Promise<{ok:boolean}>} saveSettings
  * @property {() => Promise<PublishResult>} publish
@@ -67,6 +70,14 @@ function waitForPywebview(timeoutMs = READY_TIMEOUT_MS) {
  * @property {string|null} email
  * @property {string|null} displayName
  * @property {string} role
+ */
+
+/**
+ * @typedef {Object} SnapshotSummary
+ * @property {number} id
+ * @property {string|null} label
+ * @property {string} createdAt
+ * @property {number} chars
  */
 
 /**
@@ -118,6 +129,15 @@ export function createPywebviewHost() {
     },
     async importFile() {
       return (await api()).import_file();
+    },
+    async listSnapshots(chapterId) {
+      return (await api()).list_snapshots(chapterId);
+    },
+    async takeSnapshot(chapterId, label) {
+      return (await api()).take_snapshot(chapterId, label ?? null);
+    },
+    async restoreSnapshot(snapshotId) {
+      return (await api()).restore_snapshot(snapshotId);
     },
     async getSettings() {
       return (await api()).get_settings();

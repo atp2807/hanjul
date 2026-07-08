@@ -4,6 +4,7 @@
 // (mountEditor 에 "다른 html 로 교체" API 가 없다 — 챕터=별개 DOM/에디터 인스턴스).
 import { mountEditor } from '../../doc/src/editor.js';
 import { nextStatus, moveChapter } from './chapterOrder.js';
+import { formatSnapshotTimestamp, formatSnapshotLabel } from './snapshotFormat.js';
 
 const STATUS_LABEL = { DRAFT: '초고', REVISING: '퇴고', DONE: '완료' };
 
@@ -20,11 +21,20 @@ export async function mountApp({ host, root }) {
       <span id="topbar-actions">
         <button type="button" id="login-btn" hidden>로그인</button>
         <button type="button" id="logout-btn" hidden>로그아웃</button>
+        <button type="button" id="snapshots-btn">기록</button>
         <button type="button" id="settings-btn">설정</button>
         <button type="button" id="publish-btn">발행</button>
       </span>
     </div>
     <div id="publish-result" hidden></div>
+    <div id="snapshots-panel" hidden>
+      <div id="snapshots-panel-header">
+        <span>스냅샷 기록</span>
+        <button type="button" id="take-snapshot-btn">지금 스냅샷</button>
+        <button type="button" id="snapshots-close-btn">닫기</button>
+      </div>
+      <ul id="snapshots-list"></ul>
+    </div>
     <div id="shell">
       <aside id="sidebar">
         <ul id="chapter-list"></ul>
@@ -49,6 +59,11 @@ export async function mountApp({ host, root }) {
   const authStatusEl = root.querySelector('#auth-status');
   const loginBtn = root.querySelector('#login-btn');
   const logoutBtn = root.querySelector('#logout-btn');
+  const snapshotsBtn = root.querySelector('#snapshots-btn');
+  const snapshotsPanelEl = root.querySelector('#snapshots-panel');
+  const snapshotsListEl = root.querySelector('#snapshots-list');
+  const takeSnapshotBtn = root.querySelector('#take-snapshot-btn');
+  const snapshotsCloseBtn = root.querySelector('#snapshots-close-btn');
 
   /** @type {import('./host.js').ChapterSummary[]} */
   let chapters = [];
@@ -172,6 +187,27 @@ export async function mountApp({ host, root }) {
     await host.reorderChapters(nextIds);
   }
 
+  // selectChapter()와 스냅샷 복원(restoreSnapshot 이후) 양쪽이 "챕터 id + html 로
+  // mountEditor 를 새로 붙인다"는 동일 작업을 하므로 공통 헬퍼로 뺐다(설계결정 5
+  // "복원 시 에디터 내용 갱신").
+  function mountEditorForChapter(chapterId, html) {
+    return mountEditor(editorEl, {
+      html,
+      onSave: async (saveHtml) => {
+        const res = await host.saveChapter(chapterId, { html: saveHtml });
+        setSaveStatus(`저장됨 · ${res.savedAt}`);
+        return res;
+      },
+      onDirty: (dirty) => {
+        if (dirty) setSaveStatus('편집 중… (자동저장 대기 2초)');
+      },
+      onStatus: (state, err) => {
+        if (state === 'saving') setSaveStatus('저장 중…');
+        if (state === 'error') setSaveStatus(`저장 실패: ${err?.message || err}`);
+      },
+    });
+  }
+
   async function selectChapter(id) {
     if (id === selectedId) return;
     // 챕터 전환 시 dirty 면 자동 save 후 전환(desc: "선택 챕터 chapter-at-a-time").
@@ -185,22 +221,64 @@ export async function mountApp({ host, root }) {
     const chapter = await host.loadChapter(id);
     selectedId = id;
     renderSidebar();
-    ctrl = mountEditor(editorEl, {
-      html: chapter.html,
-      onSave: async (html) => {
-        const res = await host.saveChapter(id, { html });
-        setSaveStatus(`저장됨 · ${res.savedAt}`);
-        return res;
-      },
-      onDirty: (dirty) => {
-        if (dirty) setSaveStatus('편집 중… (자동저장 대기 2초)');
-      },
-      onStatus: (state, err) => {
-        if (state === 'saving') setSaveStatus('저장 중…');
-        if (state === 'error') setSaveStatus(`저장 실패: ${err?.message || err}`);
-      },
-    });
+    ctrl = mountEditorForChapter(id, chapter.html);
   }
+
+  // 스냅샷 패널(P1 슬라이스6) — 상단바 [기록] 버튼 하나로 토글. 패널 이외 레이아웃은
+  // 건드리지 않는다(설계결정 5). html 은 목록에 없어(HOST_PORT.md listSnapshots) 가벼움.
+  async function renderSnapshotsList() {
+    if (selectedId == null) {
+      snapshotsListEl.innerHTML = '';
+      return;
+    }
+    const snapshots = await host.listSnapshots(selectedId);
+    snapshotsListEl.innerHTML = '';
+    for (const snap of snapshots) {
+      const li = document.createElement('li');
+      li.className = 'snapshot-row';
+
+      const meta = document.createElement('span');
+      meta.className = 'snapshot-meta';
+      meta.textContent =
+        `${formatSnapshotTimestamp(snap.createdAt)} · ${formatSnapshotLabel(snap.label)} · ${snap.chars}자`;
+
+      const restoreBtn = document.createElement('button');
+      restoreBtn.type = 'button';
+      restoreBtn.textContent = '복원';
+      restoreBtn.addEventListener('click', () => restoreSnapshot(snap.id));
+
+      li.append(meta, restoreBtn);
+      snapshotsListEl.appendChild(li);
+    }
+  }
+
+  async function restoreSnapshot(snapshotId) {
+    const restored = await host.restoreSnapshot(snapshotId);
+    // 복원된 챕터로 에디터 내용을 즉시 갱신(설계결정 4 "복원된 챕터 반환 → 에디터 리로드용").
+    if (ctrl) {
+      ctrl.destroy();
+      ctrl = null;
+    }
+    ctrl = mountEditorForChapter(selectedId, restored.html);
+    setSaveStatus('스냅샷 복원됨');
+    await renderSnapshotsList(); // 복원 직전 자동 스냅샷("복원 전 자동")이 새로 추가됐으니 목록도 갱신
+  }
+
+  snapshotsBtn.addEventListener('click', async () => {
+    const opening = snapshotsPanelEl.hidden;
+    snapshotsPanelEl.hidden = !opening;
+    if (opening) await renderSnapshotsList();
+  });
+
+  snapshotsCloseBtn.addEventListener('click', () => {
+    snapshotsPanelEl.hidden = true;
+  });
+
+  takeSnapshotBtn.addEventListener('click', async () => {
+    const label = window.prompt('스냅샷 라벨(선택, 비워두면 자동 저장으로 표시)', '');
+    await host.takeSnapshot(selectedId, label || undefined);
+    await renderSnapshotsList();
+  });
 
   newBtn.addEventListener('click', async () => {
     const title = window.prompt('새 챕터 제목', '');
