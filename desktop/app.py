@@ -7,10 +7,11 @@ packages/ide-core(웹뷰 앱)에 desktop/store.py(SQLite) 위에서 동작하는
 실행:
     cd desktop && .venv/bin/python app.py            # GUI 창
     cd desktop && .venv/bin/python app.py --smoke     # 자동 스모크(수 초 내 종료)
+    cd desktop && .venv/bin/python app.py --perf      # L0 성능 계측 하네스(dc-81277381, 숨김창)
 
 빌드 산출물 준비(최초 1회 또는 packages/ide-core/src 변경 후):
     npm install                       # 저장소 루트 — workspaces 등록
-    npm run build -w packages/ide-core   # dist/index.html 생성 — 이 앱이 그걸 로드한다
+    npm run build -w packages/ide-core   # dist/index.html + dist/perf.html 생성 — 이 앱이 그걸 로드한다
 """
 
 import argparse
@@ -38,6 +39,10 @@ from token_store import KeyringUnavailableError, delete_token, get_token, set_to
 
 BASE_DIR = Path(__file__).resolve().parent
 DIST_INDEX = BASE_DIR.parent / "packages" / "ide-core" / "dist" / "index.html"
+# --perf 전용 산출물(packages/ide-core/perf.html 진입점) — L0 계측 하네스(dc-81277381).
+# 챕터/호스트 브리지가 없는 별개 페이지라 Store/js_api 를 전혀 쓰지 않는다.
+PERF_INDEX = BASE_DIR.parent / "packages" / "ide-core" / "dist" / "perf.html"
+PERF_REPORT_PATH = BASE_DIR / "perf" / "report.json"
 
 # 발행 설정 화면(app.js settingsBtn 핸들러)이 쓰는 기본값과 동일 — 로그인 시에도 apiBase가
 # 아직 없으면(최초 실행) 같은 기본으로 폴백한다.
@@ -541,6 +546,73 @@ def run_smoke(window, timeout_s=5.0, poll_interval_s=0.1):
     window.destroy()
 
 
+def run_perf(window, timeout_s=60.0, poll_interval_s=0.1):
+    """L0 성능 계측 하네스 구동(dc-81277381) — packages/ide-core/src/perfMain.js 가 심어둔
+    ``window.__perfHarness.run()`` 을 완료 플래그 폴링으로 기다린다. run_smoke() 와 동일한
+    이유(lr-9a45e6e4): pywebview evaluate_js 는 Promise 를 동기적으로 풀지 못해 완료 전
+    값을 훔쳐보면 "{}" 를 반환하는 레이스가 있다 — 그래서 JS 쪽 완료 플래그를 심어두고
+    그 플래그가 설 때까지 폴링한다.
+
+    합성 챕터 3종(1만/3만/10만 자) × content-visibility on/off 총 6 설정 × 마운트/직렬화/
+    입력지연/스크롤 4항목을 실측하는 하네스라 --smoke 보다 오래 걸릴 수 있어 기본
+    타임아웃을 60초로 넉넉히 잡는다."""
+    results = {"ok": False}
+    try:
+        deadline = time.monotonic() + timeout_s
+        ready = False
+        while time.monotonic() < deadline:
+            ready = bool(window.evaluate_js("window.__perfHarness !== undefined"))
+            if ready:
+                break
+            time.sleep(poll_interval_s)
+        results["harness_ready_within_timeout"] = ready
+
+        window.evaluate_js(
+            """
+            window.__perfDone = false;
+            (async function () {
+              try {
+                window.__perfResult = await window.__perfHarness.run();
+              } catch (e) {
+                window.__perfError = String(e && e.message ? e.message : e);
+              } finally {
+                window.__perfDone = true;
+              }
+            })();
+            """
+        )
+
+        deadline = time.monotonic() + timeout_s
+        done = False
+        while time.monotonic() < deadline:
+            done = bool(window.evaluate_js("window.__perfDone === true"))
+            if done:
+                break
+            time.sleep(poll_interval_s)
+        results["perf_done_within_timeout"] = done
+
+        perf_result = window.evaluate_js("window.__perfResult")
+        perf_error = window.evaluate_js("window.__perfError")
+        results["perf_result"] = perf_result
+        results["perf_error"] = perf_error
+        # 완료 못 해도(타임아웃) 어디까지 진행됐는지 진단 — perfMain.js:__perfProgress.
+        results["perf_progress"] = window.evaluate_js("window.__perfProgress")
+        results["ok"] = bool(ready and done and perf_result and not perf_error)
+    except Exception as exc:  # 하네스 자체가 실패한 원인을 있는 그대로 남긴다.
+        results["error"] = repr(exc)
+        results["ok"] = False
+
+    print("PERF_RESULT " + json.dumps(results, ensure_ascii=False))
+    sys.stdout.flush()
+
+    PERF_REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    PERF_REPORT_PATH.write_text(
+        json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+
+    window.destroy()
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -549,11 +621,46 @@ def main():
         help="창을 띄운 뒤 자동으로 마운트/Host Port CRUD 왕복을 확인하고 종료",
     )
     parser.add_argument(
+        "--perf",
+        action="store_true",
+        help="L0 성능 계측 하네스(dc-81277381)를 숨김창으로 구동 — PERF_RESULT stdout + "
+        "desktop/perf/report.json 저장 후 종료. Store/js_api 없이 packages/ide-core의 "
+        "perf.html(mountEditor 단독)만 로드한다.",
+    )
+    parser.add_argument(
+        "--perf-timeout",
+        type=float,
+        default=60.0,
+        help="--perf 각 단계(하네스 준비/완료) 대기 타임아웃(초, 기본 60).",
+    )
+    parser.add_argument(
         "--db",
         default=None,
         help="대체 SQLite 파일 경로(검증/반복 실행용). 기본은 desktop/data/ide.db.",
     )
     args = parser.parse_args()
+
+    if args.perf:
+        # --perf 는 Store/js_api 가 전혀 필요 없다(챕터/호스트 브리지 미개입, perfMain.js
+        # 가 packages/doc mountEditor 를 직접 합성 데이터로 구동) — 그래서 DIST_INDEX 존재
+        # 확인·Store 생성 분기 전체를 건너뛴다.
+        if not PERF_INDEX.exists():
+            print(
+                f"빌드 산출물 없음: {PERF_INDEX}\n"
+                "먼저 저장소 루트에서 `npm install && npm run build -w packages/ide-core` 를 실행하세요.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        window = webview.create_window(
+            "한줄 IDE — L0 성능 계측",
+            str(PERF_INDEX),
+            width=900,
+            height=700,
+            hidden=True,  # 하네스는 항상 숨김창 — 창 깜빡임 금지 (lr-9a45e6e4)
+        )
+        window.events.loaded += lambda: run_perf(window, timeout_s=args.perf_timeout)
+        webview.start()
+        return
 
     if not DIST_INDEX.exists():
         print(

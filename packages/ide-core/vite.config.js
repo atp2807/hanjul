@@ -1,15 +1,25 @@
 import { defineConfig } from 'vite';
 import { fileURLToPath } from 'node:url';
 
+const ROOT_DIR = fileURLToPath(new URL('.', import.meta.url));
+
 // 호스트(pywebview/RN WebView)는 dist/index.html 을 file:// 로 로드한다 — 자산 경로가
 // 절대경로(/assets/..)면 깨지므로 base 를 상대경로로 고정한다
 // (desktop/webapp/vite.config.js:8 계승 — P0 스파이크에서 실측 확인된 제약).
 export default defineConfig({
-  root: fileURLToPath(new URL('.', import.meta.url)),
+  root: ROOT_DIR,
   base: './',
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    rollupOptions: {
+      // perf.html — L0 성능 계측 하네스(dc-81277381) 진입점. desktop/app.py --perf 가
+      // dist/perf.html 을 로드한다. index.html(앱 본체)과 별개 산출물.
+      input: {
+        main: `${ROOT_DIR}index.html`,
+        perf: `${ROOT_DIR}perf.html`,
+      },
+    },
   },
   server: {
     fs: {

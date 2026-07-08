@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>한줄 IDE — L0 성능 계측 하네스</title>
+    <style>
+      /* content-visibility on/off 비교용 — cv-on 클래스가 있을 때만 article 하위 블록에
+         적용한다. el.innerHTML 대입 시점부터 이미 이 규칙이 매칭되도록 스타일시트로
+         선언한다(마운트 후 JS 후처리로 style 을 붙이면 "이미 c-v 가 걸린 문서를 여는"
+         실제 시나리오와 달라진다 — dc-81277381 정정사항: c-v 는 layout/paint 만
+         스킵하고 DOM construction 은 그대로라 마운트 시간에 영향이 없어야 정상). */
+      #perf-container.cv-on article[data-juldoc] > * {
+        content-visibility: auto;
+        contain-intrinsic-size: auto 120px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="perf-status">L0 성능 계측 하네스 대기 중…</div>
+    <script type="module" src="/src/perfMain.js"></script>
+  </body>
+</html>
