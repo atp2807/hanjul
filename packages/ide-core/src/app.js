@@ -17,11 +17,13 @@ export async function mountApp({ host, root }) {
     <div id="topbar">
       <span id="book-title"></span>
       <span id="save-status">대기 중</span>
+      <span id="backup-status"></span>
       <span id="auth-status">확인 중…</span>
       <span id="topbar-actions">
         <button type="button" id="login-btn" hidden>로그인</button>
         <button type="button" id="logout-btn" hidden>로그아웃</button>
         <button type="button" id="snapshots-btn">기록</button>
+        <button type="button" id="backup-btn">백업</button>
         <button type="button" id="settings-btn">설정</button>
         <button type="button" id="publish-btn">발행</button>
       </span>
@@ -64,6 +66,8 @@ export async function mountApp({ host, root }) {
   const snapshotsListEl = root.querySelector('#snapshots-list');
   const takeSnapshotBtn = root.querySelector('#take-snapshot-btn');
   const snapshotsCloseBtn = root.querySelector('#snapshots-close-btn');
+  const backupBtn = root.querySelector('#backup-btn');
+  const backupStatusEl = root.querySelector('#backup-status');
 
   /** @type {import('./host.js').ChapterSummary[]} */
   let chapters = [];
@@ -98,6 +102,24 @@ export async function mountApp({ host, root }) {
       authStatusEl.textContent = `로그인 확인 실패: ${err?.message || err}`;
       loginBtn.hidden = false;
       logoutBtn.hidden = true;
+    }
+  }
+
+  // 백업 상태 표시(P1 슬라이스7) — [백업] 버튼 + "마지막 백업 시각" 한 자리(패널 추가 없음,
+  // dc-2009f043 계승). formatSnapshotTimestamp 는 스냅샷과 동일 시각 포맷(store.py _now_iso)
+  // 이라 그대로 재사용한다.
+  function renderBackupStatus(lastBackupAt) {
+    backupStatusEl.textContent = lastBackupAt
+      ? `마지막 백업: ${formatSnapshotTimestamp(lastBackupAt)}`
+      : '백업 안 됨';
+  }
+
+  async function refreshBackupStatus() {
+    try {
+      const { lastBackupAt } = await host.getBackupStatus();
+      renderBackupStatus(lastBackupAt);
+    } catch {
+      // 표시 갱신 실패는 조용히 무시 — 실제 백업 실행(backupNow)의 실패와는 별개 경로.
     }
   }
 
@@ -196,6 +218,10 @@ export async function mountApp({ host, root }) {
       onSave: async (saveHtml) => {
         const res = await host.saveChapter(chapterId, { html: saveHtml });
         setSaveStatus(`저장됨 · ${res.savedAt}`);
+        // saveChapter 는 호스트 쪽에서 자동 백업을 백그라운드로 "발사하고 잊는다" — 이
+        // 시점엔 아직 안 끝났을 수 있지만, 자연스러운 다음 저장 때 상태가 갱신돼 보인다
+        // (별도 폴링/이벤트 채널 없이 기존 저장 흐름에 얹은 최소 구현, P1 슬라이스7).
+        refreshBackupStatus();
         return res;
       },
       onDirty: (dirty) => {
@@ -332,6 +358,24 @@ export async function mountApp({ host, root }) {
     renderAuthState(null);
   });
 
+  // 수동 백업(P1 슬라이스7) — 자동 백업(saveChapter 후 15분 스로틀, 백그라운드)과 달리
+  // 실패를 사용자에게 그대로 보여준다(host.backupNow()가 삼키지 않고 에러를 던짐).
+  backupBtn.addEventListener('click', async () => {
+    backupBtn.disabled = true;
+    const originalLabel = backupBtn.textContent;
+    backupBtn.textContent = '백업 중…';
+    try {
+      const result = await host.backupNow();
+      renderBackupStatus(result.backedUpAt);
+      setSaveStatus(`백업 완료 — 저장 ${result.savedCount}개 · 변경없음 ${result.skippedCount}개`);
+    } catch (err) {
+      setSaveStatus(`백업 실패: ${err?.message || err}`);
+    } finally {
+      backupBtn.disabled = false;
+      backupBtn.textContent = originalLabel;
+    }
+  });
+
   // 발행 설정(P1 슬라이스4) — apiBase/token 수동 입력(prompt 관례, 이 슬라이스는
   // OAuth 없음 — 다음 슬라이스에서 대체). getSettings() 의 token 은 마스킹된 값이라
   // "새 값"으로 그대로 되돌려 넣지 않는다 — 비워두면 기존 값 유지.
@@ -423,6 +467,7 @@ export async function mountApp({ host, root }) {
 
   await loadAll();
   await refreshAuthState();
+  await refreshBackupStatus();
 
   return {
     destroy() {

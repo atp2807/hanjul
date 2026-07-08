@@ -57,12 +57,19 @@ body {
   flex: 1 1 auto;
 }
 
+#backup-status {
+  opacity: 0.7;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
 #topbar-actions {
   display: flex;
   gap: 8px;
 }
 
 #snapshots-btn,
+#backup-btn,
 #settings-btn,
 #publish-btn {
   padding: 6px 12px;
@@ -73,6 +80,7 @@ body {
   cursor: pointer;
 }
 
+#backup-btn:disabled,
 #publish-btn:disabled {
   opacity: 0.6;
   cursor: default;

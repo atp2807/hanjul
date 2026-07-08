@@ -17,18 +17,23 @@ import argparse
 import json
 import sys
 import tempfile
+import threading
 import time
+from datetime import datetime
 from pathlib import Path
 from urllib.parse import quote
 
 import webview
 
 from auth_flow import run_login_flow
+from backup import backup_now as push_backup  # P1 슬라이스7 — backup.py:38
 from importer import import_manuscript
 # _request 재사용 — publisher.py:179 (stdlib urllib 기반 HTTP 헬퍼, 새 의존성 없이 재사용)
 from publisher import PublishHttpError, _request
 from publisher import publish as publish_book
 from store import Store
+from store import _now_iso as _local_now_iso  # 백업시각도 store.py 와 동일 포맷/시계 사용
+from store import _parse_ts as _local_parse_ts  # 위와 동일 포맷으로 되읽기(스로틀 경과시간 계산)
 from token_store import KeyringUnavailableError, delete_token, get_token, set_token
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -37,6 +42,12 @@ DIST_INDEX = BASE_DIR.parent / "packages" / "ide-core" / "dist" / "index.html"
 # 발행 설정 화면(app.js settingsBtn 핸들러)이 쓰는 기본값과 동일 — 로그인 시에도 apiBase가
 # 아직 없으면(최초 실행) 같은 기본으로 폴백한다.
 _DEFAULT_API_BASE = "http://127.0.0.1:28000"
+
+# 자동 백업(P1 슬라이스7) 최소 간격 — saveChapter 처리 후 마지막 백업이 이보다 오래됐을 때만
+# (또는 아예 없을 때) 백그라운드로 자동 백업을 시도한다. store.py 스냅샷의
+# SNAPSHOT_AUTO_INTERVAL_S(10분)보다 여유를 둬 서버 부하를 낮춘다 — 로컬 스냅샷은 "글이 안
+# 날아간다" 안전망이라 더 촘촘해야 하고, 서버 백업은 네트워크 왕복이 있는 이차 안전망이다.
+_AUTO_BACKUP_INTERVAL_S = 900  # 15분
 
 # pywebview create_file_dialog 의 file_types 포맷: "설명 (*.ext[;*.ext...])"
 # (실측: desktop/.venv/lib/python3.14/site-packages/webview/window.py:534-535 docstring).
@@ -78,6 +89,10 @@ class Api:
     def __init__(self, store):
         self._store = store
         self._window = None  # main() 이 create_window 직후 채운다(파일 다이얼로그용).
+        # 자동 백업(P1 슬라이스7) 중복 발사 방지 — 프로세스 메모리로 충분(재시작하면 리셋돼도
+        # 무해, 어차피 last_backup_at 스로틀이 다시 걸린다).
+        self._auto_backup_lock = threading.Lock()
+        self._auto_backup_in_flight = False
 
     def get_book(self):
         return self._store.get_book()
@@ -89,7 +104,15 @@ class Api:
         return self._store.load_chapter(chapter_id)
 
     def save_chapter(self, chapter_id, patch):
-        return self._store.save_chapter(chapter_id, patch)
+        """저장 자체는 항상 로컬 우선 — 반환 직전 자동 백업 조건을 확인해 필요하면 백그라운드
+        스레드로 push 를 "발사하고 잊는다"(fire-and-forget). 스레드 시작 자체가 실패해도
+        (극히 드묾) save_chapter 결과에는 영향 없다 — 저장은 이미 끝난 뒤다."""
+        result = self._store.save_chapter(chapter_id, patch)
+        try:
+            self._maybe_auto_backup()
+        except Exception:
+            pass  # 자동 백업 트리거 판단조차 저장을 막아선 안 된다(설계결정 3, 로컬우선).
+        return result
 
     def create_chapter(self, title):
         return self._store.create_chapter(title)
@@ -156,6 +179,66 @@ class Api:
         raw = self._store.get_settings()
         effective_settings = {**raw, "token": _effective_token(raw)}
         return publish_book(self._store, effective_settings)
+
+    # ── 백업 push(P1 슬라이스7) ──────────────────────────────────────────
+
+    def _effective_publish_settings(self):
+        """publish()/backup_now() 공용 — keyring 우선·평문 폴백 토큰을 채운 설정 dict."""
+        raw = self._store.get_settings()
+        return {**raw, "token": _effective_token(raw)}
+
+    def backup_now(self):
+        """수동 백업("백업" 버튼) — 결과에 ``backedUpAt``(로컬 ISO 시각)을 얹어 반환한다.
+        실패(연결 실패·4xx/5xx·미로그인 등)는 예외를 그대로 올린다 — 자동 백업과 달리
+        사용자가 명시적으로 누른 동작이라 조용히 삼키지 않는다(ide-core 가 실패를 표시)."""
+        settings = self._effective_publish_settings()
+        result = push_backup(self._store, settings)
+        backed_up_at = _local_now_iso()
+        self._store.set_last_backup_at(backed_up_at)
+        return {**result, "backedUpAt": backed_up_at}
+
+    def get_backup_status(self):
+        """상단바 "마지막 백업 시각" 표시용 — 네트워크 호출 없이 로컬에 저장된 마지막 성공
+        시각만 읽는다(백업한 적 없으면 None)."""
+        return {"lastBackupAt": self._store.get_last_backup_at()}
+
+    def _maybe_auto_backup(self):
+        """saveChapter 성공 직후 호출 — 토큰이 있고 마지막 "성공한" 백업이 15분보다
+        오래됐으면(또는 아예 없으면) 백그라운드 스레드로 best-effort 백업을 발사한다.
+
+        `last_backup_at`은 성공한 백업만 기록한다(상단바 표시가 거짓으로 "방금 백업됨"을
+        보여주지 않도록) — 대신 짧은 간격의 중복 발사는 인스턴스 플래그
+        `_auto_backup_in_flight`(락으로 보호, DB 아닌 메모리 — 프로세스 생존 기간만
+        유효하면 충분)로 막는다. 트레이드오프: 네트워크가 계속 끊겨 있으면 saveChapter 마다
+        재시도 스레드가 뜬다(15분 대기 없이) — best-effort·데몬 스레드라 무해하고, 오히려
+        연결이 곧 복구됐을 때 15분을 기다리지 않고 바로 이어지는 편이 낫다고 판단했다.
+        """
+        settings = self._effective_publish_settings()
+        token = settings.get("token")
+        if not token:
+            return
+        last = self._store.get_last_backup_at()
+        if last is not None:
+            elapsed = (datetime.now() - _local_parse_ts(last)).total_seconds()
+            if elapsed < _AUTO_BACKUP_INTERVAL_S:
+                return
+        with self._auto_backup_lock:
+            if self._auto_backup_in_flight:
+                return  # 이미 백그라운드 백업 진행 중 — 중복 스레드 방지
+            self._auto_backup_in_flight = True
+        threading.Thread(target=self._run_background_backup, args=(settings,), daemon=True).start()
+
+    def _run_background_backup(self, settings):
+        """백그라운드 스레드 본체 — 실패해도 절대 앱에 드러나지 않는다(로컬우선 원칙,
+        설계결정 3). 성공했을 때만 last_backup_at 을 갱신한다."""
+        try:
+            push_backup(self._store, settings)
+            self._store.set_last_backup_at(_local_now_iso())
+        except Exception:
+            pass  # best-effort — 실패를 삼킨다(타이핑·저장은 이미 끝난 뒤라 영향 없음)
+        finally:
+            with self._auto_backup_lock:
+                self._auto_backup_in_flight = False
 
     def login(self):
         """실 로그인(P1 슬라이스5) — 시스템 브라우저 Google OAuth + 루프백 콜백 + 키체인 저장.

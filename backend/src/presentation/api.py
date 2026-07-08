@@ -18,6 +18,7 @@ from src.features.catalog.presentation.endpoints import router as catalog_router
 from src.features.cover.presentation.endpoints import router as cover_router
 from src.features.distribution.presentation.endpoints import router as distribution_router
 from src.features.doc.presentation.endpoints import router as doc_router
+from src.features.manuscript.presentation.endpoints import router as manuscript_router
 from src.features.notifications.presentation.endpoints import router as notifications_router
 from src.features.payouts.presentation.endpoints import router as payouts_router
 from src.features.potato.presentation.accounts import router as potato_accounts_router
@@ -65,3 +66,4 @@ router.include_router(content_rating_router)  # 콘텐츠 연령등급 — 기�
 router.include_router(hwp_import_router)  # HWP/HWPX 원고 가져오기 — 상태 없는 파싱(로그인만)
 router.include_router(pdf_import_router)  # PDF 원고 가져오기 — 상태 없는 파싱(로그인만)
 router.include_router(doc_router)  # 한줄독(구 juldoc) 문서·공유·미디어 — 비로그인 허용(점진 잠금)
+router.include_router(manuscript_router)  # 한줄 IDE 원고 백업(일방향 push) — 인증 필수

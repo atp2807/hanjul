@@ -19,6 +19,15 @@ book.remote_book_id / setting(P1 슬라이스4, 발행 연결) — 기존 DB 파
 `save_settings()` 참고. `snapshot` 도 완전 신규 테이블이라 같은 이유로 `CREATE TABLE
 IF NOT EXISTS` 로 충분하다(컬럼 추가 마이그레이션 불필요).
 
+book.sync_key(P1 슬라이스7, 백업 push) — remote_book_id 와 동일한 멱등 ALTER 패턴이지만
+용도가 다르다: remote_book_id 는 "발행된 서버 책 UUID"(없을 수 있음, 발행 전엔 NULL)인
+반면 sync_key 는 "이 로컬 책의 영구 식별자"로 최초 오픈 시 즉시 채워진다(`_ensure_sync_key()`
+— 컬럼 추가 직후 NULL 이면 곧바로 uuid4 생성 후 저장, 이후 절대 재생성하지 않음). 서버
+`ms.manuscript_book.sync_key`(UNIQUE)와 짝을 이뤄 재설치/재발행에도 같은 책으로 인식된다.
+`last_backup_at` 도 `setting` 테이블(key/value)에 저장 — 자동 백업의 15분 스로틀 판단과
+상단바 "마지막 백업 시각" 표시 양쪽에 쓰인다(앱 재시작 후에도 스로틀이 유지되도록 세션
+메모리가 아니라 DB에 영속화).
+
 snapshot 테이블은 의도적으로 `chapter_id` 에 FK 를 걸지 않는다 — "글이 안 날아간다"
 안전망 원칙상 챕터가 삭제돼도 스냅샷은 남아야 하는데, `REFERENCES chapter(id)`
 (ON DELETE 절 없음, 기본 NO ACTION)를 걸면 `PRAGMA foreign_keys = ON` 상태에서
@@ -36,6 +45,7 @@ delete_chapter() 가 즉시 제약 위반으로 실패한다(스냅샷이 남아
 import re
 import sqlite3
 import time
+import uuid
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
@@ -123,6 +133,7 @@ class Store:
         self._now_fn = now_fn or _now_iso
         self._init_schema()
         self._ensure_seed()
+        self._ensure_sync_key()
 
     def _connect(self):
         conn = sqlite3.connect(str(self.db_path))
@@ -183,6 +194,9 @@ class Store:
             # remote_book_id — P1 슬라이스4(발행 연결). 기존 DB 파일에 멱등 추가:
             # PRAGMA table_info 로 이미 있는지 먼저 확인한 뒤에만 ALTER(재실행 시 중복 에러 방지).
             self._ensure_column(conn, "book", "remote_book_id", "TEXT")
+            # sync_key — P1 슬라이스7(백업 push). 컬럼만 여기서 멱등 추가, 값 채우기는
+            # _ensure_sync_key()(컬럼 추가와 별도 단계 — 기존 행엔 컬럼 추가 직후 NULL이라).
+            self._ensure_column(conn, "book", "sync_key", "TEXT")
 
     @staticmethod
     def _ensure_column(conn, table, column, coltype):
@@ -208,6 +222,21 @@ class Store:
                    (book_id, title, synopsis, status_cd, order_no, html, created_ts, updated_ts)
                    VALUES (?, ?, '', 'DRAFT', 0, ?, ?, ?)""",
                 (book_id, DEFAULT_CHAPTER_TITLE, DEFAULT_CHAPTER_HTML, now, now),
+            )
+
+    def _ensure_sync_key(self):
+        """컬럼 추가 직후(또는 sync_key 도입 전 DB 파일 재오픈 시) NULL 이면 즉시 uuid4 로
+        채운다 — 한 번 채워지면 재생성하지 않는다(get_remote_book_id 재사용 없이 매 오픈마다
+        새 값이 생기면 서버 쪽 백업 이력이 책마다 흩어져버린다)."""
+        with self._session() as conn:
+            book_id = self._get_book_id(conn)
+            if book_id is None:
+                return
+            row = conn.execute("SELECT sync_key FROM book WHERE id = ?", (book_id,)).fetchone()
+            if row is not None and row["sync_key"]:
+                return
+            conn.execute(
+                "UPDATE book SET sync_key = ? WHERE id = ?", (str(uuid.uuid4()), book_id)
             )
 
     def _get_book_id(self, conn):
@@ -349,6 +378,34 @@ class Store:
             rows = conn.execute("SELECT key, value FROM setting").fetchall()
         values = {row["key"]: row["value"] for row in rows}
         return {"apiBase": values.get("api_base"), "token": values.get("token")}
+
+    # ── 백업 push(P1 슬라이스7) ──────────────────────────────────────────
+
+    def get_sync_key(self):
+        """현재 book 의 영구 식별자(UUID 문자열) — __init__ 에서 이미 채워져 있으므로
+        항상 값이 있다(신규 book 이 아직 없는 경우에만 None)."""
+        with self._session() as conn:
+            book_id = self._get_book_id(conn)
+            if book_id is None:
+                return None
+            row = conn.execute("SELECT sync_key FROM book WHERE id = ?", (book_id,)).fetchone()
+            return row["sync_key"] if row else None
+
+    def get_last_backup_at(self):
+        """마지막 백업 성공 시각(ISO 문자열) — 없으면(백업한 적 없음) None."""
+        with self._session() as conn:
+            row = conn.execute(
+                "SELECT value FROM setting WHERE key = 'last_backup_at'"
+            ).fetchone()
+            return row["value"] if row else None
+
+    def set_last_backup_at(self, iso_ts):
+        with self._session() as conn:
+            conn.execute(
+                """INSERT INTO setting (key, value) VALUES ('last_backup_at', ?)
+                   ON CONFLICT(key) DO UPDATE SET value = excluded.value""",
+                (iso_ts,),
+            )
 
     def save_settings(self, patch):
         """patch 에 담긴 필드(apiBase/token)만 upsert — 나머지는 보존."""

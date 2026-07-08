@@ -62,6 +62,8 @@ function waitForPywebview(timeoutMs = READY_TIMEOUT_MS) {
  * @property {() => Promise<Whoami>} login
  * @property {() => Promise<{ok:boolean}>} logout
  * @property {() => Promise<Whoami|null>} whoami
+ * @property {() => Promise<BackupResult>} backupNow
+ * @property {() => Promise<{lastBackupAt:string|null}>} getBackupStatus
  */
 
 /**
@@ -78,6 +80,13 @@ function waitForPywebview(timeoutMs = READY_TIMEOUT_MS) {
  * @property {string|null} label
  * @property {string} createdAt
  * @property {number} chars
+ */
+
+/**
+ * @typedef {Object} BackupResult
+ * @property {number} savedCount
+ * @property {number} skippedCount
+ * @property {string} backedUpAt
  */
 
 /**
@@ -156,6 +165,12 @@ export function createPywebviewHost() {
     },
     async whoami() {
       return (await api()).whoami();
+    },
+    async backupNow() {
+      return (await api()).backup_now();
+    },
+    async getBackupStatus() {
+      return (await api()).get_backup_status();
     },
   };
 }
