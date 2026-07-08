@@ -4,6 +4,7 @@ import logging
 import os
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
+from zoneinfo import ZoneInfo
 
 # 모든 ORM 모델을 metadata에 등록 (create_all/Alembic 인식용)
 import src.infrastructure.db.models  # noqa: F401
@@ -81,8 +82,18 @@ async def remind_due_soon(session, now, within_days: int = 2) -> int:
     return len(due)
 
 
+async def run_weekly_settlement_job(session, run_date) -> int:
+    """매주 수요일 고정 정산 배치(lr-a0a8bda9) — 환불세이프 미지급 정산을 작가별로 묶어
+    payout(REQUESTED)을 생성한다. run_date 당 최대 1회(PayoutService.run_weekly_settlement
+    의 claim_settlement_run 멱등 가드). 생성된 payout 건수 반환."""
+    from src.features.payouts.application.payout_service import PayoutService
+    from src.features.payouts.infrastructure.payout_repo import SqlPayoutRepository
+
+    return await PayoutService(SqlPayoutRepository(session)).run_weekly_settlement(run_date)
+
+
 async def _publish_scheduler():
-    """주기 작업: 예약 발행 + 신간 알림, 서평단 마감임박 알림."""
+    """주기 작업: 예약 발행 + 신간 알림, 서평단 마감임박 알림, 매주 수요일 정산 배치."""
     from src.config.database import get_session_factory
 
     while True:
@@ -94,6 +105,12 @@ async def _publish_scheduler():
                 if n:
                     logger.info("예약발행 %d건 자동 게시", n)
                 await remind_due_soon(session, now)
+
+                now_kst = datetime.now(ZoneInfo("Asia/Seoul"))
+                if now_kst.weekday() == 2:  # 수요일(월=0)
+                    settled = await run_weekly_settlement_job(session, now_kst.date())
+                    if settled:
+                        logger.info("주간정산 %d건 payout 생성", settled)
         except Exception:
             logger.exception("스케줄러 오류")
 

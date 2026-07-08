@@ -1,5 +1,5 @@
 """payouts SQLAlchemy 어댑터 — bill.bank_account / bill.payout / settlement 집계."""
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from uuid import UUID, uuid4
 
 from sqlalchemy import func, or_, select, update
@@ -13,7 +13,7 @@ from src.features.payouts.domain.models import (
 )
 from src.infrastructure.db.models.book import Book
 from src.infrastructure.db.models.order import Order, Settlement
-from src.infrastructure.db.models.payout import BankAccount, Payout
+from src.infrastructure.db.models.payout import BankAccount, Payout, SettlementRun
 
 
 def _acct_view(a: BankAccount) -> BankAccountView:
@@ -193,3 +193,46 @@ class SqlPayoutRepository:
             )
         await self.session.commit()
         return True
+
+    # ── 주간 정산 배치(lr-a0a8bda9) ────────────────────
+    async def authors_with_payable(self) -> list[UUID]:
+        """환불세이프 미지급 정산이 있는 작가(distinct) 전체 — _unpaid_stmt와 같은 조인·조건에서
+        author_id 필터만 뺀 버전(단일 작가가 아니라 배치 대상 전체를 찾을 때 씀)."""
+        rows = (
+            await self.session.execute(
+                select(Book.author_id)
+                .select_from(Settlement)
+                .join(Order, Order.id == Settlement.order_id)
+                .join(Book, Book.id == Order.book_id)
+                .where(
+                    Book.author_id.isnot(None),
+                    Order.status == "PAID",
+                    Order.channel != "REVIEW",
+                    Settlement.payout_id.is_(None),
+                    self._refund_safe_cond(),
+                )
+                .distinct()
+            )
+        ).scalars().all()
+        return list(rows)
+
+    async def claim_settlement_run(self, run_date: date) -> bool:
+        """run_date UNIQUE 로 멱등 클레임 — 이미 실행됐으면 False, 아니면 행을 만들고 True.
+        스케줄러가 단일 태스크(앱 내 동시성 없음)라 조회 후 삽입만으로 충분히 안전하다."""
+        existing = (
+            await self.session.execute(
+                select(SettlementRun).where(SettlementRun.run_date == run_date)
+            )
+        ).scalar_one_or_none()
+        if existing is not None:
+            return False
+        self.session.add(SettlementRun(id=uuid4(), run_date=run_date))
+        await self.session.commit()
+        return True
+
+    async def record_settlement_run_count(self, run_date: date, count: int) -> None:
+        """감사용 — 해당 run의 payout 생성 건수 기록."""
+        await self.session.execute(
+            update(SettlementRun).where(SettlementRun.run_date == run_date).values(payout_count=count)
+        )
+        await self.session.commit()

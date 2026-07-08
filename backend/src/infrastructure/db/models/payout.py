@@ -7,7 +7,7 @@ bank_account = 작가 출금계좌(계좌번호 암호화). payout = 미지급 �
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Numeric, String
+from sqlalchemy import Boolean, Column, Date, DateTime, ForeignKey, Integer, Numeric, String
 from sqlalchemy.dialects.postgresql import UUID
 
 from src.config.database import Base
@@ -55,3 +55,15 @@ class Payout(Base):
     memo = Column(String(500))
     # woncheon 원천징수 신고 완료 마커(lr-ac61f505 커넥터). NULL = 미신고(보류/실패 포함).
     woncheon_reported_at = Column("woncheon_reported_ts", DateTime(timezone=True), nullable=True)
+
+
+class SettlementRun(Base):
+    """매주 수요일 고정 정산 배치(lr-a0a8bda9) 멱등 가드 — run_date UNIQUE 로 주1회만 실행."""
+    __tablename__ = "settlement_run"
+    __table_args__ = {"schema": "bill"}
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    # 속성=친화명 / 컬럼=접미어(_dt·_cnt) — 네이밍 규칙(lint_naming) 준수.
+    run_date = Column("run_dt", Date, nullable=False, unique=True)
+    payout_count = Column("payout_cnt", Integer, nullable=False, default=0)
+    created_at = Column("created_ts", DateTime(timezone=True), default=_now, nullable=False)

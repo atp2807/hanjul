@@ -4,7 +4,7 @@
      → 운영자 승인(APPROVED) → 실이체 후 지급완료(PAID). 반려(REJECTED)면 정산분 회수.
 """
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 from typing import Protocol
 from uuid import UUID
 
@@ -111,4 +111,17 @@ class PayoutRepository(Protocol):
 
         REJECTED 전이는 정산분 회수(settlement.payout_id NULL)까지 같은 트랜잭션.
         """
+        ...
+
+    # 매주 수요일 고정 정산 배치(lr-a0a8bda9)
+    async def authors_with_payable(self) -> list[UUID]:
+        """환불세이프 미지급 정산이 있는 작가(distinct) 전체 — 배치 대상 조회."""
+        ...
+
+    async def claim_settlement_run(self, run_date: date) -> bool:
+        """run_date 배치를 이 호출이 최초로 실행하는지 클레임(멱등 가드). 이미 실행됐으면 False."""
+        ...
+
+    async def record_settlement_run_count(self, run_date: date, count: int) -> None:
+        """감사용 — 해당 run의 payout 생성 건수 기록."""
         ...

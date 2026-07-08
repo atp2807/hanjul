@@ -1,6 +1,6 @@
 """payouts 서비스 — 작가(계좌·출금신청) + 운영자(승인·지급·반려)."""
 import logging
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from uuid import UUID
 
 from src.features.payouts.application.crypto import encrypt, mask_account
@@ -62,6 +62,28 @@ class PayoutService:
 
     async def list_payouts(self, author_id: UUID) -> list[PayoutView]:
         return await self.repo.list_payouts(author_id)
+
+    # ── 매주 수요일 고정 정산 배치(lr-a0a8bda9) ───────
+    async def run_weekly_settlement(self, run_date: date) -> int:
+        """환불세이프 미지급 정산이 있는 작가 전부를 훑어 payout(REQUESTED)을 생성한다.
+
+        run_date 당 최대 1회만 실제 실행(claim_settlement_run 멱등 가드) — 스케줄러가
+        같은 수요일에 여러 번 불러도(30초 주기) 2회차부터는 즉시 0을 반환한다. 계좌
+        미등록 작가는 스킵(다음 수요일 재시도) — 자기명의 신청(POST /me/payouts)과
+        환불세이프 게이트(create_payout/_unpaid_stmt)를 그대로 공유하므로 이중지급 위험 없음.
+        """
+        if not await self.repo.claim_settlement_run(run_date):
+            return 0
+        count = 0
+        for author_id in await self.repo.authors_with_payable():
+            account = await self.repo.get_bank_account(author_id)
+            if account is None:
+                continue
+            payout = await self.repo.create_payout(author_id, account)
+            if payout is not None:
+                count += 1
+        await self.repo.record_settlement_run_count(run_date, count)
+        return count
 
     # ── 운영자 ────────────────────────────────────────
     async def list_for_ops(self, status: str | None = REQUESTED) -> list[PayoutView]:
